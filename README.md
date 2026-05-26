@@ -189,7 +189,35 @@ Codex support in this fork is driven by the bundled plugin manifest:
 
 - bundled `skills/`
 
-If your Codex environment supports plugin search/installation UI, install `tungnt-ai-skills` there when published. For local/manual setup, use the manifest in this repo.
+#### Codex CLI
+
+If your Codex CLI environment supports plugin search/installation UI, install `tungnt-ai-skills` there when this fork is published in your target marketplace.
+
+- Open the plugin search interface:
+
+```text
+/plugins
+```
+
+- Search for:
+
+```text
+tungnt-ai-skills
+```
+
+- Select `Install Plugin`.
+
+If you are using this fork before publishing it anywhere, install it from the local manifest in this repo instead.
+
+#### Codex App
+
+If your Codex App environment supports plugin installation UI for this fork:
+
+- Open Plugins in the sidebar
+- Search for `tungnt-ai-skills`
+- Click `+` and follow the prompts
+
+If the fork is not published in your Codex App marketplace, use the local/manual plugin setup based on `.codex-plugin/plugin.json`.
 
 The plugin/package name is:
 
@@ -230,6 +258,16 @@ Cursor support in this fork is described by:
 
 If your Cursor environment supports plugin import from a local repo or manifest, use that file and keep the repo's `skills/`, `hooks/`, and related plugin assets together.
 
+### Factory Droid
+
+If you publish this fork into a Factory Droid marketplace or repo-backed install flow, install it there using the fork name:
+
+```text
+tungnt-ai-skills
+```
+
+If it is not published in your Droid environment yet, use the repository as the source of truth and wire the bootstrap and bundled skills in the same way as the other harnesses.
+
 ### Gemini
 
 - Install the extension from this fork's repository:
@@ -250,6 +288,19 @@ Main Gemini files:
 - `gemini-extension.json`
 
 The extension/bootstrap configuration must point to `using-tungnt-ai-skills`.
+
+### GitHub Copilot CLI
+
+If you expose this fork through a Copilot-compatible marketplace, keep the package name aligned with this fork:
+
+```text
+tungnt-ai-skills
+```
+
+If the fork is not published in your Copilot CLI environment yet, use the same repository-driven bootstrap expectations as the other harnesses:
+
+- load `using-tungnt-ai-skills` at session start
+- expose the bundled `skills/` directory
 
 ### Other harnesses
 
