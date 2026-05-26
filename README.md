@@ -298,7 +298,7 @@ copilot plugin marketplace add tungnt1405/ai-skills
 - Install the plugin:
 
 ```bash
-copilot plugin install tungnt-ai-skills@ai-skills
+copilot plugin install tungnt-ai-skills@tungnt-dev
 ```
 
 ### Other harnesses
