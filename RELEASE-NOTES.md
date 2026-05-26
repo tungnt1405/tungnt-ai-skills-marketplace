@@ -17,14 +17,9 @@ Start every session with the bootstrap:
 
 - `using-tungnt-ai-skills`
 
-The bootstrap decides which skill family to use next.
+The bootstrap decides which skill or collection to use next.
 
-This fork currently uses:
-
-- `SPS` for workflow and execution skills
-- `CXT7` for context-oriented material
-- `API` for API guidance
-- `AUTH_SECURITY` for auth and security guidance
+This fork currently uses the root `skills/` workflow collection for workflow and execution skills.
 
 ## Skill Naming
 

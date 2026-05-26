@@ -20,16 +20,14 @@ Those legacy names are compatibility details, not the primary branding of this f
 ## What Is Different In This Fork
 
 - bootstrap skill is `using-tungnt-ai-skills`
-- workflow skills are curated under `skills/SPS/`
-- additional families live under `skills/CXT7/`, `skills/API/`, and `skills/AUTH_SECURITY/`
+- workflow skills are curated under `skills/`
 - plugin/package metadata is forked to `tungnt-ai-skills`
 - contributor docs and harness bootstrap rules are adjusted for this repo’s structure
 
 ## Repository Layout
 
 - `skills/using-tungnt-ai-skills/` bootstrap skill and platform references
-- `skills/SPS/` workflow skills forked and curated from the upstream system
-- `skills/CXT7/`, `skills/API/`, `skills/AUTH_SECURITY/` fork-specific additional families
+- `skills/` workflow skills forked and curated from the upstream system
 - `docs/superpowers/` active plans/specs root kept for compatibility
 - `hooks/` session bootstrap and cross-platform hook wrappers
 - `.codex-plugin/` Codex plugin manifest for this fork
@@ -41,7 +39,7 @@ Those legacy names are compatibility details, not the primary branding of this f
 The intended flow is still derived from Superpowers, but this fork uses its own bootstrap and layout:
 
 1. Start with `using-tungnt-ai-skills`
-2. Choose the relevant family, usually `SPS`
+2. Choose the relevant collection, usually the root workflow skills in `skills/`
 3. Use `brainstorming` for design work
 4. Use `writing-plans` for implementation planning
 5. Use `using-git-worktrees` before isolated execution when needed
@@ -60,7 +58,7 @@ Use `using-tungnt-ai-skills` first.
 
 This skill tells the agent:
 
-- which skill family to inspect
+- which skill collection to inspect
 - which repository layout rules are active in this fork
 - which legacy paths are intentional compatibility paths
 
@@ -291,16 +289,17 @@ The extension/bootstrap configuration must point to `using-tungnt-ai-skills`.
 
 ### GitHub Copilot CLI
 
-If you expose this fork through a Copilot-compatible marketplace, keep the package name aligned with this fork:
+- Register the marketplace:
 
-```text
-tungnt-ai-skills
+```bash
+copilot plugin marketplace add tungnt1405/ai-skills
 ```
 
-If the fork is not published in your Copilot CLI environment yet, use the same repository-driven bootstrap expectations as the other harnesses:
+- Install the plugin:
 
-- load `using-tungnt-ai-skills` at session start
-- expose the bundled `skills/` directory
+```bash
+copilot plugin install tungnt-ai-skills@ai-skills
+```
 
 ### Other harnesses
 

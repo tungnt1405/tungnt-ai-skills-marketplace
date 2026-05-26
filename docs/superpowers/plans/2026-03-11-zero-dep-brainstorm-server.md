@@ -16,14 +16,14 @@
 
 ## File Map
 
-- **Create:** `skills/SPS/brainstorming/scripts/server.js` — the zero-dep replacement
-- **Modify:** `skills/SPS/brainstorming/scripts/start-server.sh:94,100` — change `index.js` to `server.js`
-- **Modify:** `.gitignore:6` — remove the `!skills/SPS/brainstorming/scripts/node_modules/` exception
-- **Delete:** `skills/SPS/brainstorming/scripts/index.js`
-- **Delete:** `skills/SPS/brainstorming/scripts/package.json`
-- **Delete:** `skills/SPS/brainstorming/scripts/package-lock.json`
-- **Delete:** `skills/SPS/brainstorming/scripts/node_modules/` (714 files)
-- **No changes:** `skills/SPS/brainstorming/scripts/helper.js`, `skills/SPS/brainstorming/scripts/frame-template.html`, `skills/SPS/brainstorming/scripts/stop-server.sh`
+- **Create:** `skills/brainstorming/scripts/server.js` — the zero-dep replacement
+- **Modify:** `skills/brainstorming/scripts/start-server.sh:94,100` — change `index.js` to `server.js`
+- **Modify:** `.gitignore:6` — remove the `!skills/brainstorming/scripts/node_modules/` exception
+- **Delete:** `skills/brainstorming/scripts/index.js`
+- **Delete:** `skills/brainstorming/scripts/package.json`
+- **Delete:** `skills/brainstorming/scripts/package-lock.json`
+- **Delete:** `skills/brainstorming/scripts/node_modules/` (714 files)
+- **No changes:** `skills/brainstorming/scripts/helper.js`, `skills/brainstorming/scripts/frame-template.html`, `skills/brainstorming/scripts/stop-server.sh`
 
 ---
 
@@ -32,7 +32,7 @@
 ### Task 1: Implement WebSocket protocol exports
 
 **Files:**
-- Create: `skills/SPS/brainstorming/scripts/server.js`
+- Create: `skills/brainstorming/scripts/server.js`
 - Test: `tests/brainstorm-server/ws-protocol.test.js` (already exists)
 
 - [ ] **Step 1: Create server.js with OPCODES constant and computeAcceptKey**
@@ -137,7 +137,7 @@ Expected: All tests pass (handshake, encoding, decoding, boundaries, edge cases)
 - [ ] **Step 6: Commit**
 
 ```bash
-git add skills/SPS/brainstorming/scripts/server.js
+git add skills/brainstorming/scripts/server.js
 git commit -m "Add WebSocket protocol layer for zero-dep brainstorm server"
 ```
 
@@ -148,7 +148,7 @@ git commit -m "Add WebSocket protocol layer for zero-dep brainstorm server"
 ### Task 2: Add HTTP server, file watching, and WebSocket connection handling
 
 **Files:**
-- Modify: `skills/SPS/brainstorming/scripts/server.js`
+- Modify: `skills/brainstorming/scripts/server.js`
 - Test: `tests/brainstorm-server/server.test.js` (already exists)
 
 - [ ] **Step 1: Add configuration and constants at top of server.js (after requires)**
@@ -394,7 +394,7 @@ Expected: All tests pass
 - [ ] **Step 8: Commit**
 
 ```bash
-git add skills/SPS/brainstorming/scripts/server.js
+git add skills/brainstorming/scripts/server.js
 git commit -m "Add HTTP server, WebSocket handling, and file watching to server.js"
 ```
 
@@ -405,12 +405,12 @@ git commit -m "Add HTTP server, WebSocket handling, and file watching to server.
 ### Task 3: Update start-server.sh and remove old files
 
 **Files:**
-- Modify: `skills/SPS/brainstorming/scripts/start-server.sh:94,100`
+- Modify: `skills/brainstorming/scripts/start-server.sh:94,100`
 - Modify: `.gitignore:6`
-- Delete: `skills/SPS/brainstorming/scripts/index.js`
-- Delete: `skills/SPS/brainstorming/scripts/package.json`
-- Delete: `skills/SPS/brainstorming/scripts/package-lock.json`
-- Delete: `skills/SPS/brainstorming/scripts/node_modules/` (entire directory)
+- Delete: `skills/brainstorming/scripts/index.js`
+- Delete: `skills/brainstorming/scripts/package.json`
+- Delete: `skills/brainstorming/scripts/package-lock.json`
+- Delete: `skills/brainstorming/scripts/node_modules/` (entire directory)
 
 - [ ] **Step 1: Update start-server.sh — change `index.js` to `server.js`**
 
@@ -422,15 +422,15 @@ Line 100: `nohup env BRAINSTORM_DIR="$SCREEN_DIR" BRAINSTORM_HOST="$BIND_HOST" B
 
 - [ ] **Step 2: Remove the gitignore exception for node_modules**
 
-In `.gitignore`, delete line 6: `!skills/SPS/brainstorming/scripts/node_modules/`
+In `.gitignore`, delete line 6: `!skills/brainstorming/scripts/node_modules/`
 
 - [ ] **Step 3: Delete old files**
 
 ```bash
-git rm skills/SPS/brainstorming/scripts/index.js
-git rm skills/SPS/brainstorming/scripts/package.json
-git rm skills/SPS/brainstorming/scripts/package-lock.json
-git rm -r skills/SPS/brainstorming/scripts/node_modules/
+git rm skills/brainstorming/scripts/index.js
+git rm skills/brainstorming/scripts/package.json
+git rm skills/brainstorming/scripts/package-lock.json
+git rm -r skills/brainstorming/scripts/node_modules/
 ```
 
 - [ ] **Step 4: Run both test suites**
@@ -441,7 +441,7 @@ Expected: All tests pass
 - [ ] **Step 5: Commit**
 
 ```bash
-git add skills/SPS/brainstorming/scripts/ .gitignore
+git add skills/brainstorming/scripts/ .gitignore
 git commit -m "Remove vendored node_modules, swap to zero-dep server.js"
 ```
 
@@ -450,7 +450,7 @@ git commit -m "Remove vendored node_modules, swap to zero-dep server.js"
 - [ ] **Step 1: Start the server manually**
 
 ```bash
-cd skills/SPS/brainstorming/scripts
+cd skills/brainstorming/scripts
 BRAINSTORM_DIR=/tmp/brainstorm-smoke BRAINSTORM_PORT=9876 node server.js
 ```
 
@@ -477,3 +477,4 @@ Open browser dev tools. The WebSocket connection should show as connected (no er
 ```bash
 rm -rf /tmp/brainstorm-smoke
 ```
+

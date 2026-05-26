@@ -207,10 +207,10 @@ names, commit messages, and PR descriptions for the user to copy.
 
 | File | Change |
 |---|---|
-| `skills/SPS/using-git-worktrees/SKILL.md` | +12 lines (Step 0) |
-| `skills/SPS/finishing-a-development-branch/SKILL.md` | +20 lines (Step 1.5 + cleanup guard) |
-| `skills/SPS/subagent-driven-development/SKILL.md` | 1 line edit |
-| `skills/SPS/executing-plans/SKILL.md` | 1 line edit |
+| `skills/using-git-worktrees/SKILL.md` | +12 lines (Step 0) |
+| `skills/finishing-a-development-branch/SKILL.md` | +20 lines (Step 1.5 + cleanup guard) |
+| `skills/subagent-driven-development/SKILL.md` | 1 line edit |
+| `skills/executing-plans/SKILL.md` | 1 line edit |
 | `skills/using-tungnt-ai-skills/references/codex-tools.md` | +15 lines |
 
 ~50 lines added/changed across 5 files. Zero new files. Zero breaking changes.
@@ -242,3 +242,4 @@ If a third skill needs the same detection pattern, extract it into a shared `ref
 - Existing Claude Code skill-triggering tests still pass
 - Existing subagent-driven-development integration tests still pass
 - Normal Claude Code session: full worktree creation + 4-option finishing still works
+

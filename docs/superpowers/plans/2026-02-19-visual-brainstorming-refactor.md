@@ -20,7 +20,7 @@
 | `lib/brainstorm-server/frame-template.html` | Modify | Template: remove feedback footer, add content placeholder + selection indicator |
 | `lib/brainstorm-server/helper.js` | Modify | Client JS: remove send/feedback functions, narrow to click capture + indicator updates |
 | `lib/brainstorm-server/wait-for-feedback.sh` | Delete | No longer needed |
-| `skills/SPS/brainstorming/visual-companion.md` | Modify | Skill instructions: rewrite loop to non-blocking flow |
+| `skills/brainstorming/visual-companion.md` | Modify | Skill instructions: rewrite loop to non-blocking flow |
 | `tests/brainstorm-server/server.test.js` | Modify | Tests: update for new template structure and helper.js API |
 
 ---
@@ -390,7 +390,7 @@ git commit -m "Delete wait-for-feedback.sh: replaced by .events file"
 ### Task 6: Rewrite `visual-companion.md`
 
 **Files:**
-- Modify: `skills/SPS/brainstorming/visual-companion.md`
+- Modify: `skills/brainstorming/visual-companion.md`
 
 - [ ] **Step 1: Update "How It Works" description (line 18)**
 
@@ -478,7 +478,7 @@ Remove the helper.js reference description about "JS API" — the API is now min
 - [ ] **Step 7: Commit**
 
 ```bash
-git add skills/SPS/brainstorming/visual-companion.md
+git add skills/brainstorming/visual-companion.md
 git commit -m "Rewrite visual-companion.md for non-blocking browser-displays-terminal-commands flow"
 ```
 
@@ -521,3 +521,4 @@ Expected: No hits outside of release notes and the spec/plan docs (which are his
 git status
 # Review untracked/modified files, stage specific files as needed, commit if clean
 ```
+

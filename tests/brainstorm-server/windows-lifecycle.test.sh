@@ -18,9 +18,9 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="${SUPERPOWERS_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
-START_SCRIPT="$REPO_ROOT/skills/SPS/brainstorming/scripts/start-server.sh"
-STOP_SCRIPT="$REPO_ROOT/skills/SPS/brainstorming/scripts/stop-server.sh"
-SERVER_JS="$REPO_ROOT/skills/SPS/brainstorming/scripts/server.js"
+START_SCRIPT="$REPO_ROOT/skills/brainstorming/scripts/start-server.sh"
+STOP_SCRIPT="$REPO_ROOT/skills/brainstorming/scripts/stop-server.sh"
+SERVER_JS="$REPO_ROOT/skills/brainstorming/scripts/server.js"
 
 TEST_DIR="${TMPDIR:-/tmp}/brainstorm-win-test-$$"
 
@@ -349,3 +349,4 @@ if [[ $failed -gt 0 ]]; then
   exit 1
 fi
 exit 0
+
