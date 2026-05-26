@@ -32,7 +32,7 @@ escape_for_json() {
 
 using_tungnt_ai_skills_escaped=$(escape_for_json "$using_tungnt_ai_skills_content")
 warning_escaped=$(escape_for_json "$warning_message")
-session_context="<EXTREMELY_IMPORTANT>\nYou have tungnt-ai-skills.\n\n**Below is the full content of your 'tungnt-ai-skills:using-tungnt-ai-skills' bootstrap skill. Read it first. For all other skills, use the 'Skill' tool:**\n\n${using_tungnt_ai_skills_escaped}\n\n${warning_escaped}\n</EXTREMELY_IMPORTANT>"
+session_context="<EXTREMELY_IMPORTANT>\nYou have tungnt-ai-skills.\n\n**Below is the full content of your bootstrap skill (`using-tungnt-ai-skills`). Read it first. For all other skills, use the 'Skill' tool:**\n\n${using_tungnt_ai_skills_escaped}\n\n${warning_escaped}\n</EXTREMELY_IMPORTANT>"
 
 # Output context injection as JSON.
 # Cursor hooks expect additional_context (snake_case).

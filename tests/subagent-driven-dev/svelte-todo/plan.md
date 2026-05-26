@@ -1,6 +1,6 @@
 # Svelte Todo List - Implementation Plan
 
-Execute this plan using the `tungnt-ai-skills:subagent-driven-development` skill.
+Execute this plan using the `subagent-driven-development` skill.
 
 ## Context
 
