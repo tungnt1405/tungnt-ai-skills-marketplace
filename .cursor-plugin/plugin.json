@@ -1,0 +1,25 @@
+{
+  "name": "tungnt-ai-skills",
+  "displayName": "tungnt-ai-skills",
+  "description": "Core skills library: TDD, debugging, collaboration patterns, and proven techniques",
+  "version": "1.0.0",
+  "author": {
+    "name": "Tungnt1405",
+    "email": "tungnt.autowork@gmail.com"
+  },
+  "homepage": "https://github.com/tungnt1405/ai-skills.git",
+  "repository": "https://github.com/tungnt1405/ai-skills.git",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "tdd",
+    "debugging",
+    "collaboration",
+    "best-practices",
+    "workflows"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "commands": "./commands/",
+  "hooks": "./hooks/hooks-cursor.json"
+}

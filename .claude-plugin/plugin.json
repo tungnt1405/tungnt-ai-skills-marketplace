@@ -1,0 +1,20 @@
+{
+  "name": "tungnt-ai-skills",
+  "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, proven techniques, personal engineering experience, and curated skills inspired by frameworks like Superpowers, Context7, and related ecosystems.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Tungnt1405",
+    "email": "tungnt.autowork@gmail.com"
+  },
+  "homepage": "https://github.com/tungnt1405/ai-skills.git",
+  "repository": "https://github.com/tungnt1405/ai-skills.git",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "tdd",
+    "debugging",
+    "collaboration",
+    "best-practices",
+    "workflows"
+  ]
+}
