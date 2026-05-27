@@ -167,7 +167,7 @@ This repo includes both a Claude plugin manifest and a local development marketp
 - Install the fork from that marketplace:
 
 ```bash
-/plugin install tungnt-ai-skills@tungnt-dev
+/plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
 ```
 
 #### Direct Manifest
@@ -189,23 +189,17 @@ Codex support in this fork is driven by the bundled plugin manifest:
 
 #### Codex CLI
 
-If your Codex CLI environment supports plugin search/installation UI, install `tungnt-ai-skills` there when this fork is published in your target marketplace.
+[Codex CLI add marketplace](https://developers.openai.com/codex/plugins/build#add-a-marketplace-from-the-cli)
 
-- Open the plugin search interface:
+```bash
+codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
 
-```text
-/plugins
+codex plugin marketplace add https://github.com/tungnt1405/tungnt-ai-skills-marketplace --sparse plugins/tungnt-ai-skills
+
+# codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace --ref main
+
+# codex plugin marketplace add $REPO_ROOT/tungnt-ai-skills-marketplace # you must clone repo to local
 ```
-
-- Search for:
-
-```text
-tungnt-ai-skills
-```
-
-- Select `Install Plugin`.
-
-If you are using this fork before publishing it anywhere, install it from the local manifest in this repo instead.
 
 #### Codex App
 
@@ -231,7 +225,7 @@ OpenCode uses its own plugin install.
 
 ```json
 {
-  "plugin": ["tungnt-ai-skills@git+https://github.com/tungnt1405/ai-skills.git"]
+  "plugin": ["tungnt-ai-skills@git+https://github.com/tungnt1405/tungnt-ai-skills-marketplace"]
 }
 ```
 
@@ -271,7 +265,7 @@ If it is not published in your Droid environment yet, use the repository as the 
 - Install the extension from this fork's repository:
 
 ```bash
-gemini extensions install https://github.com/tungnt1405/ai-skills.git
+gemini extensions install https://github.com/tungnt1405/tungnt-ai-skills-marketplace
 ```
 
 - Update later:
@@ -287,6 +281,30 @@ Main Gemini files:
 
 The extension/bootstrap configuration must point to `using-tungnt-ai-skills`.
 
+### Google Antigravity
+
+This repo includes Antigravity plugin metadata:
+
+- `.agents/plugins/tungnt-ai-skills/plugin.json`
+
+Open this repo in Antigravity, then run:
+
+```text
+/plugins
+```
+
+Enable or verify:
+
+```text
+tungnt-ai-skills
+```
+
+The Antigravity manifest follows the existing IDE/agent metadata pattern used by files such as `.codex-plugin/plugin.json`. The root `skills/` directory remains the single source of truth; no Antigravity-specific skills are duplicated.
+
+Detailed Antigravity notes:
+
+- `docs/README.antigravity.md`
+
 ### GitHub Copilot CLI
 
 - Register the marketplace:
@@ -298,7 +316,7 @@ copilot plugin marketplace add tungnt1405/ai-skills
 - Install the plugin:
 
 ```bash
-copilot plugin install tungnt-ai-skills@tungnt-dev
+copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
 ```
 
 ### Other harnesses
