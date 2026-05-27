@@ -44,7 +44,7 @@ Skill calls use the real names from each `SKILL.md` file, not a plugin-prefixed 
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install
 ```
 
-The NPM installer copies this package directly into local agent/plugin folders. This is separate from marketplace registration.
+The NPM installer uses each target's native install style. Claude Code is installed through marketplace commands. Codex follows the local marketplace setup below by copying the plugin package and writing `marketplace.json`. The remaining local targets copy the package into their plugin folders.
 
 With no flags, `install` behaves like `--all` and targets Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and the concrete Antigravity plugin folders.
 
@@ -76,8 +76,8 @@ Supported agent ids:
 Antigravity targets install plugin folders using the recommended product-specific roots:
 
 ```text
+~/.gemini/antigravity-cli/plugins/tungnt-ai-skills
 ~/.gemini/config/plugins/tungnt-ai-skills
-~/.gemini/antigravity-ide/plugins/tungnt-ai-skills
 ```
 
 The `antigravity` and `antigravity-ide` targets use the same plugin location. The `antigravity` target is available for explicit installs, while `--all` and `antigravity-all` install the shared location once through `antigravity-ide`.
@@ -96,6 +96,8 @@ Preview resolved install directories without writing files:
 ```bash
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --dry-run
 ```
+
+For Claude Code, dry-run prints the marketplace commands that will be executed. For Codex, dry-run prints the local marketplace package path and `marketplace.json` path that will be written.
 
 Preview one agent only:
 

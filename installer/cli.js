@@ -1,4 +1,6 @@
 import fs from 'node:fs';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import {
   getAllTargets,
   getTargetById,
@@ -113,7 +115,18 @@ function install(args, env, io) {
     io.out(`\n[${target.id}] ${target.displayName}\n`);
     io.out(`Target: ${destination}\n`);
     if (options.dryRun) {
-      io.out(`Planned entries: ${listPlannedEntries(packageRoot, target).join(', ')}\n`);
+      if (target.nativeCommands) {
+        io.out('Mode: native marketplace commands\n');
+        for (const command of target.nativeCommands) {
+          io.out(`Command: ${command.join(' ')}\n`);
+        }
+      } else {
+        io.out(`Planned entries: ${listPlannedEntries(packageRoot, target).join(', ')}\n`);
+      }
+      if (target.marketplaceFile) {
+        io.out(`Marketplace file: ${target.marketplaceFile(env)}\n`);
+        io.out(`Marketplace plugin: ${target.marketplaceEntry.name}\n`);
+      }
       for (const extraCopy of listPlannedExtraCopies(packageRoot, target, env)) {
         io.out(`Additional target: ${extraCopy.destination}\n`);
         io.out(`Additional entries: ${extraCopy.entries.join(', ')}\n`);
@@ -124,6 +137,14 @@ function install(args, env, io) {
       validateSource(packageRoot, target);
       if (options.dryRun) {
         io.out('Status: planned\n');
+        continue;
+      }
+      if (target.nativeCommands) {
+        runNativeCommands(target, env);
+        io.out('Status: installed\n');
+        if (target.postInstallNotes) {
+          io.out(`Note: ${target.postInstallNotes}\n`);
+        }
         continue;
       }
       if (target.installMode === 'merge') {
@@ -138,6 +159,9 @@ function install(args, env, io) {
       }
       copyPackage(packageRoot, destination, target);
       copyExtraPackages(packageRoot, target, env);
+      if (target.marketplaceFile) {
+        writeMarketplaceEntry(target.marketplaceFile(env), target.marketplaceEntry);
+      }
       validateInstall(destination, target);
       io.out('Status: installed\n');
       if (target.postInstallNotes) {
@@ -155,6 +179,41 @@ function install(args, env, io) {
   }
 
   return 0;
+}
+
+function runNativeCommands(target, env) {
+  for (const [command, ...args] of target.nativeCommands) {
+    const result = spawnSync(command, args, {
+      env,
+      shell: process.platform === 'win32',
+      stdio: 'inherit',
+    });
+    if (result.error) {
+      throw result.error;
+    }
+    if (result.status !== 0) {
+      throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
+    }
+  }
+}
+
+function writeMarketplaceEntry(filePath, entry) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const marketplace = readMarketplace(filePath);
+  const plugins = Array.isArray(marketplace.plugins) ? marketplace.plugins : [];
+  marketplace.plugins = [
+    ...plugins.filter((plugin) => plugin.name !== entry.name),
+    entry,
+  ];
+  fs.writeFileSync(`${filePath}.tmp`, `${JSON.stringify(marketplace, null, 2)}\n`);
+  fs.renameSync(`${filePath}.tmp`, filePath);
+}
+
+function readMarketplace(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return { plugins: [] };
+  }
+  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
 function printTargets(env, io) {
