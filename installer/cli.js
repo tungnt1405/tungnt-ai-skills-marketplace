@@ -86,7 +86,7 @@ function selectedTargets(options) {
     }
     return [target];
   }
-  return getAllTargets().filter((target) => !target.aggregateTargetIds);
+  return getAllTargets().filter((target) => !target.aggregateTargetIds && target.includeInAll !== false);
 }
 
 function install(args, env, io) {

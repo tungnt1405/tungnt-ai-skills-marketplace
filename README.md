@@ -69,17 +69,18 @@ Supported agent ids:
 | `copilot` | GitHub Copilot CLI |
 | `gemini` | Gemini CLI |
 | `agy` | Antigravity CLI |
-| `antigravity` | Google Antigravity 2.0 |
+| `antigravity` | Google Antigravity |
 | `antigravity-ide` | Antigravity IDE |
-| `antigravity-all` | Antigravity CLI, Antigravity 2.0, and Antigravity IDE |
+| `antigravity-all` | Antigravity CLI and Antigravity IDE |
 
 Antigravity targets install plugin folders using the recommended product-specific roots:
 
 ```text
-~/.gemini/antigravity-cli/plugins/tungnt-ai-skills
-~/.gemini/antigravity/plugins/tungnt-ai-skills
+~/.gemini/config/plugins/tungnt-ai-skills
 ~/.gemini/antigravity-ide/plugins/tungnt-ai-skills
 ```
+
+The `antigravity` and `antigravity-ide` targets use the same plugin location. The `antigravity` target is available for explicit installs, while `--all` and `antigravity-all` install the shared location once through `antigravity-ide`.
 
 Each Antigravity install also copies shared global files to `~/.gemini`:
 

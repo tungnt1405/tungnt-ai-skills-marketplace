@@ -66,25 +66,10 @@ export const TARGETS = [
     postInstallNotes: 'Restart Gemini CLI or reload extensions after installation.',
   },
   {
-    id: 'antigravity',
-    displayName: 'Google Antigravity 2.0',
-    defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'antigravity', 'plugins', PLUGIN_NAME),
-    expectedParent: (env = process.env) => joinHome(env, '.gemini', 'antigravity', 'plugins'),
-    includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
-    extraCopies: [
-      {
-        destination: (env = process.env) => joinHome(env, '.gemini'),
-        includedEntries: ANTIGRAVITY_GLOBAL_ENTRIES,
-      },
-    ],
-    requiredFiles: ANTIGRAVITY_REQUIRED_FILES,
-    postInstallNotes: 'Restart Antigravity or reload plugins after installation.',
-  },
-  {
     id: 'agy',
     displayName: 'Antigravity CLI',
-    defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'antigravity-cli', 'plugins', PLUGIN_NAME),
-    expectedParent: (env = process.env) => joinHome(env, '.gemini', 'antigravity-cli', 'plugins'),
+    defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins', PLUGIN_NAME),
+    expectedParent: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins'),
     includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
     extraCopies: [
       {
@@ -94,6 +79,22 @@ export const TARGETS = [
     ],
     requiredFiles: ANTIGRAVITY_REQUIRED_FILES,
     postInstallNotes: 'Restart Antigravity CLI or reload plugins after installation.',
+  },
+  {
+    id: 'antigravity',
+    displayName: 'Google Antigravity',
+    defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'antigravity-ide', 'plugins', PLUGIN_NAME),
+    expectedParent: (env = process.env) => joinHome(env, '.gemini', 'antigravity-ide', 'plugins'),
+    includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
+    extraCopies: [
+      {
+        destination: (env = process.env) => joinHome(env, '.gemini'),
+        includedEntries: ANTIGRAVITY_GLOBAL_ENTRIES,
+      },
+    ],
+    includeInAll: false,
+    requiredFiles: ANTIGRAVITY_REQUIRED_FILES,
+    postInstallNotes: 'Restart Antigravity or reload plugins after installation.',
   },
   {
     id: 'antigravity-ide',
@@ -115,8 +116,8 @@ export const TARGETS = [
     displayName: 'All Antigravity targets',
     defaultTarget: (env = process.env) => joinHome(env, '.gemini'),
     expectedParent: (env = process.env) => joinHome(env),
-    aggregateTargetIds: ['agy', 'antigravity', 'antigravity-ide'],
-    postInstallNotes: 'Installs Antigravity CLI, Antigravity 2.0, and Antigravity IDE plugin folders.',
+    aggregateTargetIds: ['agy', 'antigravity-ide'],
+    postInstallNotes: 'Installs Antigravity CLI and Antigravity IDE plugin folders.',
   },
 ];
 
