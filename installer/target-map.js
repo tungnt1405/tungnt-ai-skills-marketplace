@@ -5,7 +5,6 @@ export const PLUGIN_NAME = 'tungnt-ai-skills';
 
 const SHARED_REQUIRED_FILES = [
   'skills/using-tungnt-ai-skills/SKILL.md',
-  'package.json',
 ];
 
 function homeDir(env = process.env) {

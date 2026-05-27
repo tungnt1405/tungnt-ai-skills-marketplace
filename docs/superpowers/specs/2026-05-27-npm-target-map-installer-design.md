@@ -13,7 +13,7 @@ Users should be able to run the package through `npx` or `npm exec` and get a fi
 - Use a target-map so agent target paths and copy behavior are data-driven and testable.
 - Default to installing all supported agents when no agent flag is supplied.
 - Keep the package zero-dependency at runtime.
-- Preserve the repository's existing source-of-truth layout: root `skills/`, existing manifests, hooks, assets, and docs.
+- Preserve the repository's existing source-of-truth layout for runtime agent use: root `skills/`, agent manifests, hooks, and agent instruction Markdown files.
 
 ## Non-goals
 
@@ -74,26 +74,19 @@ The map is the only place where these defaults live. CLI parsing and copy logic 
 
 ## Copy strategy
 
-The installer copies a trimmed package root instead of only copying one manifest. This keeps root `skills/` available for agents that expect the plugin root to contain skills and avoids hidden coupling to a specific harness.
+The installer copies only the runtime files needed by the supported agents instead of staging the full package root. This keeps root `skills/` available for agents that expect the plugin root to contain skills while avoiding unrelated repository files in agent plugin directories.
 
 Include:
 
 - `skills/`
 - `hooks/`
-- `assets/`
 - `.claude-plugin/`
 - `.codex-plugin/`
 - `.agents/`
-- `.antigravitycli/`
-- `.opencode/`
-- `.cursor-plugin/`
 - `gemini-extension.json`
 - `GEMINI.md`
 - `CLAUDE.md`
 - `AGENTS.md`
-- `README.md`
-- `LICENSE`
-- `package.json`
 
 Exclude:
 
@@ -102,12 +95,18 @@ Exclude:
 - `tests/`
 - `docs/superpowers/plans/`
 - `docs/superpowers/specs/`
+- `assets/`
+- `.antigravitycli/`
+- `.opencode/`
+- `.cursor-plugin/`
+- `README.md`
+- `LICENSE`
+- `package.json`
 - temporary files and OS metadata
 
 After copying, the installer validates each selected target by checking required files. The shared required files are:
 
 - `skills/using-tungnt-ai-skills/SKILL.md`
-- `package.json`
 
 Agent-specific required files:
 

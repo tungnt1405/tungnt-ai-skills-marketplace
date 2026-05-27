@@ -67,8 +67,20 @@ test('unknown target returns undefined', () => {
 
 test('planned package entries include core files', () => {
   const entries = listPlannedEntries(PACKAGE_ROOT);
-  assert.equal(entries.includes('skills'), true);
-  assert.equal(entries.includes('package.json'), true);
+  assert.deepEqual(entries, [
+    'skills',
+    'hooks',
+    '.claude-plugin',
+    '.codex-plugin',
+    '.agents',
+    'gemini-extension.json',
+    'GEMINI.md',
+    'CLAUDE.md',
+    'AGENTS.md',
+  ]);
+  assert.equal(entries.includes('package.json'), false);
+  assert.equal(entries.includes('README.md'), false);
+  assert.equal(entries.includes('assets'), false);
 });
 
 test('copyPackage copies shared required files', () => {
@@ -97,7 +109,8 @@ test('ensureInsideExpectedParent accepts child destination', () => {
 
 test('validateSource reports missing required files', () => {
   const fixture = tempDir();
-  fs.writeFileSync(path.join(fixture, 'package.json'), '{}');
+  fs.mkdirSync(path.join(fixture, 'skills', 'using-tungnt-ai-skills'), { recursive: true });
+  fs.writeFileSync(path.join(fixture, 'skills', 'using-tungnt-ai-skills', 'SKILL.md'), '');
   const target = getTargetById('codex');
   assert.throws(() => validateSource(fixture, target), /missing required file/);
 });

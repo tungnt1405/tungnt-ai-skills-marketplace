@@ -5,20 +5,13 @@ import { fileURLToPath } from 'node:url';
 export const INCLUDED_ENTRIES = [
   'skills',
   'hooks',
-  'assets',
   '.claude-plugin',
   '.codex-plugin',
   '.agents',
-  '.antigravitycli',
-  '.opencode',
-  '.cursor-plugin',
   'gemini-extension.json',
   'GEMINI.md',
   'CLAUDE.md',
   'AGENTS.md',
-  'README.md',
-  'LICENSE',
-  'package.json',
 ];
 
 const EXCLUDED_NAMES = new Set([
