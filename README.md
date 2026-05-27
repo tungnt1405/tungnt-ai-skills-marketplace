@@ -134,7 +134,7 @@ npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungn
 
 Restart or reload the target agent after updating so it reads the new plugin files.
 
-## Marketplace Setup
+## Set up the Marketplace manually if it was not installed
 
 ### Codex
 
