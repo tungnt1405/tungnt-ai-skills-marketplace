@@ -44,7 +44,7 @@ Skill calls use the real names from each `SKILL.md` file, not a plugin-prefixed 
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install
 ```
 
-The NPM installer uses each target's native install style. Claude Code is installed through marketplace commands. Codex follows the local marketplace setup below by copying the plugin package and writing `marketplace.json`. The remaining local targets copy the package into their plugin folders.
+The NPM installer uses each target's native install style. Claude Code is installed through marketplace commands. Codex follows the local marketplace setup below by copying the plugin package, writing `marketplace.json`, and enabling `tungnt-ai-skills@openai-curated` in `~/.codex/config.toml`. Copilot writes marketplace and enabled plugin settings into `~/.copilot/settings.json`. The remaining local targets copy the package into their plugin folders.
 
 With no flags, `install` behaves like `--all` and targets Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and the concrete Antigravity plugin folders.
 
@@ -97,7 +97,7 @@ Preview resolved install directories without writing files:
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --dry-run
 ```
 
-For Claude Code, dry-run prints the marketplace commands that will be executed. For Codex, dry-run prints the local marketplace package path and `marketplace.json` path that will be written.
+For Claude Code, dry-run prints the marketplace commands that will be executed. For Codex, dry-run prints the local marketplace package path, `marketplace.json` path, and `~/.codex/config.toml` path that will be written. For Copilot, dry-run prints the `~/.copilot/settings.json` path that will be written.
 
 Preview one agent only:
 
@@ -242,6 +242,8 @@ Detailed Antigravity notes:
 - `docs/README.antigravity.md`
 
 ### GitHub Copilot CLI
+
+The NPM installer creates or updates `~/.copilot/settings.json` with the marketplace and enabled plugin entry. For debugging, the equivalent manual commands are:
 
 - Register the marketplace:
 
