@@ -9,6 +9,7 @@ import {
   getPackageRoot,
   listPlannedEntries,
   removeExistingInstall,
+  removeManagedPackageEntries,
   validateInstall,
   validateSource,
 } from './package-copy.js';
@@ -98,7 +99,6 @@ function install(args, env, io) {
   io.out(`Source: ${packageRoot}\n`);
   if (options.dryRun) {
     io.out('Mode: dry-run\n');
-    io.out(`Planned entries: ${listPlannedEntries(packageRoot).join(', ')}\n`);
   }
 
   const failures = [];
@@ -107,6 +107,9 @@ function install(args, env, io) {
     const expectedParent = target.expectedParent(env);
     io.out(`\n[${target.id}] ${target.displayName}\n`);
     io.out(`Target: ${destination}\n`);
+    if (options.dryRun) {
+      io.out(`Planned entries: ${listPlannedEntries(packageRoot, target).join(', ')}\n`);
+    }
 
     try {
       validateSource(packageRoot, target);
@@ -114,13 +117,17 @@ function install(args, env, io) {
         io.out('Status: planned\n');
         continue;
       }
-      if (fs.existsSync(destination)) {
+      if (target.installMode === 'merge') {
+        if (options.force) {
+          removeManagedPackageEntries(packageRoot, destination, expectedParent, target);
+        }
+      } else if (fs.existsSync(destination)) {
         if (!options.force) {
           throw new Error(`Destination already exists: ${destination}. Re-run with --force to replace it.`);
         }
         removeExistingInstall(destination, expectedParent);
       }
-      copyPackage(packageRoot, destination);
+      copyPackage(packageRoot, destination, target);
       validateInstall(destination, target);
       io.out('Status: installed\n');
       if (target.postInstallNotes) {
