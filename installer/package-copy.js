@@ -36,8 +36,19 @@ export function listPlannedEntries(packageRoot, target = {}) {
   return plannedEntries(packageRoot, target);
 }
 
+export function listPlannedExtraCopies(packageRoot, target = {}, env = process.env) {
+  return extraCopies(packageRoot, target, env).map((copy) => ({
+    destination: copy.destination,
+    entries: plannedEntries(packageRoot, copy),
+  }));
+}
+
 export function validateSource(packageRoot, target) {
-  const missing = target.requiredFiles.filter((file) => !fs.existsSync(path.join(packageRoot, file)));
+  const requiredFiles = [
+    ...target.requiredFiles,
+    ...extraRequiredFiles(target),
+  ];
+  const missing = requiredFiles.filter((file) => !fs.existsSync(path.join(packageRoot, file)));
   if (missing.length > 0) {
     throw new Error(`${target.displayName} source is missing required file(s): ${missing.join(', ')}`);
   }
@@ -57,9 +68,29 @@ export function copyPackage(packageRoot, destination, target = {}) {
   }
 }
 
+export function copyExtraPackages(packageRoot, target = {}, env = process.env) {
+  for (const copy of extraCopies(packageRoot, target, env)) {
+    fs.mkdirSync(copy.destination, { recursive: true });
+    for (const entry of plannedEntries(packageRoot, copy)) {
+      copyEntry(path.join(packageRoot, entry), path.join(copy.destination, entry), entry);
+    }
+  }
+}
+
 function plannedEntries(packageRoot, target = {}) {
   const entries = target.includedEntries || INCLUDED_ENTRIES;
   return entries.filter((entry) => fs.existsSync(path.join(packageRoot, entry)));
+}
+
+function extraCopies(packageRoot, target = {}, env = process.env) {
+  return (target.extraCopies || []).map((copy) => ({
+    ...copy,
+    destination: copy.destination(env),
+  }));
+}
+
+function extraRequiredFiles(target = {}) {
+  return (target.extraCopies || []).flatMap((copy) => copy.requiredFiles || copy.includedEntries || []);
 }
 
 function copyEntry(source, destination, relativePath) {

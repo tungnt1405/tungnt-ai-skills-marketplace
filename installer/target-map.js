@@ -17,6 +17,13 @@ const ANTIGRAVITY_REQUIRED_FILES = [
   ...SHARED_REQUIRED_FILES,
 ];
 
+const ANTIGRAVITY_GLOBAL_ENTRIES = [
+  'AGENTS.md',
+  'CLAUDE.md',
+  'GEMINI.md',
+  'gemini-extension.json',
+];
+
 function homeDir(env = process.env) {
   return env.HOME || env.USERPROFILE || os.homedir();
 }
@@ -64,6 +71,12 @@ export const TARGETS = [
     defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'antigravity', 'plugins', PLUGIN_NAME),
     expectedParent: (env = process.env) => joinHome(env, '.gemini', 'antigravity', 'plugins'),
     includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
+    extraCopies: [
+      {
+        destination: (env = process.env) => joinHome(env, '.gemini'),
+        includedEntries: ANTIGRAVITY_GLOBAL_ENTRIES,
+      },
+    ],
     requiredFiles: ANTIGRAVITY_REQUIRED_FILES,
     postInstallNotes: 'Restart Antigravity or reload plugins after installation.',
   },
@@ -73,6 +86,12 @@ export const TARGETS = [
     defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'antigravity-cli', 'plugins', PLUGIN_NAME),
     expectedParent: (env = process.env) => joinHome(env, '.gemini', 'antigravity-cli', 'plugins'),
     includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
+    extraCopies: [
+      {
+        destination: (env = process.env) => joinHome(env, '.gemini'),
+        includedEntries: ANTIGRAVITY_GLOBAL_ENTRIES,
+      },
+    ],
     requiredFiles: ANTIGRAVITY_REQUIRED_FILES,
     postInstallNotes: 'Restart Antigravity CLI or reload plugins after installation.',
   },
@@ -82,6 +101,12 @@ export const TARGETS = [
     defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'antigravity-ide', 'plugins', PLUGIN_NAME),
     expectedParent: (env = process.env) => joinHome(env, '.gemini', 'antigravity-ide', 'plugins'),
     includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
+    extraCopies: [
+      {
+        destination: (env = process.env) => joinHome(env, '.gemini'),
+        includedEntries: ANTIGRAVITY_GLOBAL_ENTRIES,
+      },
+    ],
     requiredFiles: ANTIGRAVITY_REQUIRED_FILES,
     postInstallNotes: 'Restart Antigravity IDE or reload plugins after installation.',
   },

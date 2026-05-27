@@ -5,8 +5,10 @@ import {
   supportedTargetIds,
 } from './target-map.js';
 import {
+  copyExtraPackages,
   copyPackage,
   getPackageRoot,
+  listPlannedExtraCopies,
   listPlannedEntries,
   removeExistingInstall,
   removeManagedPackageEntries,
@@ -112,6 +114,10 @@ function install(args, env, io) {
     io.out(`Target: ${destination}\n`);
     if (options.dryRun) {
       io.out(`Planned entries: ${listPlannedEntries(packageRoot, target).join(', ')}\n`);
+      for (const extraCopy of listPlannedExtraCopies(packageRoot, target, env)) {
+        io.out(`Additional target: ${extraCopy.destination}\n`);
+        io.out(`Additional entries: ${extraCopy.entries.join(', ')}\n`);
+      }
     }
 
     try {
@@ -131,6 +137,7 @@ function install(args, env, io) {
         removeExistingInstall(destination, expectedParent);
       }
       copyPackage(packageRoot, destination, target);
+      copyExtraPackages(packageRoot, target, env);
       validateInstall(destination, target);
       io.out('Status: installed\n');
       if (target.postInstallNotes) {

@@ -81,6 +81,15 @@ Antigravity targets install plugin folders using the recommended product-specifi
 ~/.gemini/antigravity-ide/plugins/tungnt-ai-skills
 ```
 
+Each Antigravity install also copies shared global files to `~/.gemini`:
+
+```text
+~/.gemini/AGENTS.md
+~/.gemini/CLAUDE.md
+~/.gemini/GEMINI.md
+~/.gemini/gemini-extension.json
+```
+
 Preview resolved install directories without writing files:
 
 ```bash
