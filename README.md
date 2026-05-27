@@ -144,7 +144,39 @@ Use this quick selector:
 
 ## Installation
 
-Installation differs by harness. If you use more than one, install `tungnt-ai-skills` separately for each one.
+The npm installer copies this package into the default plugin locations for all currently supported agents:
+
+```bash
+npx tungnt-ai-skills install
+```
+
+With no flags, `install` behaves like `--all` and targets Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and Google Antigravity.
+
+Install one agent only:
+
+```bash
+npx tungnt-ai-skills install --agent codex
+```
+
+Preview without writing files:
+
+```bash
+npx tungnt-ai-skills install --agent codex --dry-run
+```
+
+List supported agents and resolved target directories:
+
+```bash
+npx tungnt-ai-skills targets
+```
+
+If a target directory already exists, the installer stops before replacing it. Use `--force` to replace an existing install:
+
+```bash
+npx tungnt-ai-skills install --agent codex --force
+```
+
+The manual sections below are fallback details for debugging or wiring a harness directly.
 
 For every harness, the goal is the same:
 
@@ -263,6 +295,7 @@ If the fork is not published in your Codex App marketplace, use the local/manual
 
 This repo includes Antigravity plugin metadata:
 
+- `.agents/plugins/tungnt-ai-skills/plugin.json`
 - `.agents/plugins/plugin.json`
 
 Open this repo in Antigravity, then run:
