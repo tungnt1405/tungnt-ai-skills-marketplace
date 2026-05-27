@@ -187,29 +187,51 @@ Codex support in this fork is driven by the bundled plugin manifest:
 
 - bundled `skills/`
 
-#### Codex CLI
+#### Codex Marketplace Setup
 
 [Codex CLI add marketplace](https://developers.openai.com/codex/plugins/build#add-a-marketplace-from-the-cli)
 
+Codex CLI and Codex App use the same marketplace/plugin metadata. Configure the marketplace once, then install from either the CLI command palette or the App UI.
+
+Add the marketplace:
+
 ```bash
 codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
-
-codex plugin marketplace add https://github.com/tungnt1405/tungnt-ai-skills-marketplace --sparse plugins/tungnt-ai-skills
 
 # codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace --ref main
 
 # codex plugin marketplace add $REPO_ROOT/tungnt-ai-skills-marketplace # you must clone repo to local
 ```
 
-#### Codex App
+For a manual local setup, copy the plugin folder into `~/.codex/tmp/plugins`:
 
-If your Codex App environment supports plugin installation UI for this fork:
+```bash
+# get root marketplace to get path of marketplace installed
+codex plugin marketplace list
 
-- Open Plugins in the sidebar
-- Search for `tungnt-ai-skills`
-- Click `+` and follow the prompts
+# copy plugin to the local marketplace plugins directory
+cp -R $REPO_ROOT/tungnt-ai-skills-marketplace ~/.codex/tmp/plugins/plugins
+```
 
-If the fork is not published in your Codex App marketplace, use the local/manual plugin setup based on `.codex-plugin/plugin.json`.
+Add or update `~/.codex/tmp/plugins/.agents/plugins/marketplace.json`:
+
+```json
+"plugins": [
+  ...
+  , {
+    "name": "tungnt-ai-skills",
+    "source": {
+      "source": "local",
+      "path": "./plugins/tungnt-ai-skills-marketplace"
+    },
+    "policy": {
+      "installation": "AVAILABLE",
+      "authentication": "ON_INSTALL"
+    },
+    "category": "Productivity"
+  }
+]
+```
 
 The plugin/package name is:
 
@@ -217,75 +239,31 @@ The plugin/package name is:
 tungnt-ai-skills
 ```
 
-### OpenCode
+#### Codex CLI
 
-OpenCode uses its own plugin install.
-
-- Add this plugin entry to `opencode.json`:
-
-```json
-{
-  "plugin": ["tungnt-ai-skills@git+https://github.com/tungnt1405/tungnt-ai-skills-marketplace"]
-}
-```
-
-Main entrypoint:
-
-- `.opencode/plugins/tungnt-ai-skills.js`
-
-Compatibility wrapper retained:
-
-- `.opencode/plugins/superpowers.js`
-
-Detailed OpenCode notes:
-
-- `.opencode/INSTALL.md`
-- `docs/README.opencode.md`
-
-### Cursor
-
-Cursor support in this fork is described by:
-
-- `.cursor-plugin/plugin.json`
-
-If your Cursor environment supports plugin import from a local repo or manifest, use that file and keep the repo's `skills/`, `hooks/`, and related plugin assets together.
-
-### Factory Droid
-
-If you publish this fork into a Factory Droid marketplace or repo-backed install flow, install it there using the fork name:
-
-```text
-tungnt-ai-skills
-```
-
-If it is not published in your Droid environment yet, use the repository as the source of truth and wire the bootstrap and bundled skills in the same way as the other harnesses.
-
-### Gemini
-
-- Install the extension from this fork's repository:
+Open Codex and install from `/plugins`:
 
 ```bash
-gemini extensions install https://github.com/tungnt1405/tungnt-ai-skills-marketplace
+codex
+
+/plugins tungnt-ai-skills
 ```
 
-- Update later:
+#### Codex App
 
-```bash
-gemini extensions update tungnt-ai-skills
-```
+Use the same shared marketplace setup above, then install from the App UI:
 
-Main Gemini files:
+- Open Plugins in the sidebar.
+- Search for `tungnt-ai-skills`.
+- Click `+` and follow the prompts.
 
-- `GEMINI.md`
-- `gemini-extension.json`
-
-The extension/bootstrap configuration must point to `using-tungnt-ai-skills`.
+If the fork is not published in your Codex App marketplace, use the local/manual marketplace setup above.
 
 ### Google Antigravity
 
 This repo includes Antigravity plugin metadata:
 
-- `.agents/plugins/tungnt-ai-skills/plugin.json`
+- `.agents/plugins/plugin.json`
 
 Open this repo in Antigravity, then run:
 
