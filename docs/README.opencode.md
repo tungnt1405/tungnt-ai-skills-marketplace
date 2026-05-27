@@ -141,6 +141,6 @@ Then use the installed package path in `opencode.json`:
 
 ## Help
 
-- Report issues: https://github.com/tungnt1405/ai-skills/issues
+- Report issues: https://github.com/tungnt1405/tungnt-ai-skills-marketplace/issues
 - Repository: https://github.com/tungnt1405/tungnt-ai-skills-marketplace
 - OpenCode docs: https://opencode.ai/docs/
