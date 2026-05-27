@@ -1,6 +1,6 @@
 {
   "name": "tungnt-ai-skills",
   "description": "Forked skills library based on Superpowers, customized for tungnt-ai-skills workflows",
-  "version": "5.1.0",
+  "version": "1.0.0",
   "contextFileName": "GEMINI.md"
 }

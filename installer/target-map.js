@@ -3,7 +3,7 @@ import path from 'node:path';
 
 export const PLUGIN_NAME = 'tungnt-ai-skills';
 
-const SHARED_REQUIRED_FILES = [
+const REQUIRED_SKILL_FILES = [
   'skills/using-tungnt-ai-skills/SKILL.md',
 ];
 
@@ -12,9 +12,16 @@ const ANTIGRAVITY_PLUGIN_ENTRIES = [
   'skills',
 ];
 
-const ANTIGRAVITY_REQUIRED_FILES = [
+const ANTIGRAVITY_PLUGIN_REQUIRED_FILES = [
   'plugin.json',
-  ...SHARED_REQUIRED_FILES,
+  ...REQUIRED_SKILL_FILES,
+];
+
+const ANTIGRAVITY_GLOBAL_ENTRIES = [
+  'AGENTS.md',
+  'CLAUDE.md',
+  'GEMINI.md',
+  'gemini-extension.json',
 ];
 
 function homeDir(env = process.env) {
@@ -29,25 +36,50 @@ export const TARGETS = [
   {
     id: 'claude',
     displayName: 'Claude Code',
-    defaultTarget: (env = process.env) => joinHome(env, '.claude', 'plugins', PLUGIN_NAME),
+    defaultTarget: (env = process.env) => joinHome(env, '.claude', 'plugins', 'cache'),
     expectedParent: (env = process.env) => joinHome(env, '.claude', 'plugins'),
-    requiredFiles: [...SHARED_REQUIRED_FILES, 'CLAUDE.md'],
-    postInstallNotes: 'Enable tungnt-ai-skills from Claude Code plugins if it is not already active.',
+    requiredFiles: [...REQUIRED_SKILL_FILES, '.claude-plugin/marketplace.json', '.claude-plugin/plugin.json'],
+    nativeCommands: [
+      ['claude', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
+      ['claude', 'plugin', 'install', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
+      ['claude', 'plugin', 'enable', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
+    ],
+    postInstallNotes: 'Installed and enabled through Claude Code marketplace commands.',
   },
   {
     id: 'codex',
     displayName: 'Codex',
-    defaultTarget: (env = process.env) => joinHome(env, '.codex', 'tmp', 'plugins', 'plugins', PLUGIN_NAME),
-    expectedParent: (env = process.env) => joinHome(env, '.codex', 'tmp', 'plugins', 'plugins'),
-    requiredFiles: [...SHARED_REQUIRED_FILES, 'AGENTS.md'],
-    postInstallNotes: 'Open Codex plugins and enable tungnt-ai-skills after installation.',
+    defaultTarget: (env = process.env) => joinHome(env, '.codex', '.tmp', 'plugins', 'plugins', 'tungnt-ai-skills-marketplace'),
+    expectedParent: (env = process.env) => joinHome(env, '.codex', '.tmp', 'plugins', 'plugins'),
+    includedEntries: ['.codex-plugin', 'assets', 'skills'],
+    requiredFiles: [...REQUIRED_SKILL_FILES, '.codex-plugin/plugin.json'],
+    marketplaceFile: (env = process.env) => joinHome(env, '.codex', '.tmp', 'plugins', '.agents', 'plugins', 'marketplace.json'),
+    marketplaceEntry: {
+      name: PLUGIN_NAME,
+      source: {
+        source: 'local',
+        path: './plugins/tungnt-ai-skills-marketplace',
+      },
+      policy: {
+        installation: 'AVAILABLE',
+        authentication: 'ON_INSTALL',
+      },
+      category: 'Coding',
+    },
+    postInstallNotes: [
+      'Codex local marketplace entry written.',
+      '',
+      'With Codex App, open Plugins, search for tungnt-ai-skills, then click the + button to add the plugin.',
+      '',
+      'With Codex CLI, run /plugins and install tungnt-ai-skills if it is not already enabled.',
+    ].join('\n'),
   },
   {
     id: 'copilot',
     displayName: 'GitHub Copilot CLI',
     defaultTarget: (env = process.env) => joinHome(env, '.copilot', 'plugins', PLUGIN_NAME),
     expectedParent: (env = process.env) => joinHome(env, '.copilot', 'plugins'),
-    requiredFiles: [...SHARED_REQUIRED_FILES, 'AGENTS.md'],
+    requiredFiles: [...REQUIRED_SKILL_FILES, 'AGENTS.md'],
     postInstallNotes: 'Enable tungnt-ai-skills through the Copilot plugin flow if your Copilot CLI requires activation.',
   },
   {
@@ -55,17 +87,8 @@ export const TARGETS = [
     displayName: 'Gemini CLI',
     defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'extensions', PLUGIN_NAME),
     expectedParent: (env = process.env) => joinHome(env, '.gemini', 'extensions'),
-    requiredFiles: [...SHARED_REQUIRED_FILES, 'GEMINI.md', 'gemini-extension.json'],
+    requiredFiles: [...REQUIRED_SKILL_FILES, 'GEMINI.md', 'gemini-extension.json'],
     postInstallNotes: 'Restart Gemini CLI or reload extensions after installation.',
-  },
-  {
-    id: 'antigravity',
-    displayName: 'Google Antigravity 2.0',
-    defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'antigravity', 'plugins', PLUGIN_NAME),
-    expectedParent: (env = process.env) => joinHome(env, '.gemini', 'antigravity', 'plugins'),
-    includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
-    requiredFiles: ANTIGRAVITY_REQUIRED_FILES,
-    postInstallNotes: 'Restart Antigravity or reload plugins after installation.',
   },
   {
     id: 'agy',
@@ -73,16 +96,44 @@ export const TARGETS = [
     defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'antigravity-cli', 'plugins', PLUGIN_NAME),
     expectedParent: (env = process.env) => joinHome(env, '.gemini', 'antigravity-cli', 'plugins'),
     includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
-    requiredFiles: ANTIGRAVITY_REQUIRED_FILES,
+    extraCopies: [
+      {
+        destination: (env = process.env) => joinHome(env, '.gemini'),
+        includedEntries: ANTIGRAVITY_GLOBAL_ENTRIES,
+      },
+    ],
+    requiredFiles: ANTIGRAVITY_PLUGIN_REQUIRED_FILES,
     postInstallNotes: 'Restart Antigravity CLI or reload plugins after installation.',
+  },
+  {
+    id: 'antigravity',
+    displayName: 'Google Antigravity',
+    defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins', PLUGIN_NAME),
+    expectedParent: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins'),
+    includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
+    extraCopies: [
+      {
+        destination: (env = process.env) => joinHome(env, '.gemini'),
+        includedEntries: ANTIGRAVITY_GLOBAL_ENTRIES,
+      },
+    ],
+    includeInAll: false,
+    requiredFiles: ANTIGRAVITY_PLUGIN_REQUIRED_FILES,
+    postInstallNotes: 'Restart Antigravity or reload plugins after installation.',
   },
   {
     id: 'antigravity-ide',
     displayName: 'Antigravity IDE',
-    defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'antigravity-ide', 'plugins', PLUGIN_NAME),
-    expectedParent: (env = process.env) => joinHome(env, '.gemini', 'antigravity-ide', 'plugins'),
+    defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins', PLUGIN_NAME),
+    expectedParent: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins'),
     includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
-    requiredFiles: ANTIGRAVITY_REQUIRED_FILES,
+    extraCopies: [
+      {
+        destination: (env = process.env) => joinHome(env, '.gemini'),
+        includedEntries: ANTIGRAVITY_GLOBAL_ENTRIES,
+      },
+    ],
+    requiredFiles: ANTIGRAVITY_PLUGIN_REQUIRED_FILES,
     postInstallNotes: 'Restart Antigravity IDE or reload plugins after installation.',
   },
   {
@@ -90,8 +141,8 @@ export const TARGETS = [
     displayName: 'All Antigravity targets',
     defaultTarget: (env = process.env) => joinHome(env, '.gemini'),
     expectedParent: (env = process.env) => joinHome(env),
-    aggregateTargetIds: ['agy', 'antigravity', 'antigravity-ide'],
-    postInstallNotes: 'Installs Antigravity CLI, Antigravity 2.0, and Antigravity IDE plugin folders.',
+    aggregateTargetIds: ['agy', 'antigravity-ide'],
+    postInstallNotes: 'Installs Antigravity CLI and Antigravity IDE plugin folders.',
   },
 ];
 
