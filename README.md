@@ -144,10 +144,10 @@ Use this quick selector:
 
 ## Installation
 
-The npm installer copies this package into the default plugin locations for all currently supported agents:
+This package is not published to the npm registry yet. Run the installer directly from the GitHub repository:
 
 ```bash
-npx tungnt-ai-skills install
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install
 ```
 
 With no flags, `install` behaves like `--all` and targets Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and Google Antigravity.
@@ -155,25 +155,25 @@ With no flags, `install` behaves like `--all` and targets Claude Code, Codex, Gi
 Install one agent only:
 
 ```bash
-npx tungnt-ai-skills install --agent codex
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex
 ```
 
 Preview without writing files:
 
 ```bash
-npx tungnt-ai-skills install --agent codex --dry-run
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --dry-run
 ```
 
 List supported agents and resolved target directories:
 
 ```bash
-npx tungnt-ai-skills targets
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills targets
 ```
 
 If a target directory already exists, the installer stops before replacing it. Use `--force` to replace an existing install:
 
 ```bash
-npx tungnt-ai-skills install --agent codex --force
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --force
 ```
 
 The manual sections below are fallback details for debugging or wiring a harness directly.
@@ -321,7 +321,7 @@ Detailed Antigravity notes:
 - Register the marketplace:
 
 ```bash
-copilot plugin marketplace add tungnt1405/ai-skills
+copilot plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
 ```
 
 - Install the plugin:

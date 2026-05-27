@@ -96,5 +96,5 @@ When skills reference Claude Code tools:
 
 ## Help
 
-- Report issues: https://github.com/tungnt1405/ai-skills/issues
+- Report issues: https://github.com/tungnt1405/tungnt-ai-skills-marketplace/issues
 - Repository: https://github.com/tungnt1405/tungnt-ai-skills-marketplace
