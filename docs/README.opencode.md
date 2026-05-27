@@ -8,7 +8,7 @@ Add `tungnt-ai-skills` to the `plugin` array in your `opencode.json` (global or 
 
 ```json
 {
-  "plugin": ["tungnt-ai-skills@git+https://github.com/tungnt1405/ai-skills.git"]
+  "plugin": ["tungnt-ai-skills@git+https://github.com/tungnt1405/tungnt-ai-skills-marketplace"]
 }
 ```
 
@@ -84,7 +84,7 @@ To pin a specific ref:
 
 ```json
 {
-  "plugin": ["tungnt-ai-skills@git+https://github.com/tungnt1405/ai-skills.git#main"]
+  "plugin": ["tungnt-ai-skills@git+https://github.com/tungnt1405/tungnt-ai-skills-marketplace#main"]
 }
 ```
 
@@ -117,7 +117,7 @@ Skills written for Claude Code are adapted for OpenCode like this:
 Some Windows OpenCode builds have upstream installer issues with git-backed plugin specs, including cache paths for `git+https` URLs and Bun not finding `git.exe` even when it works in a normal terminal. If OpenCode cannot install the plugin, try installing with system npm and pointing OpenCode at the local package:
 
 ```powershell
-npm install tungnt-ai-skills@git+https://github.com/tungnt1405/ai-skills.git --prefix "$HOME\.config\opencode"
+npm install tungnt-ai-skills@git+https://github.com/tungnt1405/tungnt-ai-skills-marketplace --prefix "$HOME\.config\opencode"
 ```
 
 Then use the installed package path in `opencode.json`:
@@ -142,5 +142,5 @@ Then use the installed package path in `opencode.json`:
 ## Help
 
 - Report issues: https://github.com/tungnt1405/ai-skills/issues
-- Repository: https://github.com/tungnt1405/ai-skills.git
+- Repository: https://github.com/tungnt1405/tungnt-ai-skills-marketplace
 - OpenCode docs: https://opencode.ai/docs/

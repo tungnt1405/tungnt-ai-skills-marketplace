@@ -182,7 +182,7 @@ Recommended plugin spec:
 
 ```json
 {
-  "plugin": ["tungnt-ai-skills@git+https://github.com/tungnt1405/ai-skills.git"]
+  "plugin": ["tungnt-ai-skills@git+https://github.com/tungnt1405/tungnt-ai-skills-marketplace"]
 }
 ```
 

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none">
+  <!-- Định nghĩa dải màu Gradient để giữ phong cách công nghệ trẻ trung -->
+  <defs>
+    <linearGradient id="tech-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0052D4" />
+      <stop offset="50%" stop-color="#4364F7" />
+      <stop offset="100%" stop-color="#6FB1FC" />
+    </linearGradient>
+    <linearGradient id="arrow-gradient" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#4364F7" />
+      <stop offset="100%" stop-color="#00F2FE" />
+    </linearGradient>
+  </defs>
+
+  <!-- Khung thân chính của chữ T cách điệu công nghệ -->
+  <path d="M6 8C6 6.89543 6.89543 6 8 6H20C20.5523 6 21 6.44772 21 7V9C21 9.55228 20.5523 10 20 10H15V25C15 25.5523 14.5523 26 14 26H12C11.4477 26 11 25.5523 11 25V10H8C6.89543 10 6 9.10457 6 8Z" fill="url(#tech-gradient)" />
+  
+  <!-- Nhánh mũi tên công nghệ hướng lên (Đặc trưng từ logo gốc) -->
+  <path d="M16 14C16 11.7909 17.7909 10 20 10H23.1716L21.5858 8.41421C21.2051 8.0335 21.1945 7.42234 21.5621 7.02859C21.9542 7.01143 22.3332 7.16541 22.6066 7.45636L25.6066 10.4564C25.9971 10.8469 25.9971 11.4801 25.6066 11.8706L22.6066 14.8706C22.1008 15.3402 21.3193 15.1912 21.0074 14.5661C20.9168 14.1687 21.0963 13.7548 21.4398 13.5354L23.1716 12H20C18.8954 12 18 12.8954 18 14V19C18 19.5523 17.5523 20 17 20H16.5C15.9477 20 15.5 19.5523 15.5 19V14Z" fill="url(#arrow-gradient)" />
+  
+  <!-- Điểm nhấn vi mạch nhỏ (Tech Dot) -->
+  <circle cx="9" cy="8" r="1" fill="#00F2FE" />
+</svg>
