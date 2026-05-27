@@ -21,7 +21,7 @@ export const TARGETS = [
     displayName: 'Claude Code',
     defaultTarget: (env = process.env) => joinHome(env, '.claude', 'plugins', PLUGIN_NAME),
     expectedParent: (env = process.env) => joinHome(env, '.claude', 'plugins'),
-    requiredFiles: [...SHARED_REQUIRED_FILES, '.claude-plugin/plugin.json'],
+    requiredFiles: [...SHARED_REQUIRED_FILES, 'CLAUDE.md'],
     postInstallNotes: 'Enable tungnt-ai-skills from Claude Code plugins if it is not already active.',
   },
   {
@@ -29,7 +29,7 @@ export const TARGETS = [
     displayName: 'Codex',
     defaultTarget: (env = process.env) => joinHome(env, '.codex', 'tmp', 'plugins', 'plugins', PLUGIN_NAME),
     expectedParent: (env = process.env) => joinHome(env, '.codex', 'tmp', 'plugins', 'plugins'),
-    requiredFiles: [...SHARED_REQUIRED_FILES, '.codex-plugin/plugin.json'],
+    requiredFiles: [...SHARED_REQUIRED_FILES, 'AGENTS.md'],
     postInstallNotes: 'Open Codex plugins and enable tungnt-ai-skills after installation.',
   },
   {
@@ -37,7 +37,7 @@ export const TARGETS = [
     displayName: 'GitHub Copilot CLI',
     defaultTarget: (env = process.env) => joinHome(env, '.copilot', 'plugins', PLUGIN_NAME),
     expectedParent: (env = process.env) => joinHome(env, '.copilot', 'plugins'),
-    requiredFiles: [...SHARED_REQUIRED_FILES],
+    requiredFiles: [...SHARED_REQUIRED_FILES, 'AGENTS.md'],
     postInstallNotes: 'Enable tungnt-ai-skills through the Copilot plugin flow if your Copilot CLI requires activation.',
   },
   {
@@ -45,7 +45,7 @@ export const TARGETS = [
     displayName: 'Gemini CLI',
     defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'extensions', PLUGIN_NAME),
     expectedParent: (env = process.env) => joinHome(env, '.gemini', 'extensions'),
-    requiredFiles: [...SHARED_REQUIRED_FILES, 'gemini-extension.json'],
+    requiredFiles: [...SHARED_REQUIRED_FILES, 'GEMINI.md', 'gemini-extension.json'],
     postInstallNotes: 'Restart Gemini CLI or reload extensions after installation.',
   },
   {
@@ -53,7 +53,7 @@ export const TARGETS = [
     displayName: 'Google Antigravity',
     defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins', PLUGIN_NAME),
     expectedParent: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins'),
-    requiredFiles: [...SHARED_REQUIRED_FILES, '.agents/plugins/tungnt-ai-skills/plugin.json'],
+    requiredFiles: [...SHARED_REQUIRED_FILES, 'AGENTS.md'],
     postInstallNotes: 'Open Antigravity /plugins and enable tungnt-ai-skills after installation.',
   },
 ];

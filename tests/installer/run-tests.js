@@ -70,9 +70,6 @@ test('planned package entries include core files', () => {
   assert.deepEqual(entries, [
     'skills',
     'hooks',
-    '.claude-plugin',
-    '.codex-plugin',
-    '.agents',
     'gemini-extension.json',
     'GEMINI.md',
     'CLAUDE.md',
