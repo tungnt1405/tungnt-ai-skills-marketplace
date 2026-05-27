@@ -152,6 +152,16 @@ npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungn
 
 With no flags, `install` behaves like `--all` and targets Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and Google Antigravity.
 
+Supported `--agent` targets:
+
+| Target | Agent | Default install path |
+| --- | --- | --- |
+| `claude` | Claude Code | `~/.claude/plugins/tungnt-ai-skills` |
+| `codex` | Codex | `~/.codex/tmp/plugins/plugins/tungnt-ai-skills` |
+| `copilot` | GitHub Copilot CLI | `~/.copilot/plugins/tungnt-ai-skills` |
+| `gemini` | Gemini CLI | `~/.gemini/extensions/tungnt-ai-skills` |
+| `antigravity` | Google Antigravity | `~/.gemini/config/plugins/tungnt-ai-skills` |
+
 Install one agent only:
 
 ```bash
