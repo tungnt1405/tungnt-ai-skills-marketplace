@@ -66,21 +66,39 @@ export const TARGETS = [
       },
       category: 'Coding',
     },
+    configWrites: [
+      {
+        kind: 'tomlPluginEnable',
+        file: (env = process.env) => joinHome(env, '.codex', 'config.toml'),
+        pluginId: 'tungnt-ai-skills@openai-curated',
+      },
+    ],
     postInstallNotes: [
       'Codex local marketplace entry written.',
-      '',
-      'With Codex App, open Plugins, search for tungnt-ai-skills, then click the + button to add the plugin.',
-      '',
-      'With Codex CLI, run /plugins and install tungnt-ai-skills if it is not already enabled.',
+      'Codex plugin enablement written to ~/.codex/config.toml.',
     ].join('\n'),
   },
   {
     id: 'copilot',
     displayName: 'GitHub Copilot CLI',
-    defaultTarget: (env = process.env) => joinHome(env, '.copilot', 'plugins', PLUGIN_NAME),
-    expectedParent: (env = process.env) => joinHome(env, '.copilot', 'plugins'),
-    requiredFiles: [...REQUIRED_SKILL_FILES, 'AGENTS.md'],
-    postInstallNotes: 'Enable tungnt-ai-skills through the Copilot plugin flow if your Copilot CLI requires activation.',
+    defaultTarget: (env = process.env) => joinHome(env, '.copilot', 'settings.json'),
+    expectedParent: (env = process.env) => joinHome(env, '.copilot'),
+    installMode: 'config',
+    includedEntries: [],
+    requiredFiles: [],
+    configWrites: [
+      {
+        kind: 'copilotSettings',
+        file: (env = process.env) => joinHome(env, '.copilot', 'settings.json'),
+        marketplaceId: 'tungnt-ai-skills-marketplace',
+        marketplaceSource: {
+          source: 'github',
+          repo: 'tungnt1405/tungnt-ai-skills-marketplace',
+        },
+        enabledPluginId: 'tungnt-ai-skills@tungnt-ai-skills-marketplace',
+      },
+    ],
+    postInstallNotes: 'Copilot marketplace and plugin enablement written to ~/.copilot/settings.json.',
   },
   {
     id: 'gemini',

@@ -7,6 +7,10 @@ import {
   supportedTargetIds,
 } from './target-map.js';
 import {
+  listTargetConfigs,
+  writeTargetConfigs,
+} from './config-writers.js';
+import {
   copyExtraPackages,
   copyPackage,
   getPackageRoot,
@@ -120,12 +124,17 @@ function install(args, env, io) {
         for (const command of target.nativeCommands) {
           io.out(`Command: ${command.join(' ')}\n`);
         }
+      } else if (target.installMode === 'config') {
+        io.out('Mode: config files\n');
       } else {
         io.out(`Planned entries: ${listPlannedEntries(packageRoot, target).join(', ')}\n`);
       }
       if (target.marketplaceFile) {
         io.out(`Marketplace file: ${target.marketplaceFile(env)}\n`);
         io.out(`Marketplace plugin: ${target.marketplaceEntry.name}\n`);
+      }
+      for (const config of listTargetConfigs(target, env)) {
+        io.out(`Config file: ${config.file}\n`);
       }
       for (const extraCopy of listPlannedExtraCopies(packageRoot, target, env)) {
         io.out(`Additional target: ${extraCopy.destination}\n`);
@@ -147,6 +156,14 @@ function install(args, env, io) {
         }
         continue;
       }
+      if (target.installMode === 'config') {
+        writeTargetConfigs(target, env);
+        io.out('Status: installed\n');
+        if (target.postInstallNotes) {
+          io.out(`Note: ${target.postInstallNotes}\n`);
+        }
+        continue;
+      }
       if (target.installMode === 'merge') {
         if (options.force) {
           removeManagedPackageEntries(packageRoot, destination, expectedParent, target);
@@ -162,6 +179,7 @@ function install(args, env, io) {
       if (target.marketplaceFile) {
         writeMarketplaceEntry(target.marketplaceFile(env), target.marketplaceEntry);
       }
+      writeTargetConfigs(target, env);
       validateInstall(destination, target);
       io.out('Status: installed\n');
       if (target.postInstallNotes) {

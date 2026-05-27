@@ -44,7 +44,7 @@ Skill calls use the real names from each `SKILL.md` file, not a plugin-prefixed 
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install
 ```
 
-The NPM installer uses each target's native install style. Claude Code is installed through marketplace commands. Codex follows the local marketplace setup below by copying the plugin package and writing `marketplace.json`. The remaining local targets copy the package into their plugin folders.
+The NPM installer uses each target's native install style. Claude Code is installed through marketplace commands. Codex follows the local marketplace setup below by copying the plugin package, writing `marketplace.json`, and enabling `tungnt-ai-skills@openai-curated` in `~/.codex/config.toml`. Copilot writes marketplace and enabled plugin settings into `~/.copilot/settings.json`. The remaining local targets copy the package into their plugin folders.
 
 With no flags, `install` behaves like `--all` and targets Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and the concrete Antigravity plugin folders.
 
@@ -97,7 +97,7 @@ Preview resolved install directories without writing files:
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --dry-run
 ```
 
-For Claude Code, dry-run prints the marketplace commands that will be executed. For Codex, dry-run prints the local marketplace package path and `marketplace.json` path that will be written.
+For Claude Code, dry-run prints the marketplace commands that will be executed. For Codex, dry-run prints the local marketplace package path, `marketplace.json` path, and `~/.codex/config.toml` path that will be written. For Copilot, dry-run prints the `~/.copilot/settings.json` path that will be written.
 
 Preview one agent only:
 
@@ -217,31 +217,46 @@ If the fork is not published in your Codex App marketplace, use the local/manual
 
 ### Google Antigravity
 
-This repo includes Antigravity plugin metadata:
-
-- `.agents/plugins/tungnt-ai-skills/plugin.json`
-- `.agents/plugins/plugin.json`
-- root `plugin.json` for NPM installer targets
-
-Open this repo in Antigravity, then run:
+The NPM installer copies Antigravity plugin files into the product-specific plugin roots:
 
 ```text
-/plugins
+~/.gemini/antigravity-cli/plugins/tungnt-ai-skills
+~/.gemini/config/plugins/tungnt-ai-skills
 ```
 
-Enable or verify:
+For a manual setup equivalent to the installer, run these commands from the repository root.
 
-```text
-tungnt-ai-skills
+Install Antigravity CLI:
+
+```bash
+mkdir -p ~/.gemini/antigravity-cli/plugins/tungnt-ai-skills
+cp -R plugin.json skills ~/.gemini/antigravity-cli/plugins/tungnt-ai-skills/
 ```
 
-The Antigravity manifest follows the existing IDE/agent metadata pattern used by files such as `.codex-plugin/plugin.json`. The root `skills/` directory remains the single source of truth; no Antigravity-specific skills are duplicated.
+Install Antigravity IDE:
+
+```bash
+mkdir -p ~/.gemini/config/plugins/tungnt-ai-skills
+cp -R plugin.json skills ~/.gemini/config/plugins/tungnt-ai-skills/
+```
+
+Copy the shared global files used by both layouts:
+
+```bash
+cp AGENTS.md CLAUDE.md GEMINI.md gemini-extension.json ~/.gemini/
+```
+
+Restart Antigravity CLI or Antigravity IDE after copying files, then open `/plugins` and verify `tungnt-ai-skills`.
+
+The root `plugin.json` and `skills/` directory are the Antigravity plugin payload. The root `skills/` directory remains the single source of truth; no Antigravity-specific skills are duplicated.
 
 Detailed Antigravity notes:
 
 - `docs/README.antigravity.md`
 
 ### GitHub Copilot CLI
+
+The NPM installer creates or updates `~/.copilot/settings.json` with the marketplace and enabled plugin entry. For debugging, the equivalent manual commands are:
 
 - Register the marketplace:
 
