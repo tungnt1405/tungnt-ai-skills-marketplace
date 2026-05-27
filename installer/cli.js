@@ -79,9 +79,12 @@ function selectedTargets(options) {
     if (!target) {
       throw new Error(`Unknown agent: ${options.agent}. Supported agents: ${supportedTargetIds().join(', ')}`);
     }
+    if (target.aggregateTargetIds) {
+      return target.aggregateTargetIds.map((id) => getTargetById(id));
+    }
     return [target];
   }
-  return getAllTargets();
+  return getAllTargets().filter((target) => !target.aggregateTargetIds);
 }
 
 function install(args, env, io) {

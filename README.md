@@ -38,18 +38,26 @@ Skill calls use the real names from each `SKILL.md` file, not a plugin-prefixed 
 
 ## Install
 
-This package is installed directly from the GitHub repository:
+### NPM Installer
 
 ```bash
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install
 ```
 
-With no flags, `install` behaves like `--all` and targets Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and Google Antigravity.
+The NPM installer copies this package directly into local agent/plugin folders. This is separate from marketplace registration.
+
+With no flags, `install` behaves like `--all` and targets Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and the concrete Antigravity plugin folders.
 
 Install one agent only:
 
 ```bash
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex
+```
+
+Install all Antigravity layouts:
+
+```bash
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent antigravity-all
 ```
 
 Supported agent ids:
@@ -60,15 +68,17 @@ Supported agent ids:
 | `codex` | Codex |
 | `copilot` | GitHub Copilot CLI |
 | `gemini` | Gemini CLI |
-| `antigravity` | Google Antigravity |
+| `agy` | Antigravity CLI |
+| `antigravity` | Google Antigravity 2.0 |
+| `antigravity-ide` | Antigravity IDE |
+| `antigravity-all` | Antigravity CLI, Antigravity 2.0, and Antigravity IDE |
 
-The `antigravity` target installs shared content under `~/.gemini` so Antigravity CLI, Antigravity IDE, and Antigravity 2.0 can reuse the same files:
+Antigravity targets install plugin folders using the recommended product-specific roots:
 
 ```text
-~/.gemini/skills/{skill_name}/SKILL.md
-~/.gemini/AGENTS.md
-~/.gemini/CLAUDE.md
-~/.gemini/GEMINI.md
+~/.gemini/antigravity-cli/plugins/tungnt-ai-skills
+~/.gemini/antigravity/plugins/tungnt-ai-skills
+~/.gemini/antigravity-ide/plugins/tungnt-ai-skills
 ```
 
 Preview resolved install directories without writing files:
@@ -112,9 +122,130 @@ npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungn
 
 Restart or reload the target agent after updating so it reads the new plugin files.
 
+## Marketplace Setup
+
+### Codex
+
+Codex support in this fork is driven by the bundled plugin manifest:
+
+- `.codex-plugin/plugin.json`
+- bundled `skills/`
+
+#### Codex Marketplace Setup
+
+[Codex CLI add marketplace](https://developers.openai.com/codex/plugins/build#add-a-marketplace-from-the-cli)
+
+Codex CLI and Codex App use the same marketplace/plugin metadata. Configure the marketplace once, then install from either the CLI command palette or the App UI.
+
+Add the marketplace:
+
+```bash
+codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
+
+# codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace --ref main
+
+# codex plugin marketplace add $REPO_ROOT/tungnt-ai-skills-marketplace # you must clone repo to local
+```
+
+For a manual local setup, copy the plugin folder into `~/.codex/tmp/plugins`:
+
+```bash
+# get root marketplace to get path of marketplace installed
+codex plugin marketplace list
+
+# copy plugin to the local marketplace plugins directory
+cp -R $REPO_ROOT/tungnt-ai-skills-marketplace ~/.codex/tmp/plugins/plugins
+```
+
+Add or update `~/.codex/tmp/plugins/.agents/plugins/marketplace.json`:
+
+```json
+"plugins": [
+  ...
+  , {
+    "name": "tungnt-ai-skills",
+    "source": {
+      "source": "local",
+      "path": "./plugins/tungnt-ai-skills-marketplace"
+    },
+    "policy": {
+      "installation": "AVAILABLE",
+      "authentication": "ON_INSTALL"
+    },
+    "category": "Productivity"
+  }
+]
+```
+
+The plugin/package name is:
+
+```text
+tungnt-ai-skills
+```
+
+#### Codex CLI
+
+Open Codex and install from `/plugins`:
+
+```bash
+codex
+
+/plugins tungnt-ai-skills
+```
+
+#### Codex App
+
+Use the same shared marketplace setup above, then install from the App UI:
+
+- Open Plugins in the sidebar.
+- Search for `tungnt-ai-skills`.
+- Click `+` and follow the prompts.
+
+If the fork is not published in your Codex App marketplace, use the local/manual marketplace setup above.
+
+### Google Antigravity
+
+This repo includes Antigravity plugin metadata:
+
+- `.agents/plugins/tungnt-ai-skills/plugin.json`
+- `.agents/plugins/plugin.json`
+- root `plugin.json` for NPM installer targets
+
+Open this repo in Antigravity, then run:
+
+```text
+/plugins
+```
+
+Enable or verify:
+
+```text
+tungnt-ai-skills
+```
+
+The Antigravity manifest follows the existing IDE/agent metadata pattern used by files such as `.codex-plugin/plugin.json`. The root `skills/` directory remains the single source of truth; no Antigravity-specific skills are duplicated.
+
+Detailed Antigravity notes:
+
+- `docs/README.antigravity.md`
+
+### GitHub Copilot CLI
+
+- Register the marketplace:
+
+```bash
+copilot plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
+```
+
+- Install the plugin:
+
+```bash
+copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
+```
+
 ## Manual Harness Notes
 
-The npm installer is the preferred path. Manual setup should only be needed for debugging or for harnesses not covered by the installer.
+For direct file-copy installs, use the NPM installer above. Manual setup should only be needed for debugging or for harnesses not covered by the installer or marketplace flows.
 
 Every manual integration has the same requirements:
 
@@ -123,14 +254,12 @@ Every manual integration has the same requirements:
 - preserve compatibility paths such as `docs/superpowers/`
 - keep skill invocations using the names declared in each `SKILL.md`
 
-For Antigravity manual installs, prefer the shared Gemini root instead of product-specific folders. Current Antigravity variants use product-specific skill roots such as `~/.gemini/antigravity-cli/skills`, `~/.gemini/antigravity-ide/skills`, and `~/.gemini/antigravity/skills`; the shared root `~/.gemini/skills` is the common location all variants can read. Global Markdown files should live directly in `~/.gemini`.
-
 Harness-specific metadata in this repo:
 
 - Claude Code: `.claude-plugin/plugin.json`
 - Codex: `.codex-plugin/plugin.json`
 - Gemini CLI: `gemini-extension.json`
-- Google Antigravity: `.agents/plugins/tungnt-ai-skills/plugin.json`
+- Google Antigravity: `.agents/plugins/tungnt-ai-skills/plugin.json`, `.agents/plugins/plugin.json`, `plugin.json`
 - OpenCode: `.opencode/plugins/`
 
 Additional notes:
