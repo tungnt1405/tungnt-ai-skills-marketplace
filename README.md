@@ -159,17 +159,17 @@ codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
 # codex plugin marketplace add $REPO_ROOT/tungnt-ai-skills-marketplace # you must clone repo to local
 ```
 
-For a manual local setup, copy the plugin folder into `~/.codex/tmp/plugins`:
+For a manual local setup, copy the plugin folder into `~/.codex/.tmp/plugins`:
 
 ```bash
 # get root marketplace to get path of marketplace installed
 codex plugin marketplace list
 
 # copy plugin to the local marketplace plugins directory
-cp -R $REPO_ROOT/tungnt-ai-skills-marketplace ~/.codex/tmp/plugins/plugins
+cp -R $REPO_ROOT/tungnt-ai-skills-marketplace ~/.codex/.tmp/plugins/plugins
 ```
 
-Add or update `~/.codex/tmp/plugins/.agents/plugins/marketplace.json`:
+Add or update `~/.codex/.tmp/plugins/.agents/plugins/marketplace.json`:
 
 ```json
 "plugins": [
