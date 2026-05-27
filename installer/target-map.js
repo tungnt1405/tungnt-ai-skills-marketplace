@@ -64,7 +64,7 @@ export const TARGETS = [
         installation: 'AVAILABLE',
         authentication: 'ON_INSTALL',
       },
-      category: 'Productivity',
+      category: 'Coding',
     },
     postInstallNotes: 'Codex local marketplace entry written. Open /plugins and install tungnt-ai-skills if it is not already enabled.',
   },
