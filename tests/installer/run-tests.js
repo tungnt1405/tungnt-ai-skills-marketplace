@@ -9,10 +9,6 @@ import {
   supportedTargetIds,
 } from '../../installer/target-map.js';
 import {
-  writeCodexPluginEnable,
-  writeCopilotSettings,
-} from '../../installer/config-writers.js';
-import {
   copyPackage,
   ensureInsideExpectedParent,
   getPackageRoot,
@@ -53,8 +49,15 @@ function fakeEnv(home) {
   return { ...process.env, HOME: home, USERPROFILE: home };
 }
 
-function countOccurrences(value, search) {
-  return value.split(search).length - 1;
+function emptyPathEnv(home) {
+  return { ...fakeEnv(home), PATH: '' };
+}
+
+function makeFakeExecutable(directory, name) {
+  const filePath = path.join(directory, name);
+  fs.writeFileSync(filePath, '#!/bin/sh\nexit 0\n');
+  fs.chmodSync(filePath, 0o755);
+  return filePath;
 }
 
 test('target map includes exactly the supported agents', () => {
@@ -91,9 +94,11 @@ test('target map resolves targets under fake HOME', () => {
   );
   assert.equal(
     getTargetById('copilot').defaultTarget(fakeEnv(home)),
-    path.join(home, '.copilot', 'settings.json'),
+    path.join(home, '.copilot'),
   );
-  assert.equal(getTargetById('copilot').expectedParent(fakeEnv(home)), path.join(home, '.copilot'));
+  assert.equal(getTargetById('copilot').expectedParent(fakeEnv(home)), home);
+  assert.equal(getTargetById('codex').defaultTarget(fakeEnv(home)), path.join(home, '.codex'));
+  assert.equal(getTargetById('codex').expectedParent(fakeEnv(home)), home);
   assert.equal(getTargetById('antigravity-all').defaultTarget(fakeEnv(home)), path.join(home, '.gemini'));
 });
 
@@ -125,132 +130,6 @@ test('copyPackage copies shared required files', () => {
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
 });
 
-test('writeCodexPluginEnable creates plugin enable table', () => {
-  const configFile = path.join(tempDir(), '.codex', 'config.toml');
-  writeCodexPluginEnable(configFile, 'tungnt-ai-skills@openai-curated');
-  assert.equal(
-    fs.readFileSync(configFile, 'utf8'),
-    '[plugins."tungnt-ai-skills@openai-curated"]\nenabled = true\n',
-  );
-});
-
-test('writeCodexPluginEnable replaces existing table and preserves unrelated content', () => {
-  const configFile = path.join(tempDir(), '.codex', 'config.toml');
-  fs.mkdirSync(path.dirname(configFile), { recursive: true });
-  fs.writeFileSync(configFile, [
-    '[features]',
-    'multi_agent = true',
-    '',
-    '[plugins."tungnt-ai-skills@openai-curated"]',
-    'enabled = false',
-    'stale = "remove"',
-    '',
-    '[other]',
-    'value = 1',
-    '',
-  ].join('\n'));
-
-  writeCodexPluginEnable(configFile, 'tungnt-ai-skills@openai-curated');
-
-  const config = fs.readFileSync(configFile, 'utf8');
-  assert.equal(config.includes('[features]\nmulti_agent = true'), true);
-  assert.equal(config.includes('[other]\nvalue = 1'), true);
-  assert.equal(config.includes('stale = "remove"'), false);
-  assert.equal(countOccurrences(config, '[plugins."tungnt-ai-skills@openai-curated"]'), 1);
-  assert.equal(config.includes('[plugins."tungnt-ai-skills@openai-curated"]\nenabled = true'), true);
-});
-
-test('writeCopilotSettings creates marketplace and enabled plugin settings', () => {
-  const settingsFile = path.join(tempDir(), '.copilot', 'settings.json');
-  writeCopilotSettings(
-    settingsFile,
-    'tungnt-ai-skills-marketplace',
-    { source: 'github', repo: 'tungnt1405/tungnt-ai-skills-marketplace' },
-    'tungnt-ai-skills@tungnt-ai-skills-marketplace',
-  );
-
-  const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
-  assert.deepEqual(settings, {
-    extraKnownMarketplaces: {
-      'tungnt-ai-skills-marketplace': {
-        source: {
-          source: 'github',
-          repo: 'tungnt1405/tungnt-ai-skills-marketplace',
-        },
-      },
-    },
-    enabledPlugins: {
-      'tungnt-ai-skills@tungnt-ai-skills-marketplace': true,
-    },
-  });
-});
-
-test('writeCopilotSettings prepends entries and preserves existing settings', () => {
-  const settingsFile = path.join(tempDir(), '.copilot', 'settings.json');
-  fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
-  fs.writeFileSync(settingsFile, `${JSON.stringify({
-    theme: 'dark',
-    extraKnownMarketplaces: {
-      existing: {
-        source: {
-          source: 'github',
-          repo: 'example/existing-marketplace',
-        },
-      },
-    },
-    enabledPlugins: {
-      'existing-plugin@existing': true,
-    },
-  }, null, 2)}\n`);
-
-  writeCopilotSettings(
-    settingsFile,
-    'tungnt-ai-skills-marketplace',
-    { source: 'github', repo: 'tungnt1405/tungnt-ai-skills-marketplace' },
-    'tungnt-ai-skills@tungnt-ai-skills-marketplace',
-  );
-
-  const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
-  assert.equal(settings.theme, 'dark');
-  assert.deepEqual(Object.keys(settings.extraKnownMarketplaces), ['tungnt-ai-skills-marketplace', 'existing']);
-  assert.deepEqual(Object.keys(settings.enabledPlugins), ['tungnt-ai-skills@tungnt-ai-skills-marketplace', 'existing-plugin@existing']);
-});
-
-test('writeCopilotSettings fails on invalid JSON without overwriting', () => {
-  const settingsFile = path.join(tempDir(), '.copilot', 'settings.json');
-  fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
-  fs.writeFileSync(settingsFile, '{ invalid json');
-
-  assert.throws(
-    () => writeCopilotSettings(
-      settingsFile,
-      'tungnt-ai-skills-marketplace',
-      { source: 'github', repo: 'tungnt1405/tungnt-ai-skills-marketplace' },
-      'tungnt-ai-skills@tungnt-ai-skills-marketplace',
-    ),
-    /Invalid JSON/,
-  );
-  assert.equal(fs.readFileSync(settingsFile, 'utf8'), '{ invalid json');
-});
-
-test('writeCopilotSettings fails on non-object settings sections without overwriting', () => {
-  const settingsFile = path.join(tempDir(), '.copilot', 'settings.json');
-  fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
-  const original = `${JSON.stringify({ extraKnownMarketplaces: [] }, null, 2)}\n`;
-  fs.writeFileSync(settingsFile, original);
-
-  assert.throws(
-    () => writeCopilotSettings(
-      settingsFile,
-      'tungnt-ai-skills-marketplace',
-      { source: 'github', repo: 'tungnt1405/tungnt-ai-skills-marketplace' },
-      'tungnt-ai-skills@tungnt-ai-skills-marketplace',
-    ),
-    /extraKnownMarketplaces/,
-  );
-  assert.equal(fs.readFileSync(settingsFile, 'utf8'), original);
-});
-
 test('removeExistingInstall refuses paths outside expected parent', () => {
   const root = tempDir();
   const outside = path.join(root, 'outside', 'plugin');
@@ -270,7 +149,7 @@ test('validateSource reports missing required files', () => {
   const fixture = tempDir();
   fs.mkdirSync(path.join(fixture, 'skills', 'using-tungnt-ai-skills'), { recursive: true });
   fs.writeFileSync(path.join(fixture, 'skills', 'using-tungnt-ai-skills', 'SKILL.md'), '');
-  const target = getTargetById('codex');
+  const target = getTargetById('gemini');
   assert.throws(() => validateSource(fixture, target), /missing required file/);
 });
 
@@ -304,24 +183,50 @@ test('install --agent codex --dry-run selects only Codex', () => {
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes('[codex]'), true);
   assert.equal(out.stdout().includes('[claude]'), false);
-  assert.equal(out.stdout().includes('Planned entries: .codex-plugin, assets, skills'), true);
-  assert.equal(out.stdout().includes(path.join(home, '.codex', '.tmp', 'plugins', 'plugins', 'tungnt-ai-skills-marketplace')), true);
-  assert.equal(out.stdout().includes(path.join(home, '.codex', '.tmp', 'plugins', '.agents', 'plugins', 'marketplace.json')), true);
-  assert.equal(out.stdout().includes('Marketplace plugin: tungnt-ai-skills'), true);
-  assert.equal(out.stdout().includes(`Config file: ${path.join(home, '.codex', 'config.toml')}`), true);
+  assert.equal(out.stdout().includes('Mode: native marketplace commands'), true);
+  assert.equal(out.stdout().includes('Command: codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), true);
+  assert.equal(out.stdout().includes('Planned entries:'), false);
+  assert.equal(out.stdout().includes('Marketplace file:'), false);
+  assert.equal(out.stdout().includes('Config file:'), false);
 });
 
-test('install --agent copilot --dry-run selects Copilot settings config', () => {
+test('install --agent copilot --dry-run selects Copilot native commands', () => {
   const home = tempDir();
   const out = capture();
   const code = runCli(['install', '--agent', 'copilot', '--dry-run'], fakeEnv(home), out.io);
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes('[copilot]'), true);
   assert.equal(out.stdout().includes('[codex]'), false);
-  assert.equal(out.stdout().includes('Mode: config files'), true);
-  assert.equal(out.stdout().includes(`Target: ${path.join(home, '.copilot', 'settings.json')}`), true);
-  assert.equal(out.stdout().includes(`Config file: ${path.join(home, '.copilot', 'settings.json')}`), true);
+  assert.equal(out.stdout().includes('Mode: native marketplace commands'), true);
+  assert.equal(out.stdout().includes('Command: copilot plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), true);
+  assert.equal(out.stdout().includes('Command: copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+  assert.equal(out.stdout().includes('Config file:'), false);
   assert.equal(fs.existsSync(path.join(home, '.copilot')), false);
+});
+
+test('install --agent copilot fails clearly when copilot command is missing', () => {
+  const out = capture();
+  const code = runCli(['install', '--agent', 'copilot'], emptyPathEnv(tempDir()), out.io);
+  assert.equal(code, 1);
+  assert.equal(out.stderr().includes('Native command not found: copilot'), true);
+});
+
+test('install --agent codex fails clearly when codex command is missing', () => {
+  const out = capture();
+  const code = runCli(['install', '--agent', 'codex'], emptyPathEnv(tempDir()), out.io);
+  assert.equal(code, 1);
+  assert.equal(out.stderr().includes('Native command not found: codex'), true);
+});
+
+test('native command preflight accepts commands from PATH', () => {
+  const home = tempDir();
+  const bin = path.join(home, 'bin');
+  fs.mkdirSync(bin, { recursive: true });
+  makeFakeExecutable(bin, 'codex');
+  const out = capture();
+  const code = runCli(['install', '--agent', 'codex'], { ...fakeEnv(home), PATH: bin }, out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes('Status: installed'), true);
 });
 
 test('install --agent claude --dry-run selects Claude marketplace commands', () => {
@@ -419,126 +324,6 @@ test('install --force replaces existing package destination', () => {
   assert.equal(code, 0, out.stderr());
   assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
-});
-
-test('codex installs local marketplace package and entry', () => {
-  const home = tempDir();
-  const env = fakeEnv(home);
-  const target = getTargetById('codex');
-  const destination = target.defaultTarget(env);
-  const marketplaceFile = path.join(home, '.codex', '.tmp', 'plugins', '.agents', 'plugins', 'marketplace.json');
-  const configFile = path.join(home, '.codex', 'config.toml');
-  const out = capture();
-  const code = runCli(['install', '--agent', 'codex'], env, out.io);
-  assert.equal(code, 0, out.stderr());
-  assert.equal(fs.existsSync(path.join(destination, '.codex-plugin', 'plugin.json')), true);
-  assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
-  assert.equal(fs.existsSync(path.join(destination, 'assets', 'tungnt-ai-skills-small.svg')), true);
-  const marketplace = JSON.parse(fs.readFileSync(marketplaceFile, 'utf8'));
-  const entry = marketplace.plugins.find((plugin) => plugin.name === 'tungnt-ai-skills');
-  assert.equal(entry.source.source, 'local');
-  assert.equal(entry.source.path, './plugins/tungnt-ai-skills-marketplace');
-  assert.equal(entry.policy.installation, 'AVAILABLE');
-  assert.equal(
-    fs.readFileSync(configFile, 'utf8'),
-    '[plugins."tungnt-ai-skills@openai-curated"]\nenabled = true\n',
-  );
-});
-
-test('codex install merges existing config without duplicate plugin table', () => {
-  const home = tempDir();
-  const env = fakeEnv(home);
-  const configFile = path.join(home, '.codex', 'config.toml');
-  fs.mkdirSync(path.dirname(configFile), { recursive: true });
-  fs.writeFileSync(configFile, [
-    '[features]',
-    'multi_agent = true',
-    '',
-    '[plugins."tungnt-ai-skills@openai-curated"]',
-    'enabled = false',
-    'old = "value"',
-    '',
-    '[other]',
-    'value = 1',
-    '',
-  ].join('\n'));
-
-  const out = capture();
-  const code = runCli(['install', '--agent', 'codex'], env, out.io);
-  assert.equal(code, 0, out.stderr());
-
-  const config = fs.readFileSync(configFile, 'utf8');
-  assert.equal(config.includes('[features]\nmulti_agent = true'), true);
-  assert.equal(config.includes('[other]\nvalue = 1'), true);
-  assert.equal(config.includes('old = "value"'), false);
-  assert.equal(countOccurrences(config, '[plugins."tungnt-ai-skills@openai-curated"]'), 1);
-  assert.equal(config.includes('[plugins."tungnt-ai-skills@openai-curated"]\nenabled = true'), true);
-});
-
-test('copilot install creates settings with marketplace and enabled plugin', () => {
-  const home = tempDir();
-  const env = fakeEnv(home);
-  const settingsFile = path.join(home, '.copilot', 'settings.json');
-  const out = capture();
-  const code = runCli(['install', '--agent', 'copilot'], env, out.io);
-  assert.equal(code, 0, out.stderr());
-  assert.deepEqual(JSON.parse(fs.readFileSync(settingsFile, 'utf8')), {
-    extraKnownMarketplaces: {
-      'tungnt-ai-skills-marketplace': {
-        source: {
-          source: 'github',
-          repo: 'tungnt1405/tungnt-ai-skills-marketplace',
-        },
-      },
-    },
-    enabledPlugins: {
-      'tungnt-ai-skills@tungnt-ai-skills-marketplace': true,
-    },
-  });
-});
-
-test('copilot install merges settings and puts managed entries first', () => {
-  const home = tempDir();
-  const env = fakeEnv(home);
-  const settingsFile = path.join(home, '.copilot', 'settings.json');
-  fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
-  fs.writeFileSync(settingsFile, `${JSON.stringify({
-    extraKnownMarketplaces: {
-      otherMarketplace: {
-        source: {
-          source: 'github',
-          repo: 'example/other-marketplace',
-        },
-      },
-    },
-    enabledPlugins: {
-      'other-plugin@otherMarketplace': true,
-    },
-    telemetry: false,
-  }, null, 2)}\n`);
-
-  const out = capture();
-  const code = runCli(['install', '--agent', 'copilot'], env, out.io);
-  assert.equal(code, 0, out.stderr());
-
-  const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
-  assert.deepEqual(Object.keys(settings.extraKnownMarketplaces), ['tungnt-ai-skills-marketplace', 'otherMarketplace']);
-  assert.deepEqual(Object.keys(settings.enabledPlugins), ['tungnt-ai-skills@tungnt-ai-skills-marketplace', 'other-plugin@otherMarketplace']);
-  assert.equal(settings.telemetry, false);
-});
-
-test('copilot install fails on invalid settings JSON without overwriting', () => {
-  const home = tempDir();
-  const env = fakeEnv(home);
-  const settingsFile = path.join(home, '.copilot', 'settings.json');
-  fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
-  fs.writeFileSync(settingsFile, '{ invalid json');
-
-  const out = capture();
-  const code = runCli(['install', '--agent', 'copilot'], env, out.io);
-  assert.equal(code, 1);
-  assert.equal(out.stderr().includes('Invalid JSON'), true);
-  assert.equal(fs.readFileSync(settingsFile, 'utf8'), '{ invalid json');
 });
 
 test('agy installs plugin folder with marker file and skills', () => {

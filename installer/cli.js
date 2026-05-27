@@ -7,10 +7,6 @@ import {
   supportedTargetIds,
 } from './target-map.js';
 import {
-  listTargetConfigs,
-  writeTargetConfigs,
-} from './config-writers.js';
-import {
   copyExtraPackages,
   copyPackage,
   getPackageRoot,
@@ -133,9 +129,6 @@ function install(args, env, io) {
         io.out(`Marketplace file: ${target.marketplaceFile(env)}\n`);
         io.out(`Marketplace plugin: ${target.marketplaceEntry.name}\n`);
       }
-      for (const config of listTargetConfigs(target, env)) {
-        io.out(`Config file: ${config.file}\n`);
-      }
       for (const extraCopy of listPlannedExtraCopies(packageRoot, target, env)) {
         io.out(`Additional target: ${extraCopy.destination}\n`);
         io.out(`Additional entries: ${extraCopy.entries.join(', ')}\n`);
@@ -149,15 +142,8 @@ function install(args, env, io) {
         continue;
       }
       if (target.nativeCommands) {
+        ensureNativeCommandsAvailable(target, env);
         runNativeCommands(target, env);
-        io.out('Status: installed\n');
-        if (target.postInstallNotes) {
-          io.out(`Note: ${target.postInstallNotes}\n`);
-        }
-        continue;
-      }
-      if (target.installMode === 'config') {
-        writeTargetConfigs(target, env);
         io.out('Status: installed\n');
         if (target.postInstallNotes) {
           io.out(`Note: ${target.postInstallNotes}\n`);
@@ -179,7 +165,6 @@ function install(args, env, io) {
       if (target.marketplaceFile) {
         writeMarketplaceEntry(target.marketplaceFile(env), target.marketplaceEntry);
       }
-      writeTargetConfigs(target, env);
       validateInstall(destination, target);
       io.out('Status: installed\n');
       if (target.postInstallNotes) {
@@ -212,6 +197,46 @@ function runNativeCommands(target, env) {
     if (result.status !== 0) {
       throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
     }
+  }
+}
+
+function ensureNativeCommandsAvailable(target, env) {
+  const commands = [...new Set(target.nativeCommands.map(([command]) => command))];
+  for (const command of commands) {
+    if (!findExecutable(command, env)) {
+      throw new Error(`Native command not found: ${command}`);
+    }
+  }
+}
+
+function findExecutable(command, env) {
+  if (command.includes(path.sep)) {
+    return isExecutable(command);
+  }
+
+  const pathValue = env.PATH || '';
+  const extensions = process.platform === 'win32' && !path.extname(command)
+    ? (env.PATHEXT || '.EXE;.CMD;.BAT;.COM').split(';')
+    : [''];
+
+  for (const directory of pathValue.split(path.delimiter).filter(Boolean)) {
+    for (const extension of extensions) {
+      const candidate = path.join(directory, `${command}${extension}`);
+      if (isExecutable(candidate)) {
+        return candidate;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+function isExecutable(filePath) {
+  try {
+    const stat = fs.statSync(filePath);
+    return stat.isFile();
+  } catch {
+    return false;
   }
 }
 

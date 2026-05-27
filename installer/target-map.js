@@ -49,56 +49,25 @@ export const TARGETS = [
   {
     id: 'codex',
     displayName: 'Codex',
-    defaultTarget: (env = process.env) => joinHome(env, '.codex', '.tmp', 'plugins', 'plugins', 'tungnt-ai-skills-marketplace'),
-    expectedParent: (env = process.env) => joinHome(env, '.codex', '.tmp', 'plugins', 'plugins'),
-    includedEntries: ['.codex-plugin', 'assets', 'skills'],
-    requiredFiles: [...REQUIRED_SKILL_FILES, '.codex-plugin/plugin.json'],
-    marketplaceFile: (env = process.env) => joinHome(env, '.codex', '.tmp', 'plugins', '.agents', 'plugins', 'marketplace.json'),
-    marketplaceEntry: {
-      name: PLUGIN_NAME,
-      source: {
-        source: 'local',
-        path: './plugins/tungnt-ai-skills-marketplace',
-      },
-      policy: {
-        installation: 'AVAILABLE',
-        authentication: 'ON_INSTALL',
-      },
-      category: 'Coding',
-    },
-    configWrites: [
-      {
-        kind: 'tomlPluginEnable',
-        file: (env = process.env) => joinHome(env, '.codex', 'config.toml'),
-        pluginId: 'tungnt-ai-skills@openai-curated',
-      },
+    defaultTarget: (env = process.env) => joinHome(env, '.codex'),
+    expectedParent: (env = process.env) => joinHome(env),
+    requiredFiles: [],
+    nativeCommands: [
+      ['codex', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
     ],
-    postInstallNotes: [
-      'Codex local marketplace entry written.',
-      'Codex plugin enablement written to ~/.codex/config.toml.',
-    ].join('\n'),
+    postInstallNotes: 'Codex marketplace registered through Codex CLI.',
   },
   {
     id: 'copilot',
     displayName: 'GitHub Copilot CLI',
-    defaultTarget: (env = process.env) => joinHome(env, '.copilot', 'settings.json'),
-    expectedParent: (env = process.env) => joinHome(env, '.copilot'),
-    installMode: 'config',
-    includedEntries: [],
+    defaultTarget: (env = process.env) => joinHome(env, '.copilot'),
+    expectedParent: (env = process.env) => joinHome(env),
     requiredFiles: [],
-    configWrites: [
-      {
-        kind: 'copilotSettings',
-        file: (env = process.env) => joinHome(env, '.copilot', 'settings.json'),
-        marketplaceId: 'tungnt-ai-skills-marketplace',
-        marketplaceSource: {
-          source: 'github',
-          repo: 'tungnt1405/tungnt-ai-skills-marketplace',
-        },
-        enabledPluginId: 'tungnt-ai-skills@tungnt-ai-skills-marketplace',
-      },
+    nativeCommands: [
+      ['copilot', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
+      ['copilot', 'plugin', 'install', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
     ],
-    postInstallNotes: 'Copilot marketplace and plugin enablement written to ~/.copilot/settings.json.',
+    postInstallNotes: 'Copilot marketplace registered and plugin installed through Copilot CLI.',
   },
   {
     id: 'gemini',
