@@ -7,6 +7,16 @@ const SHARED_REQUIRED_FILES = [
   'skills/using-tungnt-ai-skills/SKILL.md',
 ];
 
+const ANTIGRAVITY_PLUGIN_ENTRIES = [
+  'plugin.json',
+  'skills',
+];
+
+const ANTIGRAVITY_REQUIRED_FILES = [
+  'plugin.json',
+  ...SHARED_REQUIRED_FILES,
+];
+
 function homeDir(env = process.env) {
   return env.HOME || env.USERPROFILE || os.homedir();
 }
@@ -50,13 +60,38 @@ export const TARGETS = [
   },
   {
     id: 'antigravity',
-    displayName: 'Google Antigravity',
+    displayName: 'Google Antigravity 2.0',
+    defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'antigravity', 'plugins', PLUGIN_NAME),
+    expectedParent: (env = process.env) => joinHome(env, '.gemini', 'antigravity', 'plugins'),
+    includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
+    requiredFiles: ANTIGRAVITY_REQUIRED_FILES,
+    postInstallNotes: 'Restart Antigravity or reload plugins after installation.',
+  },
+  {
+    id: 'agy',
+    displayName: 'Antigravity CLI',
+    defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'antigravity-cli', 'plugins', PLUGIN_NAME),
+    expectedParent: (env = process.env) => joinHome(env, '.gemini', 'antigravity-cli', 'plugins'),
+    includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
+    requiredFiles: ANTIGRAVITY_REQUIRED_FILES,
+    postInstallNotes: 'Restart Antigravity CLI or reload plugins after installation.',
+  },
+  {
+    id: 'antigravity-ide',
+    displayName: 'Antigravity IDE',
+    defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'antigravity-ide', 'plugins', PLUGIN_NAME),
+    expectedParent: (env = process.env) => joinHome(env, '.gemini', 'antigravity-ide', 'plugins'),
+    includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
+    requiredFiles: ANTIGRAVITY_REQUIRED_FILES,
+    postInstallNotes: 'Restart Antigravity IDE or reload plugins after installation.',
+  },
+  {
+    id: 'antigravity-all',
+    displayName: 'All Antigravity targets',
     defaultTarget: (env = process.env) => joinHome(env, '.gemini'),
     expectedParent: (env = process.env) => joinHome(env),
-    installMode: 'merge',
-    includedEntries: ['skills', 'GEMINI.md', 'CLAUDE.md', 'AGENTS.md'],
-    requiredFiles: [...SHARED_REQUIRED_FILES, 'AGENTS.md'],
-    postInstallNotes: 'Antigravity variants read shared skills from ~/.gemini/skills and global MD files from ~/.gemini.',
+    aggregateTargetIds: ['agy', 'antigravity', 'antigravity-ide'],
+    postInstallNotes: 'Installs Antigravity CLI, Antigravity 2.0, and Antigravity IDE plugin folders.',
   },
 ];
 

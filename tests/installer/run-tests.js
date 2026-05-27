@@ -50,8 +50,17 @@ function fakeEnv(home) {
 }
 
 test('target map includes exactly the supported agents', () => {
-  assert.deepEqual(supportedTargetIds(), ['claude', 'codex', 'copilot', 'gemini', 'antigravity']);
-  assert.equal(getAllTargets().length, 5);
+  assert.deepEqual(supportedTargetIds(), [
+    'claude',
+    'codex',
+    'copilot',
+    'gemini',
+    'antigravity',
+    'agy',
+    'antigravity-ide',
+    'antigravity-all',
+  ]);
+  assert.equal(getAllTargets().length, 8);
 });
 
 test('target map resolves targets under fake HOME', () => {
@@ -60,7 +69,19 @@ test('target map resolves targets under fake HOME', () => {
     assert.equal(target.defaultTarget(fakeEnv(home)).startsWith(home), true, target.id);
     assert.equal(target.expectedParent(fakeEnv(home)).startsWith(home), true, target.id);
   }
-  assert.equal(getTargetById('antigravity').defaultTarget(fakeEnv(home)), path.join(home, '.gemini'));
+  assert.equal(
+    getTargetById('antigravity').defaultTarget(fakeEnv(home)),
+    path.join(home, '.gemini', 'antigravity', 'plugins', 'tungnt-ai-skills'),
+  );
+  assert.equal(
+    getTargetById('agy').defaultTarget(fakeEnv(home)),
+    path.join(home, '.gemini', 'antigravity-cli', 'plugins', 'tungnt-ai-skills'),
+  );
+  assert.equal(
+    getTargetById('antigravity-ide').defaultTarget(fakeEnv(home)),
+    path.join(home, '.gemini', 'antigravity-ide', 'plugins', 'tungnt-ai-skills'),
+  );
+  assert.equal(getTargetById('antigravity-all').defaultTarget(fakeEnv(home)), path.join(home, '.gemini'));
 });
 
 test('unknown target returns undefined', () => {
@@ -129,9 +150,10 @@ test('install --dry-run defaults to all agents and does not write', () => {
   const out = capture();
   const code = runCli(['install', '--dry-run'], fakeEnv(home), out.io);
   assert.equal(code, 0, out.stderr());
-  for (const id of supportedTargetIds()) {
+  for (const id of supportedTargetIds().filter((targetId) => targetId !== 'antigravity-all')) {
     assert.equal(out.stdout().includes(`[${id}]`), true, id);
   }
+  assert.equal(out.stdout().includes('[antigravity-all]'), false);
   assert.equal(fs.existsSync(path.join(home, '.codex')), false);
 });
 
@@ -144,15 +166,46 @@ test('install --agent codex --dry-run selects only Codex', () => {
   assert.equal(out.stdout().includes('[claude]'), false);
 });
 
-test('install --agent antigravity --dry-run shows shared gemini entries only', () => {
+test('install --agent antigravity --dry-run uses Antigravity 2.0 plugin layout', () => {
   const home = tempDir();
   const out = capture();
   const code = runCli(['install', '--agent', 'antigravity', '--dry-run'], fakeEnv(home), out.io);
   assert.equal(code, 0, out.stderr());
-  assert.equal(out.stdout().includes(path.join(home, '.gemini')), true);
-  assert.equal(out.stdout().includes('Planned entries: skills, GEMINI.md, CLAUDE.md, AGENTS.md'), true);
+  assert.equal(out.stdout().includes(path.join(home, '.gemini', 'antigravity', 'plugins', 'tungnt-ai-skills')), true);
+  assert.equal(out.stdout().includes('Planned entries: plugin.json, skills'), true);
+  assert.equal(out.stdout().includes('GEMINI.md'), false);
   assert.equal(out.stdout().includes('hooks'), false);
-  assert.equal(out.stdout().includes('gemini-extension.json'), false);
+});
+
+test('install --agent agy --dry-run uses Antigravity CLI plugin layout', () => {
+  const home = tempDir();
+  const out = capture();
+  const code = runCli(['install', '--agent', 'agy', '--dry-run'], fakeEnv(home), out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes(path.join(home, '.gemini', 'antigravity-cli', 'plugins', 'tungnt-ai-skills')), true);
+  assert.equal(out.stdout().includes('Planned entries: plugin.json, skills'), true);
+});
+
+test('install --agent antigravity-ide --dry-run uses Antigravity IDE plugin layout', () => {
+  const home = tempDir();
+  const out = capture();
+  const code = runCli(['install', '--agent', 'antigravity-ide', '--dry-run'], fakeEnv(home), out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes(path.join(home, '.gemini', 'antigravity-ide', 'plugins', 'tungnt-ai-skills')), true);
+  assert.equal(out.stdout().includes('Planned entries: plugin.json, skills'), true);
+});
+
+test('install --agent antigravity-all --dry-run plans all Antigravity plugin layouts', () => {
+  const home = tempDir();
+  const out = capture();
+  const code = runCli(['install', '--agent', 'antigravity-all', '--dry-run'], fakeEnv(home), out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes('[agy]'), true);
+  assert.equal(out.stdout().includes('[antigravity]'), true);
+  assert.equal(out.stdout().includes('[antigravity-ide]'), true);
+  assert.equal(out.stdout().includes(path.join(home, '.gemini', 'antigravity-cli', 'plugins', 'tungnt-ai-skills')), true);
+  assert.equal(out.stdout().includes(path.join(home, '.gemini', 'antigravity', 'plugins', 'tungnt-ai-skills')), true);
+  assert.equal(out.stdout().includes(path.join(home, '.gemini', 'antigravity-ide', 'plugins', 'tungnt-ai-skills')), true);
 });
 
 test('unknown agent exits non-zero', () => {
@@ -194,35 +247,31 @@ test('install --force replaces existing destination', () => {
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
 });
 
-test('antigravity installs into shared gemini root when it already exists', () => {
+test('antigravity installs plugin folder with marker file and skills', () => {
   const home = tempDir();
   const env = fakeEnv(home);
   const target = getTargetById('antigravity');
   const destination = target.defaultTarget(env);
-  fs.mkdirSync(path.join(destination, 'skills', 'external-skill'), { recursive: true });
-  fs.writeFileSync(path.join(destination, 'skills', 'external-skill', 'SKILL.md'), 'external');
   const out = capture();
   const code = runCli(['install', '--agent', 'antigravity'], env, out.io);
   assert.equal(code, 0, out.stderr());
+  assert.equal(fs.existsSync(path.join(destination, 'plugin.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
-  assert.equal(fs.existsSync(path.join(destination, 'AGENTS.md')), true);
-  assert.equal(fs.existsSync(path.join(destination, 'skills', 'external-skill', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(destination, 'AGENTS.md')), false);
   assert.equal(fs.existsSync(path.join(destination, 'hooks')), false);
   assert.equal(fs.existsSync(path.join(destination, 'gemini-extension.json')), false);
 });
 
-test('antigravity force removes only managed package entries', () => {
+test('agy installs plugin folder with marker file and skills', () => {
   const home = tempDir();
   const env = fakeEnv(home);
-  const target = getTargetById('antigravity');
+  const target = getTargetById('agy');
   const destination = target.defaultTarget(env);
-  fs.mkdirSync(path.join(destination, 'skills', 'external-skill'), { recursive: true });
-  fs.mkdirSync(path.join(destination, 'skills', 'using-tungnt-ai-skills'), { recursive: true });
-  fs.writeFileSync(path.join(destination, 'skills', 'external-skill', 'SKILL.md'), 'external');
-  fs.writeFileSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'stale.txt'), 'stale');
-  removeManagedPackageEntries(PACKAGE_ROOT, destination, target.expectedParent(env), target);
-  assert.equal(fs.existsSync(path.join(destination, 'skills', 'external-skill', 'SKILL.md')), true);
-  assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'stale.txt')), false);
+  const out = capture();
+  const code = runCli(['install', '--agent', 'agy'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(fs.existsSync(path.join(destination, 'plugin.json')), true);
+  assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
 });
 
 async function run() {
