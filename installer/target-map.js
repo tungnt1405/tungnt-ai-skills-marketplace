@@ -42,8 +42,9 @@ export const TARGETS = [
     nativeCommands: [
       ['claude', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
       ['claude', 'plugin', 'install', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
+      ['claude', 'plugin', 'enable', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
     ],
-    postInstallNotes: 'Installed through Claude Code marketplace commands.',
+    postInstallNotes: 'Installed and enabled through Claude Code marketplace commands.',
   },
   {
     id: 'codex',

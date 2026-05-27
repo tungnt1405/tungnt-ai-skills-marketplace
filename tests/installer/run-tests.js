@@ -181,6 +181,7 @@ test('install --agent claude --dry-run selects Claude marketplace commands', () 
   assert.equal(out.stdout().includes('Mode: native marketplace commands'), true);
   assert.equal(out.stdout().includes('Command: claude plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), true);
   assert.equal(out.stdout().includes('Command: claude plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+  assert.equal(out.stdout().includes('Command: claude plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
 });
 
 test('install --agent agy --dry-run uses Antigravity CLI plugin layout', () => {
