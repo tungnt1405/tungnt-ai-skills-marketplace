@@ -49,11 +49,11 @@ export const TARGETS = [
   {
     id: 'codex',
     displayName: 'Codex',
-    defaultTarget: (env = process.env) => joinHome(env, '.codex', 'tmp', 'plugins', 'plugins', 'tungnt-ai-skills-marketplace'),
-    expectedParent: (env = process.env) => joinHome(env, '.codex', 'tmp', 'plugins', 'plugins'),
+    defaultTarget: (env = process.env) => joinHome(env, '.codex', '.tmp', 'plugins', 'plugins', 'tungnt-ai-skills-marketplace'),
+    expectedParent: (env = process.env) => joinHome(env, '.codex', '.tmp', 'plugins', 'plugins'),
     includedEntries: ['.codex-plugin', 'assets', 'skills'],
     requiredFiles: [...REQUIRED_SKILL_FILES, '.codex-plugin/plugin.json'],
-    marketplaceFile: (env = process.env) => joinHome(env, '.codex', 'tmp', 'plugins', '.agents', 'plugins', 'marketplace.json'),
+    marketplaceFile: (env = process.env) => joinHome(env, '.codex', '.tmp', 'plugins', '.agents', 'plugins', 'marketplace.json'),
     marketplaceEntry: {
       name: PLUGIN_NAME,
       source: {
