@@ -66,7 +66,13 @@ export const TARGETS = [
       },
       category: 'Coding',
     },
-    postInstallNotes: 'Codex local marketplace entry written. Open /plugins and install tungnt-ai-skills if it is not already enabled.',
+    postInstallNotes: [
+      'Codex local marketplace entry written.',
+      '',
+      'With Codex App, open Plugins, search for tungnt-ai-skills, then click the + button to add the plugin.',
+      '',
+      'With Codex CLI, run /plugins and install tungnt-ai-skills if it is not already enabled.',
+    ].join('\n'),
   },
   {
     id: 'copilot',
