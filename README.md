@@ -217,25 +217,38 @@ If the fork is not published in your Codex App marketplace, use the local/manual
 
 ### Google Antigravity
 
-This repo includes Antigravity plugin metadata:
-
-- `.agents/plugins/tungnt-ai-skills/plugin.json`
-- `.agents/plugins/plugin.json`
-- root `plugin.json` for NPM installer targets
-
-Open this repo in Antigravity, then run:
+The NPM installer copies Antigravity plugin files into the product-specific plugin roots:
 
 ```text
-/plugins
+~/.gemini/antigravity-cli/plugins/tungnt-ai-skills
+~/.gemini/config/plugins/tungnt-ai-skills
 ```
 
-Enable or verify:
+For a manual setup equivalent to the installer, run these commands from the repository root.
 
-```text
-tungnt-ai-skills
+Install Antigravity CLI:
+
+```bash
+mkdir -p ~/.gemini/antigravity-cli/plugins/tungnt-ai-skills
+cp -R plugin.json skills ~/.gemini/antigravity-cli/plugins/tungnt-ai-skills/
 ```
 
-The Antigravity manifest follows the existing IDE/agent metadata pattern used by files such as `.codex-plugin/plugin.json`. The root `skills/` directory remains the single source of truth; no Antigravity-specific skills are duplicated.
+Install Antigravity IDE:
+
+```bash
+mkdir -p ~/.gemini/config/plugins/tungnt-ai-skills
+cp -R plugin.json skills ~/.gemini/config/plugins/tungnt-ai-skills/
+```
+
+Copy the shared global files used by both layouts:
+
+```bash
+cp AGENTS.md CLAUDE.md GEMINI.md gemini-extension.json ~/.gemini/
+```
+
+Restart Antigravity CLI or Antigravity IDE after copying files, then open `/plugins` and verify `tungnt-ai-skills`.
+
+The root `plugin.json` and `skills/` directory are the Antigravity plugin payload. The root `skills/` directory remains the single source of truth; no Antigravity-specific skills are duplicated.
 
 Detailed Antigravity notes:
 
