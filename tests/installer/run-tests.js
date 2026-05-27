@@ -13,6 +13,7 @@ import {
   ensureInsideExpectedParent,
   getPackageRoot,
   listPlannedEntries,
+  removeManagedPackageEntries,
   removeExistingInstall,
   validateInstall,
   validateSource,
@@ -59,6 +60,7 @@ test('target map resolves targets under fake HOME', () => {
     assert.equal(target.defaultTarget(fakeEnv(home)).startsWith(home), true, target.id);
     assert.equal(target.expectedParent(fakeEnv(home)).startsWith(home), true, target.id);
   }
+  assert.equal(getTargetById('antigravity').defaultTarget(fakeEnv(home)), path.join(home, '.gemini'));
 });
 
 test('unknown target returns undefined', () => {
@@ -142,6 +144,17 @@ test('install --agent codex --dry-run selects only Codex', () => {
   assert.equal(out.stdout().includes('[claude]'), false);
 });
 
+test('install --agent antigravity --dry-run shows shared gemini entries only', () => {
+  const home = tempDir();
+  const out = capture();
+  const code = runCli(['install', '--agent', 'antigravity', '--dry-run'], fakeEnv(home), out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes(path.join(home, '.gemini')), true);
+  assert.equal(out.stdout().includes('Planned entries: skills, GEMINI.md, CLAUDE.md, AGENTS.md'), true);
+  assert.equal(out.stdout().includes('hooks'), false);
+  assert.equal(out.stdout().includes('gemini-extension.json'), false);
+});
+
 test('unknown agent exits non-zero', () => {
   const out = capture();
   const code = runCli(['install', '--agent', 'nope'], fakeEnv(tempDir()), out.io);
@@ -179,6 +192,37 @@ test('install --force replaces existing destination', () => {
   assert.equal(code, 0, out.stderr());
   assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
+});
+
+test('antigravity installs into shared gemini root when it already exists', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('antigravity');
+  const destination = target.defaultTarget(env);
+  fs.mkdirSync(path.join(destination, 'skills', 'external-skill'), { recursive: true });
+  fs.writeFileSync(path.join(destination, 'skills', 'external-skill', 'SKILL.md'), 'external');
+  const out = capture();
+  const code = runCli(['install', '--agent', 'antigravity'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(destination, 'AGENTS.md')), true);
+  assert.equal(fs.existsSync(path.join(destination, 'skills', 'external-skill', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(destination, 'hooks')), false);
+  assert.equal(fs.existsSync(path.join(destination, 'gemini-extension.json')), false);
+});
+
+test('antigravity force removes only managed package entries', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('antigravity');
+  const destination = target.defaultTarget(env);
+  fs.mkdirSync(path.join(destination, 'skills', 'external-skill'), { recursive: true });
+  fs.mkdirSync(path.join(destination, 'skills', 'using-tungnt-ai-skills'), { recursive: true });
+  fs.writeFileSync(path.join(destination, 'skills', 'external-skill', 'SKILL.md'), 'external');
+  fs.writeFileSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'stale.txt'), 'stale');
+  removeManagedPackageEntries(PACKAGE_ROOT, destination, target.expectedParent(env), target);
+  assert.equal(fs.existsSync(path.join(destination, 'skills', 'external-skill', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'stale.txt')), false);
 });
 
 async function run() {

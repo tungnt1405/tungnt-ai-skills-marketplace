@@ -51,10 +51,12 @@ export const TARGETS = [
   {
     id: 'antigravity',
     displayName: 'Google Antigravity',
-    defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins', PLUGIN_NAME),
-    expectedParent: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins'),
+    defaultTarget: (env = process.env) => joinHome(env, '.gemini'),
+    expectedParent: (env = process.env) => joinHome(env),
+    installMode: 'merge',
+    includedEntries: ['skills', 'GEMINI.md', 'CLAUDE.md', 'AGENTS.md'],
     requiredFiles: [...SHARED_REQUIRED_FILES, 'AGENTS.md'],
-    postInstallNotes: 'Open Antigravity /plugins and enable tungnt-ai-skills after installation.',
+    postInstallNotes: 'Antigravity variants read shared skills from ~/.gemini/skills and global MD files from ~/.gemini.',
   },
 ];
 

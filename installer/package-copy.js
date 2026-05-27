@@ -32,8 +32,8 @@ export function toPosix(relativePath) {
   return relativePath.split(path.sep).join('/');
 }
 
-export function listPlannedEntries(packageRoot) {
-  return INCLUDED_ENTRIES.filter((entry) => fs.existsSync(path.join(packageRoot, entry)));
+export function listPlannedEntries(packageRoot, target = {}) {
+  return plannedEntries(packageRoot, target);
 }
 
 export function validateSource(packageRoot, target) {
@@ -50,11 +50,16 @@ export function validateInstall(destination, target) {
   }
 }
 
-export function copyPackage(packageRoot, destination) {
+export function copyPackage(packageRoot, destination, target = {}) {
   fs.mkdirSync(destination, { recursive: true });
-  for (const entry of listPlannedEntries(packageRoot)) {
+  for (const entry of plannedEntries(packageRoot, target)) {
     copyEntry(path.join(packageRoot, entry), path.join(destination, entry), entry);
   }
+}
+
+function plannedEntries(packageRoot, target = {}) {
+  const entries = target.includedEntries || INCLUDED_ENTRIES;
+  return entries.filter((entry) => fs.existsSync(path.join(packageRoot, entry)));
 }
 
 function copyEntry(source, destination, relativePath) {
@@ -92,5 +97,25 @@ export function removeExistingInstall(destination, expectedParent) {
   ensureInsideExpectedParent(destination, expectedParent);
   if (fs.existsSync(destination)) {
     fs.rmSync(destination, { recursive: true, force: true });
+  }
+}
+
+export function removeManagedPackageEntries(packageRoot, destination, expectedParent, target = {}) {
+  ensureInsideExpectedParent(destination, expectedParent);
+  for (const entry of plannedEntries(packageRoot, target)) {
+    if (entry === 'skills') {
+      removeManagedSkills(path.join(packageRoot, entry), path.join(destination, entry));
+      continue;
+    }
+    fs.rmSync(path.join(destination, entry), { recursive: true, force: true });
+  }
+}
+
+function removeManagedSkills(sourceSkillsDir, destinationSkillsDir) {
+  if (!fs.existsSync(sourceSkillsDir)) {
+    return;
+  }
+  for (const skillName of fs.readdirSync(sourceSkillsDir)) {
+    fs.rmSync(path.join(destinationSkillsDir, skillName), { recursive: true, force: true });
   }
 }
