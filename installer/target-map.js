@@ -24,6 +24,18 @@ const ANTIGRAVITY_GLOBAL_ENTRIES = [
   'gemini-extension.json',
 ];
 
+const CODEX_LOCAL_MARKETPLACE_ENTRIES = [
+  '.codex-plugin',
+  'assets',
+  'skills',
+];
+
+const CLAUDE_LOCAL_MARKETPLACE_ENTRIES = [
+  '.claude-plugin',
+  'hooks',
+  'skills',
+];
+
 function homeDir(env = process.env) {
   return env.HOME || env.USERPROFILE || os.homedir();
 }
@@ -44,6 +56,22 @@ export const TARGETS = [
       ['claude', 'plugin', 'install', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
       ['claude', 'plugin', 'enable', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
     ],
+    fallbackInstall: {
+      mode: 'package',
+      displayName: 'Claude local marketplace',
+      defaultTarget: (env = process.env) => joinHome(env, '.claude', 'plugins', 'cache', 'tungnt-ai-skills-marketplace'),
+      expectedParent: (env = process.env) => joinHome(env, '.claude', 'plugins', 'cache'),
+      includedEntries: CLAUDE_LOCAL_MARKETPLACE_ENTRIES,
+      requiredFiles: [...REQUIRED_SKILL_FILES, '.claude-plugin/marketplace.json', '.claude-plugin/plugin.json'],
+    },
+    nextSteps: [
+      'Claude Code app: Open Claude Code.',
+      'Claude Code app: Open the Plugins tab.',
+      'Claude Code app: Search for tungnt-ai-skills.',
+      'Claude Code app: Add the plugin.',
+      'Claude CLI: claude plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace',
+      'Claude CLI: claude plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace',
+    ],
     postInstallNotes: 'Installed and enabled through Claude Code marketplace commands.',
   },
   {
@@ -55,6 +83,37 @@ export const TARGETS = [
     nativeCommands: [
       ['codex', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
     ],
+    fallbackInstall: {
+      mode: 'package',
+      displayName: 'Codex local marketplace',
+      defaultTarget: (env = process.env) => joinHome(env, '.codex', '.tmp', 'plugins', 'plugins', 'tungnt-ai-skills-marketplace'),
+      expectedParent: (env = process.env) => joinHome(env, '.codex', '.tmp', 'plugins', 'plugins'),
+      includedEntries: CODEX_LOCAL_MARKETPLACE_ENTRIES,
+      requiredFiles: ['.codex-plugin/plugin.json', ...REQUIRED_SKILL_FILES],
+      marketplaceFile: (env = process.env) => joinHome(env, '.codex', '.tmp', 'plugins', '.agents', 'plugins', 'marketplace.json'),
+      marketplaceEntry: {
+        name: PLUGIN_NAME,
+        source: {
+          source: 'local',
+          path: './plugins/tungnt-ai-skills-marketplace',
+        },
+        policy: {
+          installation: 'AVAILABLE',
+          authentication: 'ON_INSTALL',
+        },
+        category: 'Coding',
+      },
+    },
+    nextSteps: [
+      'Codex CLI: Open a terminal and run codex.',
+      'Codex CLI: Run /plugins tungnt-ai-skills.',
+      'Codex CLI: Add the plugin from the plugins screen.',
+      'Codex app: Open Codex.',
+      'Codex app: Open the Plugins tab.',
+      'Codex app: Search for tungnt-ai-skills.',
+      'Codex app: Add the plugin.',
+    ],
+    printNextStepsAfterNative: true,
     postInstallNotes: 'Codex marketplace registered through Codex CLI.',
   },
   {
@@ -66,6 +125,25 @@ export const TARGETS = [
     nativeCommands: [
       ['copilot', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
       ['copilot', 'plugin', 'install', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
+    ],
+    fallbackInstall: {
+      mode: 'copilotSettings',
+      settingsFile: (env = process.env) => joinHome(env, '.copilot', 'settings.json'),
+      marketplaceId: 'tungnt-ai-skills-marketplace',
+      marketplaceSource: {
+        source: {
+          source: 'github',
+          repo: 'tungnt1405/tungnt-ai-skills-marketplace',
+        },
+      },
+      pluginId: 'tungnt-ai-skills@tungnt-ai-skills-marketplace',
+    },
+    nextSteps: [
+      'Copilot app: Open GitHub Copilot.',
+      'Copilot app: Open the Plugins tab.',
+      'Copilot app: Search for tungnt-ai-skills.',
+      'Copilot app: Add the plugin.',
+      'Copilot CLI: copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace',
     ],
     postInstallNotes: 'Copilot marketplace registered and plugin installed through Copilot CLI.',
   },

@@ -19,7 +19,7 @@ import {
 } from './package-copy.js';
 
 const USAGE = `Usage:
-  tungnt-ai-skills install [--all] [--agent <id>] [--dry-run] [--force]
+  tungnt-ai-skills install [--all] [--agent <id>] [--dry-run] [--force] [--native]
   tungnt-ai-skills targets
 
 Supported agents: ${supportedTargetIds().join(', ')}`;
@@ -50,6 +50,7 @@ function parseInstallArgs(args) {
     agent: undefined,
     dryRun: false,
     force: false,
+    native: false,
   };
 
   for (let index = 0; index < args.length; index += 1) {
@@ -66,6 +67,8 @@ function parseInstallArgs(args) {
       options.dryRun = true;
     } else if (arg === '--force') {
       options.force = true;
+    } else if (arg === '--native') {
+      options.native = true;
     } else {
       throw new Error(`Unknown option: ${arg}`);
     }
@@ -106,6 +109,9 @@ function install(args, env, io) {
   io.out(`Source: ${packageRoot}\n`);
   if (options.dryRun) {
     io.out('Mode: dry-run\n');
+    if (options.native) {
+      io.out('Native: enabled\n');
+    }
   }
 
   const failures = [];
@@ -115,11 +121,22 @@ function install(args, env, io) {
     io.out(`\n[${target.id}] ${target.displayName}\n`);
     io.out(`Target: ${destination}\n`);
     if (options.dryRun) {
-      if (target.nativeCommands) {
+      if (target.nativeCommands && options.native) {
         io.out('Mode: native marketplace commands\n');
         for (const command of target.nativeCommands) {
           io.out(`Command: ${command.join(' ')}\n`);
         }
+        if (target.fallbackInstall) {
+          io.out('Manual setup available when --native is omitted:\n');
+          printFallbackPlan(packageRoot, target.fallbackInstall, env, io);
+        }
+      } else if (target.nativeCommands && target.fallbackInstall) {
+        printFallbackPlan(packageRoot, target.fallbackInstall, env, io);
+        printNextSteps(target, io);
+      } else if (target.nativeCommands) {
+        io.out('Mode: native marketplace commands\n');
+        io.out('Native commands are available only with --native\n');
+        printNextSteps(target, io);
       } else if (target.installMode === 'config') {
         io.out('Mode: config files\n');
       } else {
@@ -142,11 +159,26 @@ function install(args, env, io) {
         continue;
       }
       if (target.nativeCommands) {
-        ensureNativeCommandsAvailable(target, env);
-        runNativeCommands(target, env);
-        io.out('Status: installed\n');
-        if (target.postInstallNotes) {
-          io.out(`Note: ${target.postInstallNotes}\n`);
+        if (options.native) {
+          const missingCommand = missingNativeCommand(target, env);
+          if (missingCommand) {
+            throw new Error(`Native command not found: ${missingCommand}`);
+          }
+          runNativeCommands(target, env);
+          io.out('Status: installed\n');
+          if (target.postInstallNotes) {
+            io.out(`Note: ${target.postInstallNotes}\n`);
+          }
+          if (target.printNextStepsAfterNative) {
+            printNextSteps(target, io);
+          }
+        } else {
+          if (!target.fallbackInstall) {
+            throw new Error(`${target.displayName} requires --native; no manual marketplace setup is declared.`);
+          }
+          runFallbackInstall(packageRoot, target.fallbackInstall, env, options);
+          io.out('Status: marketplace configured\n');
+          printNextSteps(target, io);
         }
         continue;
       }
@@ -186,9 +218,10 @@ function install(args, env, io) {
 
 function runNativeCommands(target, env) {
   for (const [command, ...args] of target.nativeCommands) {
-    const result = spawnSync(command, args, {
+    const executable = findExecutable(command, env) || command;
+    const spawn = nativeSpawnCommand(executable, args, env);
+    const result = spawnSync(spawn.command, spawn.args, {
       env,
-      shell: process.platform === 'win32',
       stdio: 'inherit',
     });
     if (result.error) {
@@ -200,13 +233,28 @@ function runNativeCommands(target, env) {
   }
 }
 
-function ensureNativeCommandsAvailable(target, env) {
+function nativeSpawnCommand(executable, args, env) {
+  const extension = path.extname(executable).toLowerCase();
+  if (process.platform === 'win32' && (extension === '.cmd' || extension === '.bat')) {
+    return {
+      command: env.ComSpec || env.COMSPEC || 'cmd.exe',
+      args: ['/d', '/s', '/c', 'call', executable, ...args],
+    };
+  }
+  return {
+    command: executable,
+    args,
+  };
+}
+
+function missingNativeCommand(target, env) {
   const commands = [...new Set(target.nativeCommands.map(([command]) => command))];
   for (const command of commands) {
     if (!findExecutable(command, env)) {
-      throw new Error(`Native command not found: ${command}`);
+      return command;
     }
   }
+  return undefined;
 }
 
 function findExecutable(command, env) {
@@ -238,6 +286,104 @@ function isExecutable(filePath) {
   } catch {
     return false;
   }
+}
+
+function printFallbackPlan(packageRoot, fallback, env, io) {
+  io.out('Mode: manual marketplace setup\n');
+  if (fallback.mode === 'package') {
+    io.out(`Manual target: ${fallback.defaultTarget(env)}\n`);
+    io.out(`Manual entries: ${listPlannedEntries(packageRoot, fallback).join(', ')}\n`);
+    if (fallback.marketplaceFile) {
+      io.out(`Manual marketplace file: ${fallback.marketplaceFile(env)}\n`);
+      io.out(`Manual marketplace plugin: ${fallback.marketplaceEntry.name}\n`);
+    }
+    return;
+  }
+  if (fallback.mode === 'copilotSettings') {
+    io.out(`Manual settings file: ${fallback.settingsFile(env)}\n`);
+    io.out(`Manual marketplace: ${fallback.marketplaceId}\n`);
+  }
+}
+
+function printNextSteps(target, io) {
+  if (!target.nextSteps || target.nextSteps.length === 0) {
+    return;
+  }
+  io.out('Next steps:\n');
+  for (const step of target.nextSteps) {
+    io.out(`  ${step}\n`);
+  }
+}
+
+function runFallbackInstall(packageRoot, fallback, env, options) {
+  if (fallback.mode === 'package') {
+    installPackageFallback(packageRoot, fallback, env, options);
+    return;
+  }
+  if (fallback.mode === 'copilotSettings') {
+    writeCopilotSettings(fallback.settingsFile(env), fallback);
+    return;
+  }
+  throw new Error(`Unknown fallback install mode: ${fallback.mode}`);
+}
+
+function installPackageFallback(packageRoot, fallback, env, options) {
+  const destination = fallback.defaultTarget(env);
+  const expectedParent = fallback.expectedParent(env);
+  validateSource(packageRoot, fallback);
+  if (fs.existsSync(destination)) {
+    if (!options.force) {
+      throw new Error(`Destination already exists: ${destination}. Re-run with --force to replace it.`);
+    }
+    removeExistingInstall(destination, expectedParent);
+  }
+  copyPackage(packageRoot, destination, fallback);
+  if (fallback.marketplaceFile) {
+    writeMarketplaceEntry(fallback.marketplaceFile(env), fallback.marketplaceEntry);
+  }
+  validateInstall(destination, fallback);
+}
+
+function writeCopilotSettings(filePath, fallback) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const settings = readCopilotSettings(filePath);
+  if (!isPlainObject(settings.extraKnownMarketplaces)) {
+    throw new Error(`Cannot update ${filePath}: extraKnownMarketplaces must be an object`);
+  }
+
+  settings.extraKnownMarketplaces = {
+    ...settings.extraKnownMarketplaces,
+    [fallback.marketplaceId]: fallback.marketplaceSource,
+  };
+
+  fs.writeFileSync(`${filePath}.tmp`, `${JSON.stringify(settings, null, 2)}\n`);
+  fs.renameSync(`${filePath}.tmp`, filePath);
+}
+
+function readCopilotSettings(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return {
+      extraKnownMarketplaces: {},
+    };
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch (error) {
+    throw new Error(`Invalid JSON in ${filePath}: ${error.message}`);
+  }
+  if (!isPlainObject(parsed)) {
+    throw new Error(`Cannot update ${filePath}: settings root must be an object`);
+  }
+  return {
+    ...parsed,
+    extraKnownMarketplaces: Object.hasOwn(parsed, 'extraKnownMarketplaces') ? parsed.extraKnownMarketplaces : {},
+  };
+}
+
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function writeMarketplaceEntry(filePath, entry) {
