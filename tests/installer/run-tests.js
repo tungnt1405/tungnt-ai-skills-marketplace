@@ -192,8 +192,8 @@ test('install --agent codex --dry-run selects only Codex', () => {
   assert.equal(out.stdout().includes('Mode: manual marketplace setup'), true);
   assert.equal(out.stdout().includes('Command: codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), false);
   assert.equal(out.stdout().includes('Command: codex plugin add tungnt-ai-skills@tungnt-ai-skills-marketplace'), false);
-  assert.equal(out.stdout().includes(`Manual target: ${path.join(home, '.codex', '.tmp', 'plugins', 'plugins', 'tungnt-ai-skills-marketplace')}`), true);
-  assert.equal(out.stdout().includes(`Manual marketplace file: ${path.join(home, '.codex', '.tmp', 'plugins', '.agents', 'plugins', 'marketplace.json')}`), true);
+  assert.equal(out.stdout().includes(`Manual target: ${path.join(home, '.codex', 'plugins', 'tungnt-ai-skills-marketplace')}`), true);
+  assert.equal(out.stdout().includes(`Manual marketplace file: ${path.join(home, '.agents', 'plugins', 'marketplace.json')}`), true);
   assert.equal(out.stdout().includes('Next steps:'), true);
   assert.equal(out.stdout().includes('Codex CLI: Open a terminal and run codex.'), true);
   assert.equal(out.stdout().includes('Codex CLI: Run /plugins tungnt-ai-skills.'), true);
@@ -267,8 +267,8 @@ test('install --agent codex imports local marketplace by default', () => {
   const home = tempDir();
   const out = capture();
   const code = runCli(['install', '--agent', 'codex'], emptyPathEnv(home), out.io);
-  const destination = path.join(home, '.codex', '.tmp', 'plugins', 'plugins', 'tungnt-ai-skills-marketplace');
-  const marketplaceFile = path.join(home, '.codex', '.tmp', 'plugins', '.agents', 'plugins', 'marketplace.json');
+  const destination = path.join(home, '.codex', 'plugins', 'tungnt-ai-skills-marketplace');
+  const marketplaceFile = path.join(home, '.agents', 'plugins', 'marketplace.json');
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes('Native command not found'), false);
   assert.equal(out.stdout().includes('Status: marketplace configured'), true);
@@ -283,7 +283,7 @@ test('install --agent codex imports local marketplace by default', () => {
       name: 'tungnt-ai-skills',
       source: {
         source: 'local',
-        path: './plugins/tungnt-ai-skills-marketplace',
+        path: './.codex/plugins/tungnt-ai-skills-marketplace',
       },
       policy: {
         installation: 'AVAILABLE',

@@ -87,16 +87,16 @@ export const TARGETS = [
     fallbackInstall: {
       mode: 'package',
       displayName: 'Codex local marketplace',
-      defaultTarget: (env = process.env) => joinHome(env, '.codex', '.tmp', 'plugins', 'plugins', 'tungnt-ai-skills-marketplace'),
-      expectedParent: (env = process.env) => joinHome(env, '.codex', '.tmp', 'plugins', 'plugins'),
+      defaultTarget: (env = process.env) => joinHome(env, '.codex', 'plugins', 'tungnt-ai-skills-marketplace'),
+      expectedParent: (env = process.env) => joinHome(env, '.codex', 'plugins'),
       includedEntries: CODEX_LOCAL_MARKETPLACE_ENTRIES,
       requiredFiles: ['.codex-plugin/plugin.json', ...REQUIRED_SKILL_FILES],
-      marketplaceFile: (env = process.env) => joinHome(env, '.codex', '.tmp', 'plugins', '.agents', 'plugins', 'marketplace.json'),
+      marketplaceFile: (env = process.env) => joinHome(env, '.agents', 'plugins', 'marketplace.json'),
       marketplaceEntry: {
         name: PLUGIN_NAME,
         source: {
           source: 'local',
-          path: './plugins/tungnt-ai-skills-marketplace',
+          path: './.codex/plugins/tungnt-ai-skills-marketplace',
         },
         policy: {
           installation: 'AVAILABLE',
