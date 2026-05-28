@@ -82,6 +82,8 @@ export const TARGETS = [
     requiredFiles: [],
     nativeCommands: [
       ['codex', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
+      // ['codex', 'plugin', 'install', 'tungnt-ai-skills@openai-curated'],
+      ['codex', 'plugin', 'install', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
     ],
     fallbackInstall: {
       mode: 'package',
@@ -113,8 +115,7 @@ export const TARGETS = [
       'Codex app: Search for tungnt-ai-skills.',
       'Codex app: Add the plugin.',
     ],
-    printNextStepsAfterNative: true,
-    postInstallNotes: 'Codex marketplace registered through Codex CLI.',
+    postInstallNotes: 'Codex plugin installed through Codex CLI.',
   },
   {
     id: 'copilot',
