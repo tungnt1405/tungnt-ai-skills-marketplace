@@ -291,10 +291,11 @@ test('install --agent copilot --dry-run selects Copilot manual marketplace setti
   assert.equal(out.stdout().includes('Command: copilot plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), false);
   assert.equal(out.stdout().includes(`Manual settings file: ${path.join(home, '.copilot', 'settings.json')}`), true);
   assert.equal(out.stdout().includes('Manual marketplace: tungnt-ai-skills-marketplace'), true);
-  assert.equal(out.stdout().includes('Copilot app: Open GitHub Copilot.'), true);
+  assert.equal(out.stdout().includes('Copilot app: Open GitHub Copilot Chat (Visual Studio Code - VSCode).'), true);
+  assert.equal(out.stdout().includes('Copilot app: Open the Extensions vscode.'), true);
+  assert.equal(out.stdout().includes('Copilot app: Find `@agentPlugins:tungnt1405/tungnt-ai-skills-marketplace` to install.'), true);
   assert.equal(out.stdout().includes('Copilot app: Open the Plugins tab.'), true);
-  assert.equal(out.stdout().includes('Copilot app: Search for tungnt-ai-skills.'), true);
-  assert.equal(out.stdout().includes('Copilot app: Add the plugin.'), true);
+  assert.equal(out.stdout().includes('Copilot app: Check installed plugin.'), true);
   assert.equal(out.stdout().includes('copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
   assert.equal(out.stdout().includes('Config file:'), false);
   assert.equal(fs.existsSync(path.join(home, '.copilot')), false);
@@ -308,10 +309,11 @@ test('install --agent copilot imports marketplace settings by default', () => {
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes('Native command not found'), false);
   assert.equal(out.stdout().includes('Status: marketplace configured'), true);
-  assert.equal(out.stdout().includes('Copilot app: Open GitHub Copilot.'), true);
+  assert.equal(out.stdout().includes('Copilot app: Open GitHub Copilot Chat (Visual Studio Code - VSCode).'), true);
+  assert.equal(out.stdout().includes('Copilot app: Open the Extensions vscode.'), true);
+  assert.equal(out.stdout().includes('Copilot app: Find `@agentPlugins:tungnt1405/tungnt-ai-skills-marketplace` to install.'), true);
   assert.equal(out.stdout().includes('Copilot app: Open the Plugins tab.'), true);
-  assert.equal(out.stdout().includes('Copilot app: Search for tungnt-ai-skills.'), true);
-  assert.equal(out.stdout().includes('Copilot app: Add the plugin.'), true);
+  assert.equal(out.stdout().includes('Copilot app: Check installed plugin.'), true);
   assert.equal(out.stdout().includes('copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
   assert.deepEqual(JSON.parse(fs.readFileSync(settingsFile, 'utf8')), {
     extraKnownMarketplaces: {
