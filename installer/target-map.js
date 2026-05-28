@@ -152,7 +152,8 @@ export const TARGETS = [
     requiredFiles: [],
     nativeCommands: [
       ['copilot', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
-      ['copilot', 'plugin', 'install', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
+      // Let users install the plugin from VS Code after the marketplace is registered.
+      // ['copilot', 'plugin', 'install', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
     ],
     updateCommands: [
       ['copilot', 'plugin', 'marketplace', 'update', 'tungnt-ai-skills-marketplace'],
@@ -162,7 +163,7 @@ export const TARGETS = [
       {
         commandPrefix: ['copilot', 'plugin', 'marketplace', 'add'],
         messageIncludes: 'already registered',
-        note: 'Marketplace already registered; continuing with plugin install.',
+        note: 'Marketplace already registered; continuing.',
       },
     ],
     fallbackInstall: {
@@ -175,7 +176,9 @@ export const TARGETS = [
           repo: 'tungnt1405/tungnt-ai-skills-marketplace',
         },
       },
-      pluginId: 'tungnt-ai-skills@tungnt-ai-skills-marketplace',
+      // The Copilot settings fallback only registers the marketplace.
+      // Users install the plugin manually from the VS Code Copilot UI.
+      // pluginId: 'tungnt-ai-skills@tungnt-ai-skills-marketplace',
     },
     nextSteps: [
       'Copilot app: Open GitHub Copilot Chat (Visual Studio Code - VSCode).',
@@ -183,9 +186,8 @@ export const TARGETS = [
       'Copilot app: Find `@agentPlugins:tungnt1405/tungnt-ai-skills-marketplace` to install.',
       'Copilot app: Open the Plugins tab.',
       'Copilot app: Check installed plugin.',
-      'Copilot CLI: copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace',
     ],
-    postInstallNotes: 'Copilot marketplace registered and plugin installed through Copilot CLI.',
+    postInstallNotes: 'Copilot marketplace registered through Copilot CLI.',
   },
   {
     id: 'gemini',

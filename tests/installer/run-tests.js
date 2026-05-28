@@ -296,7 +296,7 @@ test('install --agent copilot --dry-run selects Copilot manual marketplace setti
   assert.equal(out.stdout().includes('Copilot app: Find `@agentPlugins:tungnt1405/tungnt-ai-skills-marketplace` to install.'), true);
   assert.equal(out.stdout().includes('Copilot app: Open the Plugins tab.'), true);
   assert.equal(out.stdout().includes('Copilot app: Check installed plugin.'), true);
-  assert.equal(out.stdout().includes('copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+  assert.equal(out.stdout().includes('copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), false);
   assert.equal(out.stdout().includes('Config file:'), false);
   assert.equal(fs.existsSync(path.join(home, '.copilot')), false);
 });
@@ -314,7 +314,7 @@ test('install --agent copilot imports marketplace settings by default', () => {
   assert.equal(out.stdout().includes('Copilot app: Find `@agentPlugins:tungnt1405/tungnt-ai-skills-marketplace` to install.'), true);
   assert.equal(out.stdout().includes('Copilot app: Open the Plugins tab.'), true);
   assert.equal(out.stdout().includes('Copilot app: Check installed plugin.'), true);
-  assert.equal(out.stdout().includes('copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+  assert.equal(out.stdout().includes('copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), false);
   assert.deepEqual(JSON.parse(fs.readFileSync(settingsFile, 'utf8')), {
     extraKnownMarketplaces: {
       'tungnt-ai-skills-marketplace': {
@@ -414,9 +414,9 @@ test('install --agent copilot --native continues when marketplace already exists
   );
   const log = fs.readFileSync(commandLog, 'utf8');
   assert.equal(code, 0, out.stderr());
-  assert.equal(out.stdout().includes('Marketplace already registered; continuing with plugin install.'), true);
+  assert.equal(out.stdout().includes('Marketplace already registered; continuing.'), true);
   assert.equal(log.includes('plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), true);
-  assert.equal(log.includes('plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+  assert.equal(log.includes('plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), false);
 });
 
 test('install --agent claude --native continues when marketplace already exists', () => {
