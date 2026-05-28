@@ -195,7 +195,7 @@ function install(args, env, io) {
       copyPackage(packageRoot, destination, target);
       copyExtraPackages(packageRoot, target, env);
       if (target.marketplaceFile) {
-        writeMarketplaceEntry(target.marketplaceFile(env), target.marketplaceEntry);
+        writeMarketplaceEntry(target.marketplaceFile(env), target.marketplaceEntry, target.marketplaceRoot);
       }
       validateInstall(destination, target);
       io.out('Status: installed\n');
@@ -339,7 +339,7 @@ function installPackageFallback(packageRoot, fallback, env, options) {
   }
   copyPackage(packageRoot, destination, fallback);
   if (fallback.marketplaceFile) {
-    writeMarketplaceEntry(fallback.marketplaceFile(env), fallback.marketplaceEntry);
+    writeMarketplaceEntry(fallback.marketplaceFile(env), fallback.marketplaceEntry, fallback.marketplaceRoot);
   }
   validateInstall(destination, fallback);
 }
@@ -386,9 +386,15 @@ function isPlainObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-function writeMarketplaceEntry(filePath, entry) {
+function writeMarketplaceEntry(filePath, entry, root = {}) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   const marketplace = readMarketplace(filePath);
+  if (!marketplace.name && root.name) {
+    marketplace.name = root.name;
+  }
+  if (!marketplace.interface && root.interface) {
+    marketplace.interface = root.interface;
+  }
   const plugins = Array.isArray(marketplace.plugins) ? marketplace.plugins : [];
   marketplace.plugins = [
     ...plugins.filter((plugin) => plugin.name !== entry.name),

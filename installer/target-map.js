@@ -92,6 +92,12 @@ export const TARGETS = [
       includedEntries: CODEX_LOCAL_MARKETPLACE_ENTRIES,
       requiredFiles: ['.codex-plugin/plugin.json', ...REQUIRED_SKILL_FILES],
       marketplaceFile: (env = process.env) => joinHome(env, '.agents', 'plugins', 'marketplace.json'),
+      marketplaceRoot: {
+        name: 'tungnt-ai-skills-marketplace',
+        interface: {
+          displayName: 'Tungnt AI Skills',
+        },
+      },
       marketplaceEntry: {
         name: PLUGIN_NAME,
         source: {
