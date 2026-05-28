@@ -82,8 +82,7 @@ export const TARGETS = [
     requiredFiles: [],
     nativeCommands: [
       ['codex', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
-      // ['codex', 'plugin', 'install', 'tungnt-ai-skills@openai-curated'],
-      ['codex', 'plugin', 'install', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
+      ['codex', 'plugin', 'install', 'tungnt-ai-skills@openai-curated'],
     ],
     fallbackInstall: {
       mode: 'package',

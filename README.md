@@ -282,7 +282,7 @@ If the NPM installer works, `--native` runs this Codex CLI setup for you. If `np
 
 ```bash
 codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
-codex plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
+codex plugin install tungnt-ai-skills@openai-curated
 ```
 
 ##### Codex App
