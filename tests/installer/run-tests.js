@@ -278,20 +278,26 @@ test('install --agent codex imports local marketplace by default', () => {
   assert.equal(out.stdout().includes('Codex app: Add the plugin.'), true);
   assert.equal(fs.existsSync(path.join(destination, '.codex-plugin', 'plugin.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
-  assert.deepEqual(JSON.parse(fs.readFileSync(marketplaceFile, 'utf8')).plugins, [
-    {
-      name: 'tungnt-ai-skills',
-      source: {
-        source: 'local',
-        path: './.codex/plugins/tungnt-ai-skills-marketplace',
-      },
-      policy: {
-        installation: 'AVAILABLE',
-        authentication: 'ON_INSTALL',
-      },
-      category: 'Coding',
+  assert.deepEqual(JSON.parse(fs.readFileSync(marketplaceFile, 'utf8')), {
+    name: 'tungnt-ai-skills-marketplace',
+    interface: {
+      displayName: 'Tungnt AI Skills',
     },
-  ]);
+    plugins: [
+      {
+        name: 'tungnt-ai-skills',
+        source: {
+          source: 'local',
+          path: './.codex/plugins/tungnt-ai-skills-marketplace',
+        },
+        policy: {
+          installation: 'AVAILABLE',
+          authentication: 'ON_INSTALL',
+        },
+        category: 'Coding',
+      },
+    ],
+  });
 });
 
 test('native command preflight accepts commands from PATH with --native', () => {
