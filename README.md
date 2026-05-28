@@ -11,6 +11,21 @@
 
 Some compatibility paths still use the old upstream name. In particular, `docs/superpowers/` remains the active docs root for plans and specs.
 
+## Menu
+
+- [What This Fork Provides](#what-this-fork-provides)
+- [Repository Layout](#repository-layout)
+- [Core Workflow](#core-workflow)
+- [Install](#install)
+  - [Install Menu](#install-menu)
+  - [1. NPM/npx Installer](#1-npmnpx-installer-recommended)
+  - [2. Native Installer Mode](#2-native-installer-mode)
+  - [3. Manual Setup When NPM/Npx Is Not Available](#3-manual-setup-when-npmnpx-is-not-available)
+- [Update](#update)
+- [Manual Harness Notes](#manual-harness-notes)
+- [Development](#development)
+- [License](#license)
+
 ## Repository Layout
 
 - `skills/` bundled workflow skills
@@ -38,13 +53,30 @@ Skill calls use the real names from each `SKILL.md` file, not a plugin-prefixed 
 
 ## Install
 
-### NPM Installer
+### Install Menu
+
+Choose the path that matches your environment:
+
+| Option | Use when | What it does |
+| --- | --- | --- |
+| [1. NPM/npx installer](#1-npmnpx-installer-recommended) | `npm exec` or `npx` works | Runs the zero-dependency installer. Default mode sets up marketplace metadata and prints follow-up UI/CLI steps. |
+| [2. Native installer mode](#2-native-installer-mode) | You want the target agent CLI to run plugin commands | Runs native `plugin marketplace add`, `plugin install`, or `plugin enable` commands through the installer. |
+| [3. Manual setup](#3-manual-setup-when-npmnpx-is-not-available) | `npm exec`/`npx` fails or you need to debug files | Shows the exact files/settings to copy or edit by hand, plus direct CLI commands where available. |
+
+### 1. NPM/npx Installer (Recommended)
 
 ```bash
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install
 ```
 
-By default, the NPM installer performs only manual marketplace setup for Claude Code, Codex, and GitHub Copilot CLI. It imports or registers the marketplace metadata that can be written safely, then prints the next install/enable steps for the user to run in the target agent. It does not run native plugin commands unless `--native` is passed. The remaining local targets copy the package into their plugin folders.
+Use the NPM installer first when `npm exec` works. It has two modes:
+
+- Default mode imports or registers marketplace metadata that can be written safely, then prints the app/CLI steps for adding the plugin.
+- `--native` mode runs the target agent's native plugin commands directly.
+
+If `npm exec` or `npx` cannot run in your environment, skip the installer and use the manual setup section below.
+
+By default, the NPM installer performs only manual marketplace setup for Claude Code, Codex, and GitHub Copilot CLI. It does not run native plugin commands unless `--native` is passed. The remaining local targets copy the package into their plugin folders.
 
 With no flags, `install` behaves like `--all` and targets Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and the concrete Antigravity plugin folders.
 
@@ -54,11 +86,15 @@ Install one agent only:
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex
 ```
 
-Run native plugin commands instead of manual marketplace setup:
+### 2. Native Installer Mode
+
+Run native plugin commands instead of default marketplace metadata setup:
 
 ```bash
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --native
 ```
+
+Native mode still uses the NPM installer entrypoint. If `npm exec` or `npx` cannot run, use the manual setup section and run the listed native commands directly.
 
 Install all Antigravity layouts:
 
@@ -117,32 +153,11 @@ List supported agents and default target directories:
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills targets
 ```
 
-## Update
+### 3. Manual Setup When NPM/Npx Is Not Available
 
-To update an existing install, run the installer again with `--force`:
+Use this section only when the NPM installer cannot run, or when you need to debug the files it writes. These steps are manual equivalents of the installer's default marketplace setup. Native CLI commands are listed separately for users who want the agent CLI to perform install/enable actions directly.
 
-```bash
-npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --force
-```
-
-Update one agent only:
-
-```bash
-npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --force
-```
-
-If you are updating this local source checkout first, pull the latest repository changes, then rerun the installer:
-
-```bash
-git pull
-npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --force
-```
-
-Restart or reload the target agent after updating so it reads the new plugin files.
-
-## Set up the Marketplace manually if it was not installed
-
-### Claude Code
+#### Claude Code
 
 The default installer path copies the local marketplace package to:
 
@@ -183,16 +198,16 @@ claude plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
 claude plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace
 ```
 
-To let the installer run Claude Code's native marketplace commands for you instead, pass `--native`.
+If the NPM installer works, `--native` runs those Claude CLI commands for you. If `npm exec` or `npx` is unavailable, run the commands directly.
 
-### Codex
+#### Codex
 
 Codex support in this fork is driven by the bundled plugin manifest:
 
 - `.codex-plugin/plugin.json`
 - bundled `skills/`
 
-#### Codex Marketplace Setup
+##### Codex Marketplace Setup
 
 [Codex CLI add marketplace](https://developers.openai.com/codex/plugins/build#add-a-marketplace-from-the-cli)
 
@@ -247,9 +262,9 @@ The plugin/package name is:
 tungnt-ai-skills
 ```
 
-The default NPM installer path writes this local marketplace entry automatically. It does not run Codex's native marketplace command unless `--native` is passed.
+The default NPM installer path writes this local marketplace entry automatically. When the native command succeeds, the installer reports the install status and does not print the manual follow-up steps.
 
-#### Codex CLI
+##### Codex CLI
 
 Choose the path that matches how you use Codex:
 
@@ -263,7 +278,14 @@ codex
 
 Then add `tungnt-ai-skills` from the plugins screen.
 
-#### Codex App
+If the NPM installer works, `--native` runs this Codex CLI setup for you. If `npm exec` or `npx` is unavailable, run the commands directly:
+
+```bash
+codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
+codex plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
+```
+
+##### Codex App
 
 Codex app:
 
@@ -273,7 +295,7 @@ Codex app:
 
 If the fork is not published in your Codex App marketplace, use the local/manual marketplace setup above.
 
-### Google Antigravity
+#### Google Antigravity
 
 The NPM installer copies Antigravity plugin files into the product-specific plugin roots:
 
@@ -312,7 +334,7 @@ Detailed Antigravity notes:
 
 - `docs/README.antigravity.md`
 
-### GitHub Copilot CLI
+#### GitHub Copilot CLI
 
 The default installer path creates or updates:
 
@@ -360,7 +382,7 @@ copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
 
 The default path merges existing settings. It fails without overwriting the file if `settings.json` is invalid JSON or if `extraKnownMarketplaces` already exists as a non-object value.
 
-To let the installer run Copilot's native plugin commands for you instead, pass `--native`:
+If the NPM installer works, `--native` runs these Copilot commands for you. If `npm exec` or `npx` is unavailable, run the commands directly.
 
 - Register the marketplace:
 
@@ -373,6 +395,29 @@ copilot plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
 ```bash
 copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
 ```
+
+## Update
+
+To update an existing install, run the installer again with `--force`:
+
+```bash
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --force
+```
+
+Update one agent only:
+
+```bash
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --force
+```
+
+If you are updating this local source checkout first, pull the latest repository changes, then rerun the installer:
+
+```bash
+git pull
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --force
+```
+
+Restart or reload the target agent after updating so it reads the new plugin files.
 
 ## Manual Harness Notes
 

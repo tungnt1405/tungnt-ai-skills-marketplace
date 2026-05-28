@@ -191,6 +191,7 @@ test('install --agent codex --dry-run selects only Codex', () => {
   assert.equal(out.stdout().includes('[claude]'), false);
   assert.equal(out.stdout().includes('Mode: manual marketplace setup'), true);
   assert.equal(out.stdout().includes('Command: codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), false);
+  assert.equal(out.stdout().includes('Command: codex plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), false);
   assert.equal(out.stdout().includes(`Manual target: ${path.join(home, '.codex', '.tmp', 'plugins', 'plugins', 'tungnt-ai-skills-marketplace')}`), true);
   assert.equal(out.stdout().includes(`Manual marketplace file: ${path.join(home, '.codex', '.tmp', 'plugins', '.agents', 'plugins', 'marketplace.json')}`), true);
   assert.equal(out.stdout().includes('Next steps:'), true);
@@ -212,6 +213,7 @@ test('install --agent codex --native --dry-run selects Codex native commands', (
   assert.equal(out.stdout().includes('Native: enabled'), true);
   assert.equal(out.stdout().includes('Mode: native marketplace commands'), true);
   assert.equal(out.stdout().includes('Command: codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), true);
+  assert.equal(out.stdout().includes('Command: codex plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
   assert.equal(out.stdout().includes('Manual setup available when --native is omitted:'), true);
   assert.equal(fs.existsSync(path.join(home, '.codex')), false);
 });
@@ -301,9 +303,9 @@ test('native command preflight accepts commands from PATH with --native', () => 
   const code = runCli(['install', '--agent', 'codex', '--native'], { ...fakeEnv(home), PATH: bin }, out.io);
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes('Status: installed'), true);
-  assert.equal(out.stdout().includes('Next steps:'), true);
-  assert.equal(out.stdout().includes('Codex CLI: Run /plugins tungnt-ai-skills.'), true);
-  assert.equal(out.stdout().includes('Codex app: Add the plugin.'), true);
+  assert.equal(out.stdout().includes('Note: Codex plugin installed through Codex CLI.'), true);
+  assert.equal(out.stdout().includes('Next steps:'), false);
+  assert.equal(out.stdout().includes('Codex CLI:'), false);
 });
 
 test('install --agent codex --native fails clearly when codex command is missing', () => {
