@@ -97,6 +97,37 @@ function makeFakeMarketplaceAlreadyRegisteredExecutable(directory, name) {
   return filePath;
 }
 
+function makeFakeClaudeAlreadyEnabledExecutable(directory) {
+  const executableName = process.platform === 'win32' ? 'claude.cmd' : 'claude';
+  const filePath = path.join(directory, executableName);
+  const content = process.platform === 'win32'
+    ? [
+      '@echo off',
+      'echo %*>>"%TEST_COMMAND_LOG%"',
+      'if "%1 %2"=="plugin enable" (',
+      '  echo Failed to enable plugin "tungnt-ai-skills@tungnt-ai-skills-marketplace": Plugin "tungnt-ai-skills@tungnt-ai-skills-marketplace" is already enabled 1>&2',
+      '  exit /b 1',
+      ')',
+      'exit /b 0',
+      '',
+    ].join('\r\n')
+    : [
+      '#!/bin/sh',
+      'echo "$*" >> "$TEST_COMMAND_LOG"',
+      'if [ "$1 $2" = "plugin enable" ]; then',
+      '  echo \'Failed to enable plugin "tungnt-ai-skills@tungnt-ai-skills-marketplace": Plugin "tungnt-ai-skills@tungnt-ai-skills-marketplace" is already enabled\' >&2',
+      '  exit 1',
+      'fi',
+      'exit 0',
+      '',
+    ].join('\n');
+  fs.writeFileSync(filePath, content);
+  if (process.platform !== 'win32') {
+    fs.chmodSync(filePath, 0o755);
+  }
+  return filePath;
+}
+
 test('target map includes exactly the supported agents', () => {
   assert.deepEqual(supportedTargetIds(), [
     'claude',
@@ -403,6 +434,46 @@ test('install --agent claude --native continues when marketplace already exists'
   assert.equal(out.stdout().includes('Marketplace already registered; continuing with plugin install.'), true);
   assert.equal(log.includes('plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), true);
   assert.equal(log.includes('plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+  assert.equal(log.includes('plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+});
+
+test('install --agent claude --native continues when plugin is already enabled', () => {
+  const home = tempDir();
+  const bin = path.join(home, 'bin');
+  const commandLog = path.join(home, 'commands.log');
+  fs.mkdirSync(bin, { recursive: true });
+  makeFakeClaudeAlreadyEnabledExecutable(bin);
+  const out = capture();
+  const code = runCli(
+    ['install', '--agent', 'claude', '--native'],
+    { ...fakeEnv(home), PATH: bin, TEST_COMMAND_LOG: commandLog },
+    out.io,
+  );
+  const log = fs.readFileSync(commandLog, 'utf8');
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes('Plugin already enabled; continuing.'), true);
+  assert.equal(log.includes('plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), true);
+  assert.equal(log.includes('plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+  assert.equal(log.includes('plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+});
+
+test('update --agent claude --native continues when plugin is already enabled', () => {
+  const home = tempDir();
+  const bin = path.join(home, 'bin');
+  const commandLog = path.join(home, 'commands.log');
+  fs.mkdirSync(bin, { recursive: true });
+  makeFakeClaudeAlreadyEnabledExecutable(bin);
+  const out = capture();
+  const code = runCli(
+    ['update', '--agent', 'claude', '--native'],
+    { ...fakeEnv(home), PATH: bin, TEST_COMMAND_LOG: commandLog },
+    out.io,
+  );
+  const log = fs.readFileSync(commandLog, 'utf8');
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes('Plugin already enabled; continuing.'), true);
+  assert.equal(log.includes('plugin marketplace update tungnt-ai-skills-marketplace'), true);
+  assert.equal(log.includes('plugin update tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
   assert.equal(log.includes('plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
 });
 

@@ -96,7 +96,7 @@ Run native plugin install commands instead of default marketplace metadata setup
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --native
 ```
 
-For Claude Code and GitHub Copilot CLI, native install first registers the marketplace and then installs/enables the plugin. If the marketplace is already registered, the installer treats that as a successful no-op and continues to the plugin install step.
+For Claude Code and GitHub Copilot CLI, native install first registers the marketplace and then installs/enables the plugin. If the marketplace is already registered, the installer treats that as a successful no-op and continues to the plugin install step. For Claude Code, an already-enabled plugin is also treated as a successful no-op.
 
 Run native plugin update commands for an existing install:
 
@@ -125,16 +125,16 @@ npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungn
 
 Supported agent ids:
 
-| Agent id | Target |
-| --- | --- |
-| `claude` | Claude Code |
-| `codex` | Codex |
-| `copilot` | GitHub Copilot CLI |
-| `gemini` | Gemini CLI |
-| `agy` | Antigravity CLI |
-| `antigravity` | Google Antigravity |
-| `antigravity-ide` | Antigravity IDE |
-| `antigravity-all` | Antigravity CLI and Antigravity IDE |
+| Agent id | Target | Native |
+| --- | --- | --- |
+| `claude` | Claude Code | `install`, `update` |
+| `codex` | Codex | `install`, `update` |
+| `copilot` | GitHub Copilot CLI | `install`, `update` |
+| `gemini` | Gemini CLI | `no` |
+| `agy` | Antigravity CLI | `no` |
+| `antigravity` | Google Antigravity | `no` |
+| `antigravity-ide` | Antigravity IDE | `no` |
+| `antigravity-all` | Antigravity CLI and Antigravity IDE | `no`, aggregate target |
 
 Antigravity targets install plugin folders using the recommended product-specific roots:
 
