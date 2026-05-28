@@ -60,7 +60,7 @@ Choose the path that matches your environment:
 | Option | Use when | What it does |
 | --- | --- | --- |
 | [1. NPM/npx installer](#1-npmnpx-installer-recommended) | `npm exec` or `npx` works | Runs the zero-dependency installer. Default mode sets up marketplace metadata and prints follow-up UI/CLI steps. |
-| [2. Native installer mode](#2-native-installer-mode) | You want the target agent CLI to run plugin commands | Runs native `plugin marketplace add`, `plugin add`/`plugin install`, or `plugin enable` commands through the installer. |
+| [2. Native installer mode](#2-native-installer-mode) | You want the target agent CLI to run plugin commands | Runs native install or update commands through the installer. |
 | [3. Manual setup](#3-manual-setup-when-npmnpx-is-not-available) | `npm exec`/`npx` fails or you need to debug files | Shows the exact files/settings to copy or edit by hand, plus direct CLI commands where available. |
 
 ### 1. NPM/npx Installer (Recommended)
@@ -73,6 +73,8 @@ Use the NPM installer first when `npm exec` works. It has two modes:
 
 - Default mode imports or registers marketplace metadata that can be written safely, then prints the app/CLI steps for adding the plugin.
 - `--native` mode runs the target agent's native plugin commands directly.
+
+Use `install` for first-time setup or to repair marketplace registration. Use `update` when the plugin is already installed and you want the latest version. `--force` replaces file-copy installer targets or rewrites fallback marketplace metadata. For compatibility with older update instructions, `install --native --force` runs native update commands when the target declares them, but `update --native` is the clearer command.
 
 If `npm exec` or `npx` cannot run in your environment, skip the installer and use the manual setup section below.
 
@@ -88,11 +90,30 @@ npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungn
 
 ### 2. Native Installer Mode
 
-Run native plugin commands instead of default marketplace metadata setup:
+Run native plugin install commands instead of default marketplace metadata setup:
 
 ```bash
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --native
 ```
+
+For Claude Code and GitHub Copilot CLI, native install first registers the marketplace and then installs/enables the plugin. If the marketplace is already registered, the installer treats that as a successful no-op and continues to the plugin install step.
+
+Run native plugin update commands for an existing install:
+
+```bash
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills update --agent copilot --native
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills update --agent claude --native
+```
+
+Claude Code and GitHub Copilot CLI both expose native `plugin update` commands, so they use the same update shape. Codex currently exposes marketplace snapshot refresh through `codex plugin marketplace upgrade`; it does not expose a separate `codex plugin update` command in the current CLI. To make Codex native update actually refresh the installed plugin cache, the installer upgrades the marketplace snapshot, removes the installed plugin, then adds it again from the refreshed snapshot.
+
+Older commands that used `install --native --force` still work for native update targets:
+
+```bash
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent copilot --native --force
+```
+
+That compatibility form runs Copilot's native update commands instead of trying to add the marketplace again.
 
 Native mode still uses the NPM installer entrypoint. If `npm exec` or `npx` cannot run, use the manual setup section and run the listed native commands directly.
 
@@ -139,7 +160,7 @@ Preview resolved install directories without writing files:
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --dry-run
 ```
 
-For Claude Code, Codex, and Copilot, dry-run prints the manual marketplace files or settings that would be written and the next install/enable commands to run yourself. With `--native`, dry-run prints the native marketplace commands that would be executed. Dry-run does not write files.
+For Claude Code, Codex, and Copilot, install dry-run prints the manual marketplace files or settings that would be written and the next install/enable commands to run yourself. With `--native`, install dry-run prints the native marketplace install commands that would be executed. Update dry-run prints either the installer refresh command or the native update commands. Dry-run does not write files.
 
 Preview one agent only:
 
@@ -195,6 +216,14 @@ Or run the equivalent native commands directly:
 
 ```bash
 claude plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
+claude plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace
+```
+
+To update an already installed Claude plugin, run:
+
+```bash
+claude plugin marketplace update tungnt-ai-skills-marketplace
+claude plugin update tungnt-ai-skills@tungnt-ai-skills-marketplace
 claude plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace
 ```
 
@@ -345,6 +374,14 @@ codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
 codex plugin add tungnt-ai-skills@tungnt-ai-skills-marketplace
 ```
 
+To refresh Codex's marketplace snapshot later, run:
+
+```bash
+codex plugin marketplace upgrade tungnt-ai-skills-marketplace
+codex plugin remove tungnt-ai-skills@tungnt-ai-skills-marketplace
+codex plugin add tungnt-ai-skills@tungnt-ai-skills-marketplace
+```
+
 ##### Codex App
 
 Codex app:
@@ -456,25 +493,40 @@ copilot plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
 copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
 ```
 
-## Update
-
-To update an existing install, run the installer again with `--force`:
+- Update an installed plugin:
 
 ```bash
-npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --force
+copilot plugin marketplace update tungnt-ai-skills-marketplace
+copilot plugin update tungnt-ai-skills@tungnt-ai-skills-marketplace
+```
+
+## Update
+
+Use `update` for an existing install:
+
+```bash
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills update
 ```
 
 Update one agent only:
 
 ```bash
-npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --force
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills update --agent copilot --native
 ```
+
+Update behavior depends on the target:
+
+- Claude Code: `update --native` runs marketplace update, plugin update, then plugin enable.
+- GitHub Copilot CLI: `update --native` runs marketplace update, then plugin update.
+- Codex: `update --native` refreshes the configured marketplace snapshot, removes the installed plugin, then adds it again from the refreshed snapshot because current Codex CLI does not expose a plugin update command.
+- File-copy targets such as Gemini and Antigravity: `update` refreshes the installed files the same way `install --force` did before.
+- Default Claude/Codex/Copilot fallback paths refresh local marketplace files/settings, then print the manual app/CLI steps when a native plugin update is still needed.
 
 If you are updating this local source checkout first, pull the latest repository changes, then rerun the installer:
 
 ```bash
 git pull
-npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --force
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills update --agent copilot --native
 ```
 
 Restart or reload the target agent after updating so it reads the new plugin files.
