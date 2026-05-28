@@ -175,7 +175,7 @@ export const TARGETS = [
           repo: 'tungnt1405/tungnt-ai-skills-marketplace',
         },
       },
-      pluginId: 'tungnt-ai-skills@tungnt-ai-skills-marketplace',
+      // pluginId: 'tungnt-ai-skills@tungnt-ai-skills-marketplace',
     },
     nextSteps: [
       'Copilot app: Open GitHub Copilot Chat (Visual Studio Code - VSCode).',
