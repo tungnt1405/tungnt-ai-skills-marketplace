@@ -231,35 +231,87 @@ codex plugin marketplace add ./tungnt-ai-skills-marketplace
 codex plugin add tungnt-ai-skills@tungnt-ai-skills-marketplace
 ```
 
-For the manual local setup used by the installer fallback, copy the plugin folder into the Codex local marketplace plugins directory:
+For the manual local setup used by the installer fallback, copy the plugin folder into the Codex personal plugin directory:
 
 ```bash
-# copy plugin to the local marketplace plugins directory
-cp -R $REPO_ROOT/tungnt-ai-skills-marketplace ~/.codex/.tmp/plugins/plugins
+# copy plugin to the Codex personal plugin directory
+mkdir -p ~/.codex/plugins
+cp -R $REPO_ROOT/tungnt-ai-skills-marketplace ~/.codex/plugins/tungnt-ai-skills-marketplace
 ```
 
 The fallback package directory is:
 
 ```text
-~/.codex/.tmp/plugins/plugins/tungnt-ai-skills-marketplace
+~/.codex/plugins/tungnt-ai-skills-marketplace
 ```
 
-Add or update `~/.codex/.tmp/plugins/.agents/plugins/marketplace.json`:
+Add or update the Codex personal marketplace at `~/.agents/plugins/marketplace.json`:
 
 ```json
-"plugins": [
-  ...
-  , {
-    "name": "tungnt-ai-skills",
-    "source": {
-      "source": "local",
-      "path": "./plugins/tungnt-ai-skills-marketplace"
-    },
-    "policy": {
-      "installation": "AVAILABLE",
-      "authentication": "ON_INSTALL"
-    },
-    "category": "Coding"
+{
+  "plugins": [
+    {
+      "name": "tungnt-ai-skills",
+      "source": {
+        "source": "local",
+        "path": "./.codex/plugins/tungnt-ai-skills-marketplace"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Coding"
+    }
+  ]
+}
+```
+
+If the file already has plugins, merge the entry into the existing `plugins` array. Codex installs the selected plugin into its cache after you add it:
+
+```text
+~/.codex/plugins/cache/<marketplace-name>/tungnt-ai-skills/<version>/
+```
+
+The plugin folder copied to `~/.codex/plugins/tungnt-ai-skills-marketplace` must include:
+
+```text
+.codex-plugin/plugin.json
+assets/
+skills/
+```
+
+The root `.agents/plugins/marketplace.json` in this repository is the repo marketplace used when this repository is added directly:
+
+```json
+{
+  "name": "tungnt-ai-skills-marketplace",
+  "interface": {
+    "displayName": "Tungnt AI Skills"
+  },
+  "plugins": [
+    {
+      "name": "tungnt-ai-skills",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/tungnt1405/tungnt-ai-skills-marketplace.git",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Coding"
+    }
+  ]
+}
+```
+
+The personal marketplace entry and repo marketplace entry are intentionally different:
+
+```text
+personal manual setup: source.local path -> ./.codex/plugins/tungnt-ai-skills-marketplace
+repo/native setup: source.url -> GitHub repository
+```
   }
 ]
 ```
