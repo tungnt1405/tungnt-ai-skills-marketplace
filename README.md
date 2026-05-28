@@ -456,12 +456,14 @@ with the marketplace entry:
 
 Then choose the path that matches how you use Copilot:
 
-Copilot app:
+Copilot app (VSCODE):
 
-1. Open GitHub Copilot.
+1. Open GitHub Copilot Chat (VSCODE).
 2. Open the Plugins tab.
-3. Search for `tungnt-ai-skills`.
-4. Add the plugin.
+3. Click button `Install Plugin from Source`
+4. Input `tungnt1405/tungnt-ai-skills-marketplace`
+5. Click `trust` to install
+
 
 Copilot CLI:
 
