@@ -56,6 +56,18 @@ export const TARGETS = [
       ['claude', 'plugin', 'install', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
       ['claude', 'plugin', 'enable', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
     ],
+    updateCommands: [
+      ['claude', 'plugin', 'marketplace', 'update', 'tungnt-ai-skills-marketplace'],
+      ['claude', 'plugin', 'update', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
+      ['claude', 'plugin', 'enable', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
+    ],
+    ignorableNativeFailures: [
+      {
+        commandPrefix: ['claude', 'plugin', 'marketplace', 'add'],
+        messageIncludes: 'already',
+        note: 'Marketplace already registered; continuing with plugin install.',
+      },
+    ],
     fallbackInstall: {
       mode: 'package',
       displayName: 'Claude local marketplace',
@@ -82,6 +94,11 @@ export const TARGETS = [
     requiredFiles: ['.agents/plugins/marketplace.json', '.codex-plugin/plugin.json', ...REQUIRED_SKILL_FILES],
     nativeCommands: [
       ['codex', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
+      ['codex', 'plugin', 'add', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
+    ],
+    updateCommands: [
+      ['codex', 'plugin', 'marketplace', 'upgrade', 'tungnt-ai-skills-marketplace'],
+      ['codex', 'plugin', 'remove', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
       ['codex', 'plugin', 'add', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
     ],
     fallbackInstall: {
@@ -131,6 +148,17 @@ export const TARGETS = [
     nativeCommands: [
       ['copilot', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
       ['copilot', 'plugin', 'install', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
+    ],
+    updateCommands: [
+      ['copilot', 'plugin', 'marketplace', 'update', 'tungnt-ai-skills-marketplace'],
+      ['copilot', 'plugin', 'update', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
+    ],
+    ignorableNativeFailures: [
+      {
+        commandPrefix: ['copilot', 'plugin', 'marketplace', 'add'],
+        messageIncludes: 'already registered',
+        note: 'Marketplace already registered; continuing with plugin install.',
+      },
     ],
     fallbackInstall: {
       mode: 'copilotSettings',
