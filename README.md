@@ -44,7 +44,7 @@ Skill calls use the real names from each `SKILL.md` file, not a plugin-prefixed 
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install
 ```
 
-The NPM installer uses each target's native install style. Claude Code is installed through marketplace commands. Codex follows the local marketplace setup below by copying the plugin package, writing `marketplace.json`, and enabling `tungnt-ai-skills@openai-curated` in `~/.codex/config.toml`. Copilot writes marketplace and enabled plugin settings into `~/.copilot/settings.json`. The remaining local targets copy the package into their plugin folders.
+By default, the NPM installer performs only manual marketplace setup for Claude Code, Codex, and GitHub Copilot CLI. It imports or registers the marketplace metadata that can be written safely, then prints the next install/enable steps for the user to run in the target agent. It does not run native plugin commands unless `--native` is passed. The remaining local targets copy the package into their plugin folders.
 
 With no flags, `install` behaves like `--all` and targets Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and the concrete Antigravity plugin folders.
 
@@ -52,6 +52,12 @@ Install one agent only:
 
 ```bash
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex
+```
+
+Run native plugin commands instead of manual marketplace setup:
+
+```bash
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --native
 ```
 
 Install all Antigravity layouts:
@@ -97,7 +103,7 @@ Preview resolved install directories without writing files:
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --dry-run
 ```
 
-For Claude Code, dry-run prints the marketplace commands that will be executed. For Codex, dry-run prints the local marketplace package path, `marketplace.json` path, and `~/.codex/config.toml` path that will be written. For Copilot, dry-run prints the `~/.copilot/settings.json` path that will be written.
+For Claude Code, Codex, and Copilot, dry-run prints the manual marketplace files or settings that would be written and the next install/enable commands to run yourself. With `--native`, dry-run prints the native marketplace commands that would be executed. Dry-run does not write files.
 
 Preview one agent only:
 
@@ -136,6 +142,49 @@ Restart or reload the target agent after updating so it reads the new plugin fil
 
 ## Set up the Marketplace manually if it was not installed
 
+### Claude Code
+
+The default installer path copies the local marketplace package to:
+
+```text
+~/.claude/plugins/cache/tungnt-ai-skills-marketplace
+```
+
+That package includes:
+
+```text
+.claude-plugin/marketplace.json
+.claude-plugin/plugin.json
+skills/
+hooks/
+```
+
+After the marketplace package is present, choose the path that matches how you use Claude:
+
+Claude Code app:
+
+1. Open Claude Code.
+2. Open the Plugins tab.
+3. Search for `tungnt-ai-skills`.
+4. Add the plugin.
+
+Claude CLI:
+
+```bash
+claude
+
+/plugins tungnt-ai-skills
+```
+
+Or run the equivalent native commands directly:
+
+```bash
+claude plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
+claude plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace
+```
+
+To let the installer run Claude Code's native marketplace commands for you instead, pass `--native`.
+
 ### Codex
 
 Codex support in this fork is driven by the bundled plugin manifest:
@@ -159,14 +208,17 @@ codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
 # codex plugin marketplace add $REPO_ROOT/tungnt-ai-skills-marketplace # you must clone repo to local
 ```
 
-For a manual local setup, copy the plugin folder into `~/.codex/.tmp/plugins`:
+For the manual local setup used by the installer fallback, copy the plugin folder into the Codex local marketplace plugins directory:
 
 ```bash
-# get root marketplace to get path of marketplace installed
-codex plugin marketplace list
-
 # copy plugin to the local marketplace plugins directory
 cp -R $REPO_ROOT/tungnt-ai-skills-marketplace ~/.codex/.tmp/plugins/plugins
+```
+
+The fallback package directory is:
+
+```text
+~/.codex/.tmp/plugins/plugins/tungnt-ai-skills-marketplace
 ```
 
 Add or update `~/.codex/.tmp/plugins/.agents/plugins/marketplace.json`:
@@ -195,9 +247,13 @@ The plugin/package name is:
 tungnt-ai-skills
 ```
 
+The default NPM installer path writes this local marketplace entry automatically. It does not run Codex's native marketplace command unless `--native` is passed.
+
 #### Codex CLI
 
-Open Codex and install from `/plugins`:
+Choose the path that matches how you use Codex:
+
+Codex CLI:
 
 ```bash
 codex
@@ -205,13 +261,15 @@ codex
 /plugins tungnt-ai-skills
 ```
 
+Then add `tungnt-ai-skills` from the plugins screen.
+
 #### Codex App
 
-Use the same shared marketplace setup above, then install from the App UI:
+Codex app:
 
 - Open Plugins in the sidebar.
 - Search for `tungnt-ai-skills`.
-- Click `+` and follow the prompts.
+- Add the plugin.
 
 If the fork is not published in your Codex App marketplace, use the local/manual marketplace setup above.
 
@@ -256,7 +314,53 @@ Detailed Antigravity notes:
 
 ### GitHub Copilot CLI
 
-The NPM installer creates or updates `~/.copilot/settings.json` with the marketplace and enabled plugin entry. For debugging, the equivalent manual commands are:
+The default installer path creates or updates:
+
+```text
+~/.copilot/settings.json
+```
+
+with the marketplace entry:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "tungnt-ai-skills-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "tungnt1405/tungnt-ai-skills-marketplace"
+      }
+    }
+  }
+}
+```
+
+Then choose the path that matches how you use Copilot:
+
+Copilot app:
+
+1. Open GitHub Copilot.
+2. Open the Plugins tab.
+3. Search for `tungnt-ai-skills`.
+4. Add the plugin.
+
+Copilot CLI:
+
+```bash
+copilot
+
+/plugins tungnt-ai-skills
+```
+
+Or run the equivalent native command directly:
+
+```bash
+copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
+```
+
+The default path merges existing settings. It fails without overwriting the file if `settings.json` is invalid JSON or if `extraKnownMarketplaces` already exists as a non-object value.
+
+To let the installer run Copilot's native plugin commands for you instead, pass `--native`:
 
 - Register the marketplace:
 

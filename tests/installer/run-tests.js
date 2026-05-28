@@ -54,9 +54,15 @@ function emptyPathEnv(home) {
 }
 
 function makeFakeExecutable(directory, name) {
-  const filePath = path.join(directory, name);
-  fs.writeFileSync(filePath, '#!/bin/sh\nexit 0\n');
-  fs.chmodSync(filePath, 0o755);
+  const executableName = process.platform === 'win32' ? `${name}.cmd` : name;
+  const filePath = path.join(directory, executableName);
+  const content = process.platform === 'win32'
+    ? '@echo off\r\nexit /b 0\r\n'
+    : '#!/bin/sh\nexit 0\n';
+  fs.writeFileSync(filePath, content);
+  if (process.platform !== 'win32') {
+    fs.chmodSync(filePath, 0o755);
+  }
   return filePath;
 }
 
@@ -183,63 +189,260 @@ test('install --agent codex --dry-run selects only Codex', () => {
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes('[codex]'), true);
   assert.equal(out.stdout().includes('[claude]'), false);
-  assert.equal(out.stdout().includes('Mode: native marketplace commands'), true);
-  assert.equal(out.stdout().includes('Command: codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), true);
+  assert.equal(out.stdout().includes('Mode: manual marketplace setup'), true);
+  assert.equal(out.stdout().includes('Command: codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), false);
+  assert.equal(out.stdout().includes(`Manual target: ${path.join(home, '.codex', '.tmp', 'plugins', 'plugins', 'tungnt-ai-skills-marketplace')}`), true);
+  assert.equal(out.stdout().includes(`Manual marketplace file: ${path.join(home, '.codex', '.tmp', 'plugins', '.agents', 'plugins', 'marketplace.json')}`), true);
+  assert.equal(out.stdout().includes('Next steps:'), true);
+  assert.equal(out.stdout().includes('Codex CLI: Open a terminal and run codex.'), true);
+  assert.equal(out.stdout().includes('Codex CLI: Run /plugins tungnt-ai-skills.'), true);
+  assert.equal(out.stdout().includes('Codex CLI: Add the plugin from the plugins screen.'), true);
+  assert.equal(out.stdout().includes('Codex app: Open the Plugins tab.'), true);
   assert.equal(out.stdout().includes('Planned entries:'), false);
   assert.equal(out.stdout().includes('Marketplace file:'), false);
   assert.equal(out.stdout().includes('Config file:'), false);
+  assert.equal(fs.existsSync(path.join(home, '.codex')), false);
 });
 
-test('install --agent copilot --dry-run selects Copilot native commands', () => {
+test('install --agent codex --native --dry-run selects Codex native commands', () => {
+  const home = tempDir();
+  const out = capture();
+  const code = runCli(['install', '--agent', 'codex', '--native', '--dry-run'], fakeEnv(home), out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes('Native: enabled'), true);
+  assert.equal(out.stdout().includes('Mode: native marketplace commands'), true);
+  assert.equal(out.stdout().includes('Command: codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), true);
+  assert.equal(out.stdout().includes('Manual setup available when --native is omitted:'), true);
+  assert.equal(fs.existsSync(path.join(home, '.codex')), false);
+});
+
+test('install --agent copilot --dry-run selects Copilot manual marketplace settings', () => {
   const home = tempDir();
   const out = capture();
   const code = runCli(['install', '--agent', 'copilot', '--dry-run'], fakeEnv(home), out.io);
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes('[copilot]'), true);
   assert.equal(out.stdout().includes('[codex]'), false);
-  assert.equal(out.stdout().includes('Mode: native marketplace commands'), true);
-  assert.equal(out.stdout().includes('Command: copilot plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), true);
-  assert.equal(out.stdout().includes('Command: copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+  assert.equal(out.stdout().includes('Mode: manual marketplace setup'), true);
+  assert.equal(out.stdout().includes('Command: copilot plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), false);
+  assert.equal(out.stdout().includes(`Manual settings file: ${path.join(home, '.copilot', 'settings.json')}`), true);
+  assert.equal(out.stdout().includes('Manual marketplace: tungnt-ai-skills-marketplace'), true);
+  assert.equal(out.stdout().includes('Copilot app: Open GitHub Copilot.'), true);
+  assert.equal(out.stdout().includes('Copilot app: Open the Plugins tab.'), true);
+  assert.equal(out.stdout().includes('Copilot app: Search for tungnt-ai-skills.'), true);
+  assert.equal(out.stdout().includes('Copilot app: Add the plugin.'), true);
+  assert.equal(out.stdout().includes('copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
   assert.equal(out.stdout().includes('Config file:'), false);
   assert.equal(fs.existsSync(path.join(home, '.copilot')), false);
 });
 
-test('install --agent copilot fails clearly when copilot command is missing', () => {
+test('install --agent copilot imports marketplace settings by default', () => {
+  const home = tempDir();
   const out = capture();
-  const code = runCli(['install', '--agent', 'copilot'], emptyPathEnv(tempDir()), out.io);
-  assert.equal(code, 1);
-  assert.equal(out.stderr().includes('Native command not found: copilot'), true);
+  const code = runCli(['install', '--agent', 'copilot'], emptyPathEnv(home), out.io);
+  const settingsFile = path.join(home, '.copilot', 'settings.json');
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes('Native command not found'), false);
+  assert.equal(out.stdout().includes('Status: marketplace configured'), true);
+  assert.equal(out.stdout().includes('Copilot app: Open GitHub Copilot.'), true);
+  assert.equal(out.stdout().includes('Copilot app: Open the Plugins tab.'), true);
+  assert.equal(out.stdout().includes('Copilot app: Search for tungnt-ai-skills.'), true);
+  assert.equal(out.stdout().includes('Copilot app: Add the plugin.'), true);
+  assert.equal(out.stdout().includes('copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+  assert.deepEqual(JSON.parse(fs.readFileSync(settingsFile, 'utf8')), {
+    extraKnownMarketplaces: {
+      'tungnt-ai-skills-marketplace': {
+        source: {
+          source: 'github',
+          repo: 'tungnt1405/tungnt-ai-skills-marketplace',
+        },
+      },
+    },
+  });
 });
 
-test('install --agent codex fails clearly when codex command is missing', () => {
+test('install --agent codex imports local marketplace by default', () => {
+  const home = tempDir();
   const out = capture();
-  const code = runCli(['install', '--agent', 'codex'], emptyPathEnv(tempDir()), out.io);
-  assert.equal(code, 1);
-  assert.equal(out.stderr().includes('Native command not found: codex'), true);
+  const code = runCli(['install', '--agent', 'codex'], emptyPathEnv(home), out.io);
+  const destination = path.join(home, '.codex', '.tmp', 'plugins', 'plugins', 'tungnt-ai-skills-marketplace');
+  const marketplaceFile = path.join(home, '.codex', '.tmp', 'plugins', '.agents', 'plugins', 'marketplace.json');
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes('Native command not found'), false);
+  assert.equal(out.stdout().includes('Status: marketplace configured'), true);
+  assert.equal(out.stdout().includes('Codex CLI: Open a terminal and run codex.'), true);
+  assert.equal(out.stdout().includes('Codex CLI: Run /plugins tungnt-ai-skills.'), true);
+  assert.equal(out.stdout().includes('Codex CLI: Add the plugin from the plugins screen.'), true);
+  assert.equal(out.stdout().includes('Codex app: Add the plugin.'), true);
+  assert.equal(fs.existsSync(path.join(destination, '.codex-plugin', 'plugin.json')), true);
+  assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
+  assert.deepEqual(JSON.parse(fs.readFileSync(marketplaceFile, 'utf8')).plugins, [
+    {
+      name: 'tungnt-ai-skills',
+      source: {
+        source: 'local',
+        path: './plugins/tungnt-ai-skills-marketplace',
+      },
+      policy: {
+        installation: 'AVAILABLE',
+        authentication: 'ON_INSTALL',
+      },
+      category: 'Coding',
+    },
+  ]);
 });
 
-test('native command preflight accepts commands from PATH', () => {
+test('native command preflight accepts commands from PATH with --native', () => {
   const home = tempDir();
   const bin = path.join(home, 'bin');
   fs.mkdirSync(bin, { recursive: true });
   makeFakeExecutable(bin, 'codex');
   const out = capture();
-  const code = runCli(['install', '--agent', 'codex'], { ...fakeEnv(home), PATH: bin }, out.io);
+  const code = runCli(['install', '--agent', 'codex', '--native'], { ...fakeEnv(home), PATH: bin }, out.io);
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes('Status: installed'), true);
+  assert.equal(out.stdout().includes('Next steps:'), true);
+  assert.equal(out.stdout().includes('Codex CLI: Run /plugins tungnt-ai-skills.'), true);
+  assert.equal(out.stdout().includes('Codex app: Add the plugin.'), true);
 });
 
-test('install --agent claude --dry-run selects Claude marketplace commands', () => {
+test('install --agent codex --native fails clearly when codex command is missing', () => {
+  const out = capture();
+  const code = runCli(['install', '--agent', 'codex', '--native'], emptyPathEnv(tempDir()), out.io);
+  assert.equal(code, 1);
+  assert.equal(out.stderr().includes('Native command not found: codex'), true);
+});
+
+test('native command path is used only with --native when copilot exists', () => {
+  const home = tempDir();
+  const bin = path.join(home, 'bin');
+  fs.mkdirSync(bin, { recursive: true });
+  makeFakeExecutable(bin, 'copilot');
+  const out = capture();
+  const code = runCli(['install', '--agent', 'copilot', '--native'], { ...fakeEnv(home), PATH: bin }, out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes('Status: installed'), true);
+  assert.equal(out.stdout().includes('Status: marketplace configured'), false);
+  assert.equal(out.stdout().includes('Next steps:'), false);
+  assert.equal(out.stdout().includes('Copilot app:'), false);
+  assert.equal(fs.existsSync(path.join(home, '.copilot', 'settings.json')), false);
+});
+
+test('install --agent claude --native does not print next steps when commands succeed', () => {
+  const home = tempDir();
+  const bin = path.join(home, 'bin');
+  fs.mkdirSync(bin, { recursive: true });
+  makeFakeExecutable(bin, 'claude');
+  const out = capture();
+  const code = runCli(['install', '--agent', 'claude', '--native'], { ...fakeEnv(home), PATH: bin }, out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes('Status: installed'), true);
+  assert.equal(out.stdout().includes('Next steps:'), false);
+  assert.equal(out.stdout().includes('Claude Code app:'), false);
+});
+
+test('install --agent copilot merges manual marketplace settings by default', () => {
+  const home = tempDir();
+  const settingsFile = path.join(home, '.copilot', 'settings.json');
+  fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
+  fs.writeFileSync(settingsFile, `${JSON.stringify({
+    theme: 'dark',
+    extraKnownMarketplaces: {
+      existing: {
+        source: {
+          source: 'github',
+          repo: 'example/existing',
+        },
+      },
+    },
+    enabledPlugins: ['left alone'],
+  }, null, 2)}\n`);
+  const out = capture();
+  const code = runCli(['install', '--agent', 'copilot'], emptyPathEnv(home), out.io);
+  const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+  assert.equal(code, 0, out.stderr());
+  assert.equal(settings.theme, 'dark');
+  assert.deepEqual(settings.extraKnownMarketplaces.existing, {
+    source: {
+      source: 'github',
+      repo: 'example/existing',
+    },
+  });
+  assert.deepEqual(settings.extraKnownMarketplaces['tungnt-ai-skills-marketplace'], {
+    source: {
+      source: 'github',
+      repo: 'tungnt1405/tungnt-ai-skills-marketplace',
+    },
+  });
+  assert.deepEqual(settings.enabledPlugins, ['left alone']);
+});
+
+test('install --agent copilot fails without overwriting invalid fallback settings JSON', () => {
+  const home = tempDir();
+  const settingsFile = path.join(home, '.copilot', 'settings.json');
+  fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
+  fs.writeFileSync(settingsFile, '{ invalid json');
+  const out = capture();
+  const code = runCli(['install', '--agent', 'copilot'], emptyPathEnv(home), out.io);
+  assert.equal(code, 1);
+  assert.equal(out.stderr().includes('Invalid JSON'), true);
+  assert.equal(fs.readFileSync(settingsFile, 'utf8'), '{ invalid json');
+});
+
+test('install --agent copilot fails when fallback settings keys are non-objects', () => {
+  const home = tempDir();
+  const settingsFile = path.join(home, '.copilot', 'settings.json');
+  fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
+  fs.writeFileSync(settingsFile, `${JSON.stringify({
+    extraKnownMarketplaces: [],
+  }, null, 2)}\n`);
+  const out = capture();
+  const code = runCli(['install', '--agent', 'copilot'], emptyPathEnv(home), out.io);
+  assert.equal(code, 1);
+  assert.equal(out.stderr().includes('extraKnownMarketplaces must be an object'), true);
+});
+
+test('install --agent claude --dry-run selects Claude manual marketplace setup', () => {
   const home = tempDir();
   const out = capture();
   const code = runCli(['install', '--agent', 'claude', '--dry-run'], fakeEnv(home), out.io);
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes('[claude]'), true);
   assert.equal(out.stdout().includes('[codex]'), false);
+  assert.equal(out.stdout().includes('Mode: manual marketplace setup'), true);
+  assert.equal(out.stdout().includes(`Manual target: ${path.join(home, '.claude', 'plugins', 'cache', 'tungnt-ai-skills-marketplace')}`), true);
+  assert.equal(out.stdout().includes('Manual entries: .claude-plugin, hooks, skills'), true);
+  assert.equal(out.stdout().includes('Claude Code app: Open Claude Code.'), true);
+  assert.equal(out.stdout().includes('Claude Code app: Open the Plugins tab.'), true);
+  assert.equal(out.stdout().includes('Claude Code app: Search for tungnt-ai-skills.'), true);
+  assert.equal(out.stdout().includes('Claude Code app: Add the plugin.'), true);
+  assert.equal(out.stdout().includes('claude plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+  assert.equal(out.stdout().includes('claude plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+  assert.equal(out.stdout().includes('Command: claude plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), false);
+});
+
+test('install --agent claude --native --dry-run selects Claude marketplace commands', () => {
+  const home = tempDir();
+  const out = capture();
+  const code = runCli(['install', '--agent', 'claude', '--native', '--dry-run'], fakeEnv(home), out.io);
+  assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes('Mode: native marketplace commands'), true);
   assert.equal(out.stdout().includes('Command: claude plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), true);
   assert.equal(out.stdout().includes('Command: claude plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
   assert.equal(out.stdout().includes('Command: claude plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+});
+
+test('install --agent claude imports local marketplace by default', () => {
+  const home = tempDir();
+  const out = capture();
+  const code = runCli(['install', '--agent', 'claude'], emptyPathEnv(home), out.io);
+  const destination = path.join(home, '.claude', 'plugins', 'cache', 'tungnt-ai-skills-marketplace');
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes('Native command not found'), false);
+  assert.equal(out.stdout().includes('Status: marketplace configured'), true);
+  assert.equal(fs.existsSync(path.join(destination, '.claude-plugin', 'marketplace.json')), true);
+  assert.equal(fs.existsSync(path.join(destination, '.claude-plugin', 'plugin.json')), true);
+  assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
 });
 
 test('install --agent agy --dry-run uses Antigravity CLI plugin layout', () => {
