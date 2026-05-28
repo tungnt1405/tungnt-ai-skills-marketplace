@@ -96,7 +96,7 @@ Run native plugin install commands instead of default marketplace metadata setup
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --native
 ```
 
-For Claude Code and GitHub Copilot CLI, native install first registers the marketplace and then installs/enables the plugin. If the marketplace is already registered, the installer treats that as a successful no-op and continues to the plugin install step.
+For Claude Code and GitHub Copilot CLI, native install first registers the marketplace and then installs/enables the plugin. If the marketplace is already registered, the installer treats that as a successful no-op and continues to the plugin install step. For Claude Code, an already-enabled plugin is also treated as a successful no-op.
 
 Run native plugin update commands for an existing install:
 

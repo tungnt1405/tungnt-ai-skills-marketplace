@@ -67,6 +67,11 @@ export const TARGETS = [
         messageIncludes: 'already',
         note: 'Marketplace already registered; continuing with plugin install.',
       },
+      {
+        commandPrefix: ['claude', 'plugin', 'enable'],
+        messageIncludes: 'already enabled',
+        note: 'Plugin already enabled; continuing.',
+      },
     ],
     fallbackInstall: {
       mode: 'package',
