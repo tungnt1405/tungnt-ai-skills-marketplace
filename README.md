@@ -125,16 +125,16 @@ npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungn
 
 Supported agent ids:
 
-| Agent id | Target |
-| --- | --- |
-| `claude` | Claude Code |
-| `codex` | Codex |
-| `copilot` | GitHub Copilot CLI |
-| `gemini` | Gemini CLI |
-| `agy` | Antigravity CLI |
-| `antigravity` | Google Antigravity |
-| `antigravity-ide` | Antigravity IDE |
-| `antigravity-all` | Antigravity CLI and Antigravity IDE |
+| Agent id | Target | Native |
+| --- | --- | --- |
+| `claude` | Claude Code | `install`, `update` |
+| `codex` | Codex | `install`, `update` |
+| `copilot` | GitHub Copilot CLI | `install`, `update` |
+| `gemini` | Gemini CLI | `no` |
+| `agy` | Antigravity CLI | `no` |
+| `antigravity` | Google Antigravity | `no` |
+| `antigravity-ide` | Antigravity IDE | `no` |
+| `antigravity-all` | Antigravity CLI and Antigravity IDE | `no`, aggregate target |
 
 Antigravity targets install plugin folders using the recommended product-specific roots:
 
