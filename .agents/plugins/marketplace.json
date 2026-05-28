@@ -1,14 +1,15 @@
 {
   "name": "tungnt-ai-skills-marketplace",
   "interface": {
-    "displayName": "tungnt-ai-skills"
+    "displayName": "Tungnt AI Skills"
   },
   "plugins": [
     {
       "name": "tungnt-ai-skills",
       "source": {
-        "source": "local",
-        "path": "./plugins/tungnt-ai-skills-marketplace"
+        "source": "url",
+        "url": "https://github.com/tungnt1405/tungnt-ai-skills-marketplace.git",
+        "ref": "main"
       },
       "policy": {
         "installation": "AVAILABLE",

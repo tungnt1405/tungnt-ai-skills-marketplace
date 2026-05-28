@@ -17,7 +17,7 @@
 - Create `installer/package-copy.js`: copy/exclude/validate/remove helpers.
 - Create `installer/cli.js`: argument parsing, command dispatch, install orchestration.
 - Create `tests/installer/run-tests.js`: dependency-free Node test runner.
-- Create `.agents/plugins/tungnt-ai-skills/plugin.json`: Antigravity manifest path required by spec/docs.
+- Create `.agents/plugins/tungnt-ai-skills-marketplace/plugin.json`: Antigravity manifest path required by spec/docs.
 - Modify `package.json`: add `bin` and `scripts.test:installer`.
 - Modify `README.md`: document npm installer first, keep manual sections as fallback.
 
@@ -26,7 +26,7 @@
 - [ ] Add installer target map and unit coverage for supported agents.
 - [ ] Add package copy engine and tests for source validation, copying, and force safety.
 - [ ] Add CLI commands, npm bin wiring, and CLI behavior tests.
-- [ ] Add Antigravity manifest at `.agents/plugins/tungnt-ai-skills/plugin.json`.
+- [ ] Add Antigravity manifest at `.agents/plugins/tungnt-ai-skills-marketplace/plugin.json`.
 - [ ] Update README with npm installer usage and preserve manual fallback docs.
 - [ ] Run final verification commands from the spec.
 

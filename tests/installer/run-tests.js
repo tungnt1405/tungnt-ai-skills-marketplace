@@ -191,7 +191,7 @@ test('install --agent codex --dry-run selects only Codex', () => {
   assert.equal(out.stdout().includes('[claude]'), false);
   assert.equal(out.stdout().includes('Mode: manual marketplace setup'), true);
   assert.equal(out.stdout().includes('Command: codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), false);
-  assert.equal(out.stdout().includes('Command: codex plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), false);
+  assert.equal(out.stdout().includes('Command: codex plugin add tungnt-ai-skills@tungnt-ai-skills-marketplace'), false);
   assert.equal(out.stdout().includes(`Manual target: ${path.join(home, '.codex', '.tmp', 'plugins', 'plugins', 'tungnt-ai-skills-marketplace')}`), true);
   assert.equal(out.stdout().includes(`Manual marketplace file: ${path.join(home, '.codex', '.tmp', 'plugins', '.agents', 'plugins', 'marketplace.json')}`), true);
   assert.equal(out.stdout().includes('Next steps:'), true);
@@ -213,7 +213,7 @@ test('install --agent codex --native --dry-run selects Codex native commands', (
   assert.equal(out.stdout().includes('Native: enabled'), true);
   assert.equal(out.stdout().includes('Mode: native marketplace commands'), true);
   assert.equal(out.stdout().includes('Command: codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), true);
-  assert.equal(out.stdout().includes('Command: codex plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+  assert.equal(out.stdout().includes('Command: codex plugin add tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
   assert.equal(out.stdout().includes('Manual setup available when --native is omitted:'), true);
   assert.equal(fs.existsSync(path.join(home, '.codex')), false);
 });

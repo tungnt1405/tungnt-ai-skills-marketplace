@@ -113,10 +113,10 @@ Agent-specific required files:
 - Claude Code: `.claude-plugin/plugin.json`
 - Codex: `.codex-plugin/plugin.json`
 - Gemini: `gemini-extension.json`
-- Antigravity: `.agents/plugins/tungnt-ai-skills/plugin.json`
+- Antigravity: `.agents/plugins/tungnt-ai-skills-marketplace/plugin.json`
 - Copilot: shared package files plus post-install notes for enabling through the Copilot plugin flow
 
-If an expected source file is missing, the installer fails before modifying any target for that agent. The implementation should add the Antigravity manifest at `.agents/plugins/tungnt-ai-skills/plugin.json` because the current Antigravity documentation names that path as supported plugin metadata.
+If an expected source file is missing, the installer fails before modifying any target for that agent. The implementation should add the Antigravity manifest at `.agents/plugins/tungnt-ai-skills-marketplace/plugin.json` because the current Antigravity documentation names that path as supported plugin metadata.
 
 ## Error handling
 

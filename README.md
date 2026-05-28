@@ -60,7 +60,7 @@ Choose the path that matches your environment:
 | Option | Use when | What it does |
 | --- | --- | --- |
 | [1. NPM/npx installer](#1-npmnpx-installer-recommended) | `npm exec` or `npx` works | Runs the zero-dependency installer. Default mode sets up marketplace metadata and prints follow-up UI/CLI steps. |
-| [2. Native installer mode](#2-native-installer-mode) | You want the target agent CLI to run plugin commands | Runs native `plugin marketplace add`, `plugin install`, or `plugin enable` commands through the installer. |
+| [2. Native installer mode](#2-native-installer-mode) | You want the target agent CLI to run plugin commands | Runs native `plugin marketplace add`, `plugin add`/`plugin install`, or `plugin enable` commands through the installer. |
 | [3. Manual setup](#3-manual-setup-when-npmnpx-is-not-available) | `npm exec`/`npx` fails or you need to debug files | Shows the exact files/settings to copy or edit by hand, plus direct CLI commands where available. |
 
 ### 1. NPM/npx Installer (Recommended)
@@ -206,6 +206,7 @@ Codex support in this fork is driven by the bundled plugin manifest:
 
 - `.codex-plugin/plugin.json`
 - bundled `skills/`
+- `.agents/plugins/marketplace.json`
 
 ##### Codex Marketplace Setup
 
@@ -213,14 +214,21 @@ Codex support in this fork is driven by the bundled plugin manifest:
 
 Codex CLI and Codex App use the same marketplace/plugin metadata. Configure the marketplace once, then install from either the CLI command palette or the App UI.
 
-Add the marketplace:
+Recommended native CLI setup:
 
 ```bash
 codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
+codex plugin add tungnt-ai-skills@tungnt-ai-skills-marketplace
 
 # codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace --ref main
+```
 
-# codex plugin marketplace add $REPO_ROOT/tungnt-ai-skills-marketplace # you must clone repo to local
+If the GitHub marketplace add path fails on Windows with a staging `.git` access error, use a local checkout as the marketplace source:
+
+```bash
+git clone https://github.com/tungnt1405/tungnt-ai-skills-marketplace
+codex plugin marketplace add ./tungnt-ai-skills-marketplace
+codex plugin add tungnt-ai-skills@tungnt-ai-skills-marketplace
 ```
 
 For the manual local setup used by the installer fallback, copy the plugin folder into the Codex local marketplace plugins directory:
@@ -251,7 +259,7 @@ Add or update `~/.codex/.tmp/plugins/.agents/plugins/marketplace.json`:
       "installation": "AVAILABLE",
       "authentication": "ON_INSTALL"
     },
-    "category": "Productivity"
+    "category": "Coding"
   }
 ]
 ```
@@ -282,7 +290,7 @@ If the NPM installer works, `--native` runs this Codex CLI setup for you. If `np
 
 ```bash
 codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
-codex plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
+codex plugin add tungnt-ai-skills@tungnt-ai-skills-marketplace
 ```
 
 ##### Codex App
@@ -433,9 +441,9 @@ Every manual integration has the same requirements:
 Harness-specific metadata in this repo:
 
 - Claude Code: `.claude-plugin/plugin.json`
-- Codex: `.codex-plugin/plugin.json`
+- Codex: `.codex-plugin/plugin.json`, `.agents/plugins/marketplace.json`
 - Gemini CLI: `gemini-extension.json`
-- Google Antigravity: `.agents/plugins/tungnt-ai-skills/plugin.json`, `.agents/plugins/plugin.json`, `plugin.json`
+- Google Antigravity: `.agents/plugins/tungnt-ai-skills-marketplace/plugin.json`, `plugin.json`
 - OpenCode: `.opencode/plugins/`
 
 Additional notes:

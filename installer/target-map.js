@@ -79,11 +79,10 @@ export const TARGETS = [
     displayName: 'Codex',
     defaultTarget: (env = process.env) => joinHome(env, '.codex'),
     expectedParent: (env = process.env) => joinHome(env),
-    requiredFiles: [],
+    requiredFiles: ['.agents/plugins/marketplace.json', '.codex-plugin/plugin.json', ...REQUIRED_SKILL_FILES],
     nativeCommands: [
       ['codex', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
-      // ['codex', 'plugin', 'install', 'tungnt-ai-skills@openai-curated'],
-      ['codex', 'plugin', 'install', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
+      ['codex', 'plugin', 'add', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
     ],
     fallbackInstall: {
       mode: 'package',
