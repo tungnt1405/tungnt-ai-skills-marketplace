@@ -10,7 +10,7 @@ skills/
 It also keeps workspace metadata at:
 
 ```text
-.agents/plugins/tungnt-ai-skills/
+.agents/plugins/tungnt-ai-skills-marketplace/
 ```
 
 Antigravity discovers workspace plugins from `.agents/plugins/<plugin-name>/` or `_agents/plugins/<plugin-name>/`. The plugin must include `plugin.json`; optional components include `skills/`, `rules/`, `mcp_config.json`, and `hooks.json`.
@@ -33,7 +33,7 @@ tungnt-ai-skills
 
 The workspace plugin metadata is:
 
-- `.agents/plugins/tungnt-ai-skills/plugin.json`
+- `.agents/plugins/tungnt-ai-skills-marketplace/plugin.json`
 
 ## Global Install
 
@@ -67,4 +67,4 @@ The installer also copies these shared global files to `~/.gemini`:
 ~/.gemini/gemini-extension.json
 ```
 
-`GEMINI.md` is written to load the bootstrap skill from the installed plugin root for the current harness. Do not copy only `.agents/plugins/tungnt-ai-skills/` for a global install unless your Antigravity setup only needs manifest metadata.
+`GEMINI.md` is written to load the bootstrap skill from the installed plugin root for the current harness. Do not copy only `.agents/plugins/tungnt-ai-skills-marketplace/` for a global install unless your Antigravity setup only needs manifest metadata.
