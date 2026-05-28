@@ -1,215 +1,193 @@
 # tungnt-ai-skills
 
-`tungnt-ai-skills` is a personal fork of [obra/superpowers](https://github.com/obra/superpowers) with custom bootstrap rules, curated skill families, fork-specific plugin metadata, and local workflow adjustments for my own agent setup.
+`tungnt-ai-skills` is a personal fork of [obra/superpowers](https://github.com/obra/superpowers) with custom bootstrap rules, curated workflow skills, fork-specific plugin metadata, and local agent setup adjustments.
 
-## Fork Origin
+## What This Fork Provides
 
-This repository is based on the upstream `Superpowers` project and keeps that origin visible where attribution or compatibility matters.
+- `using-tungnt-ai-skills` bootstrap rules for this fork
+- workflow skills under `skills/` for brainstorming, planning, implementation, review, and branch finish work
+- plugin metadata for Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and Google Antigravity
+- a zero-dependency npm installer that copies the package into supported agent plugin directories
 
-- Upstream project: `obra/superpowers`
-- Fork identity in this repo: `tungnt-ai-skills`
-- Current license: MIT, see [LICENSE](LICENSE)
-
-Some internal compatibility paths still intentionally keep the old namespace:
-
-- `docs/superpowers/` is the current docs root for plans and specs
-- some legacy compatibility assets still mention `superpowers` where a harness or migration path expects it
-
-Those legacy names are compatibility details, not the primary branding of this fork.
-
-## What Is Different In This Fork
-
-- bootstrap skill is `using-tungnt-ai-skills`
-- workflow skills are curated under `skills/`
-- plugin/package metadata is forked to `tungnt-ai-skills`
-- contributor docs and harness bootstrap rules are adjusted for this repo’s structure
+Some compatibility paths still use the old upstream name. In particular, `docs/superpowers/` remains the active docs root for plans and specs.
 
 ## Repository Layout
 
-- `skills/using-tungnt-ai-skills/` bootstrap skill and platform references
-- `skills/` workflow skills forked and curated from the upstream system
-- `docs/superpowers/` active plans/specs root kept for compatibility
+- `skills/` bundled workflow skills
+- `skills/using-tungnt-ai-skills/` session bootstrap and platform references
+- `docs/superpowers/` active plans and specs root
 - `hooks/` session bootstrap and cross-platform hook wrappers
-- `.codex-plugin/` Codex plugin manifest for this fork
-- `.opencode/plugins/` OpenCode plugin entrypoints
-- `tests/` regression, harness, and integration tests
+- `installer/` npm installer target map and copy logic
+- `bin/tungnt-ai-skills.js` npm executable entrypoint
+- `.claude-plugin/`, `.codex-plugin/`, `.agents/`, `.opencode/` harness metadata
+- `tests/` regression and installer tests
 
 ## Core Workflow
 
-The intended flow is still derived from Superpowers, but this fork uses its own bootstrap and layout:
+Agents should start with `using-tungnt-ai-skills`, then choose the smallest relevant workflow skill:
 
-1. Start with `using-tungnt-ai-skills`
-2. Choose the relevant collection, usually the root workflow skills in `skills/`
-3. Use `brainstorming` for design work
-4. Use `writing-plans` for implementation planning
-5. Use `using-git-worktrees` before isolated execution when needed
-6. Use `subagent-driven-development` or `executing-plans` to implement
-7. Use `requesting-code-review` and `finishing-a-development-branch` to review and close out work
+- fuzzy idea or design work: `brainstorming`
+- approved design that needs an implementation plan: `writing-plans`
+- substantial work that needs isolation: `using-git-worktrees`
+- plan execution with subagents: `subagent-driven-development`
+- plan execution without subagents: `executing-plans`
+- review before handoff: `requesting-code-review`
+- final merge, cleanup, or handoff: `finishing-a-development-branch`
 
-Skill calls in this repo use the skill names defined in each `SKILL.md` file, for example `brainstorming`, `writing-plans`, `subagent-driven-development`, not a plugin-prefixed namespace.
+Skill calls use the real names from each `SKILL.md` file, not a plugin-prefixed namespace.
 
-## Basic Workflow
+## Install
 
-This fork keeps the same general workflow shape as upstream Superpowers, but maps it to the fork's current bootstrap and skill layout.
-
-### 1. Start with the bootstrap
-
-Use `using-tungnt-ai-skills` first.
-
-This skill tells the agent:
-
-- which skill collection to inspect
-- which repository layout rules are active in this fork
-- which legacy paths are intentional compatibility paths
-
-### 2. If the task is still vague, use `brainstorming`
-
-Use `brainstorming` when:
-
-- the feature idea is rough
-- scope is unclear
-- you need tradeoffs or architecture options
-- you want a design/spec before writing code
-
-Expected outcome:
-
-- a clarified approach
-- a design that the user can review
-- a spec saved under the current docs root, which is still `docs/superpowers/`
-
-### 3. Once the design is approved, use `writing-plans`
-
-Use `writing-plans` when:
-
-- the requirements are known
-- the work is multi-step
-- you want a task-by-task implementation plan with test guidance
-
-Expected outcome:
-
-- a concrete implementation plan
-- exact file targets
-- test and verification steps
-
-### 4. Before implementation, decide whether isolation is needed
-
-Use `using-git-worktrees` when:
-
-- the change is substantial
-- you want to protect the current branch
-- the harness is not already managing isolation for you
-
-Expected outcome:
-
-- either a worktree under the fork's preferred pathing
-- or confirmation that the current harness already provides isolation
-
-### 5. Execute the plan using the right implementation mode
-
-Prefer `subagent-driven-development` when:
-
-- subagents are available
-- quality and review loops matter
-- the work should proceed task by task
-
-Use `executing-plans` when:
-
-- subagents are unavailable
-- you still want structured execution in a single session
-
-### 6. Review and finish cleanly
-
-Use `requesting-code-review` when:
-
-- implementation is done
-- you want findings before merge or handoff
-
-Use `finishing-a-development-branch` when:
-
-- the work is complete
-- tests and final verification should run
-- a skill-owned worktree may need cleanup
-
-## Picking The Right Skill
-
-Use this quick selector:
-
-- Idea is fuzzy: `brainstorming`
-- Design is approved and needs an implementation plan: `writing-plans`
-- You need workspace isolation: `using-git-worktrees`
-- You want highest-quality implementation with subagents: `subagent-driven-development`
-- You need inline structured execution without subagents: `executing-plans`
-- You want a focused review before finishing: `requesting-code-review`
-- You are wrapping up and deciding merge/cleanup: `finishing-a-development-branch`
-
-## Installation
-
-Installation differs by harness. If you use more than one, install `tungnt-ai-skills` separately for each one.
-
-For every harness, the goal is the same:
-
-- load `skills/using-tungnt-ai-skills/SKILL.md` automatically at session start
-- make the bundled `skills/` directory discoverable
-- keep skill calls using the real skill names from each `SKILL.md`
-
-### Claude Code
-
-This repo includes both a Claude plugin manifest and a local development marketplace.
-
-#### Local Dev Marketplace
-
-- Register the marketplace from this repo:
+### NPM Installer
 
 ```bash
-/plugin marketplace add ./.claude-plugin/marketplace.json
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install
 ```
 
-- Install the fork from that marketplace:
+The NPM installer uses each target's native install style. Claude Code is installed through marketplace commands. Codex follows the local marketplace setup below by copying the plugin package, writing `marketplace.json`, and enabling `tungnt-ai-skills@openai-curated` in `~/.codex/config.toml`. Copilot writes marketplace and enabled plugin settings into `~/.copilot/settings.json`. The remaining local targets copy the package into their plugin folders.
+
+With no flags, `install` behaves like `--all` and targets Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and the concrete Antigravity plugin folders.
+
+Install one agent only:
 
 ```bash
-/plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex
 ```
 
-#### Direct Manifest
+Install all Antigravity layouts:
 
-If you are wiring it manually, the main Claude artifacts are:
+```bash
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent antigravity-all
+```
 
-- `.claude-plugin/plugin.json`
-- `hooks/session-start`
-- `hooks/run-hook.cmd`
-- `skills/using-tungnt-ai-skills/SKILL.md`
+Supported agent ids:
+
+| Agent id | Target |
+| --- | --- |
+| `claude` | Claude Code |
+| `codex` | Codex |
+| `copilot` | GitHub Copilot CLI |
+| `gemini` | Gemini CLI |
+| `agy` | Antigravity CLI |
+| `antigravity` | Google Antigravity |
+| `antigravity-ide` | Antigravity IDE |
+| `antigravity-all` | Antigravity CLI and Antigravity IDE |
+
+Antigravity targets install plugin folders using the recommended product-specific roots:
+
+```text
+~/.gemini/antigravity-cli/plugins/tungnt-ai-skills
+~/.gemini/config/plugins/tungnt-ai-skills
+```
+
+The `antigravity` and `antigravity-ide` targets use the same plugin location. The `antigravity` target is available for explicit installs, while `--all` and `antigravity-all` install the shared location once through `antigravity-ide`.
+
+Each Antigravity install also copies shared global files to `~/.gemini`:
+
+```text
+~/.gemini/AGENTS.md
+~/.gemini/CLAUDE.md
+~/.gemini/GEMINI.md
+~/.gemini/gemini-extension.json
+```
+
+Preview resolved install directories without writing files:
+
+```bash
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --dry-run
+```
+
+For Claude Code, dry-run prints the marketplace commands that will be executed. For Codex, dry-run prints the local marketplace package path, `marketplace.json` path, and `~/.codex/config.toml` path that will be written. For Copilot, dry-run prints the `~/.copilot/settings.json` path that will be written.
+
+Preview one agent only:
+
+```bash
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --dry-run
+```
+
+List supported agents and default target directories:
+
+```bash
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills targets
+```
+
+## Update
+
+To update an existing install, run the installer again with `--force`:
+
+```bash
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --force
+```
+
+Update one agent only:
+
+```bash
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --force
+```
+
+If you are updating this local source checkout first, pull the latest repository changes, then rerun the installer:
+
+```bash
+git pull
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --force
+```
+
+Restart or reload the target agent after updating so it reads the new plugin files.
+
+## Set up the Marketplace manually if it was not installed
 
 ### Codex
 
 Codex support in this fork is driven by the bundled plugin manifest:
 
 - `.codex-plugin/plugin.json`
-
 - bundled `skills/`
 
-#### Codex CLI
+#### Codex Marketplace Setup
 
 [Codex CLI add marketplace](https://developers.openai.com/codex/plugins/build#add-a-marketplace-from-the-cli)
 
+Codex CLI and Codex App use the same marketplace/plugin metadata. Configure the marketplace once, then install from either the CLI command palette or the App UI.
+
+Add the marketplace:
+
 ```bash
 codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
-
-codex plugin marketplace add https://github.com/tungnt1405/tungnt-ai-skills-marketplace --sparse plugins/tungnt-ai-skills
 
 # codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace --ref main
 
 # codex plugin marketplace add $REPO_ROOT/tungnt-ai-skills-marketplace # you must clone repo to local
 ```
 
-#### Codex App
+For a manual local setup, copy the plugin folder into `~/.codex/.tmp/plugins`:
 
-If your Codex App environment supports plugin installation UI for this fork:
+```bash
+# get root marketplace to get path of marketplace installed
+codex plugin marketplace list
 
-- Open Plugins in the sidebar
-- Search for `tungnt-ai-skills`
-- Click `+` and follow the prompts
+# copy plugin to the local marketplace plugins directory
+cp -R $REPO_ROOT/tungnt-ai-skills-marketplace ~/.codex/.tmp/plugins/plugins
+```
 
-If the fork is not published in your Codex App marketplace, use the local/manual plugin setup based on `.codex-plugin/plugin.json`.
+Add or update `~/.codex/.tmp/plugins/.agents/plugins/marketplace.json`:
+
+```json
+"plugins": [
+  ...
+  , {
+    "name": "tungnt-ai-skills",
+    "source": {
+      "source": "local",
+      "path": "./plugins/tungnt-ai-skills-marketplace"
+    },
+    "policy": {
+      "installation": "AVAILABLE",
+      "authentication": "ON_INSTALL"
+    },
+    "category": "Productivity"
+  }
+]
+```
 
 The plugin/package name is:
 
@@ -217,89 +195,60 @@ The plugin/package name is:
 tungnt-ai-skills
 ```
 
-### OpenCode
+#### Codex CLI
 
-OpenCode uses its own plugin install.
-
-- Add this plugin entry to `opencode.json`:
-
-```json
-{
-  "plugin": ["tungnt-ai-skills@git+https://github.com/tungnt1405/tungnt-ai-skills-marketplace"]
-}
-```
-
-Main entrypoint:
-
-- `.opencode/plugins/tungnt-ai-skills.js`
-
-Compatibility wrapper retained:
-
-- `.opencode/plugins/superpowers.js`
-
-Detailed OpenCode notes:
-
-- `.opencode/INSTALL.md`
-- `docs/README.opencode.md`
-
-### Cursor
-
-Cursor support in this fork is described by:
-
-- `.cursor-plugin/plugin.json`
-
-If your Cursor environment supports plugin import from a local repo or manifest, use that file and keep the repo's `skills/`, `hooks/`, and related plugin assets together.
-
-### Factory Droid
-
-If you publish this fork into a Factory Droid marketplace or repo-backed install flow, install it there using the fork name:
-
-```text
-tungnt-ai-skills
-```
-
-If it is not published in your Droid environment yet, use the repository as the source of truth and wire the bootstrap and bundled skills in the same way as the other harnesses.
-
-### Gemini
-
-- Install the extension from this fork's repository:
+Open Codex and install from `/plugins`:
 
 ```bash
-gemini extensions install https://github.com/tungnt1405/tungnt-ai-skills-marketplace
+codex
+
+/plugins tungnt-ai-skills
 ```
 
-- Update later:
+#### Codex App
 
-```bash
-gemini extensions update tungnt-ai-skills
-```
+Use the same shared marketplace setup above, then install from the App UI:
 
-Main Gemini files:
+- Open Plugins in the sidebar.
+- Search for `tungnt-ai-skills`.
+- Click `+` and follow the prompts.
 
-- `GEMINI.md`
-- `gemini-extension.json`
-
-The extension/bootstrap configuration must point to `using-tungnt-ai-skills`.
+If the fork is not published in your Codex App marketplace, use the local/manual marketplace setup above.
 
 ### Google Antigravity
 
-This repo includes Antigravity plugin metadata:
-
-- `.agents/plugins/tungnt-ai-skills/plugin.json`
-
-Open this repo in Antigravity, then run:
+The NPM installer copies Antigravity plugin files into the product-specific plugin roots:
 
 ```text
-/plugins
+~/.gemini/antigravity-cli/plugins/tungnt-ai-skills
+~/.gemini/config/plugins/tungnt-ai-skills
 ```
 
-Enable or verify:
+For a manual setup equivalent to the installer, run these commands from the repository root.
 
-```text
-tungnt-ai-skills
+Install Antigravity CLI:
+
+```bash
+mkdir -p ~/.gemini/antigravity-cli/plugins/tungnt-ai-skills
+cp -R plugin.json skills ~/.gemini/antigravity-cli/plugins/tungnt-ai-skills/
 ```
 
-The Antigravity manifest follows the existing IDE/agent metadata pattern used by files such as `.codex-plugin/plugin.json`. The root `skills/` directory remains the single source of truth; no Antigravity-specific skills are duplicated.
+Install Antigravity IDE:
+
+```bash
+mkdir -p ~/.gemini/config/plugins/tungnt-ai-skills
+cp -R plugin.json skills ~/.gemini/config/plugins/tungnt-ai-skills/
+```
+
+Copy the shared global files used by both layouts:
+
+```bash
+cp AGENTS.md CLAUDE.md GEMINI.md gemini-extension.json ~/.gemini/
+```
+
+Restart Antigravity CLI or Antigravity IDE after copying files, then open `/plugins` and verify `tungnt-ai-skills`.
+
+The root `plugin.json` and `skills/` directory are the Antigravity plugin payload. The root `skills/` directory remains the single source of truth; no Antigravity-specific skills are duplicated.
 
 Detailed Antigravity notes:
 
@@ -307,10 +256,12 @@ Detailed Antigravity notes:
 
 ### GitHub Copilot CLI
 
+The NPM installer creates or updates `~/.copilot/settings.json` with the marketplace and enabled plugin entry. For debugging, the equivalent manual commands are:
+
 - Register the marketplace:
 
 ```bash
-copilot plugin marketplace add tungnt1405/ai-skills
+copilot plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace
 ```
 
 - Install the plugin:
@@ -319,34 +270,41 @@ copilot plugin marketplace add tungnt1405/ai-skills
 copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
 ```
 
-### Other harnesses
+## Manual Harness Notes
 
-If you adapt this fork to another agent or IDE:
+For direct file-copy installs, use the NPM installer above. Manual setup should only be needed for debugging or for harnesses not covered by the installer or marketplace flows.
 
-- inject the bootstrap from `skills/using-tungnt-ai-skills/SKILL.md`
-- expose the `skills/` directory to the harness
-- preserve the fork's compatibility paths such as `docs/superpowers/` unless you migrate the repo consistently
+Every manual integration has the same requirements:
 
-## Usage Notes
+- load `skills/using-tungnt-ai-skills/SKILL.md` automatically at session start
+- expose the bundled `skills/` directory to the harness
+- preserve compatibility paths such as `docs/superpowers/`
+- keep skill invocations using the names declared in each `SKILL.md`
 
-- Start with `using-tungnt-ai-skills`
-- Use `brainstorming` for vague ideas and design work
-- Use `writing-plans` once the design is approved
-- Use `using-git-worktrees` before isolated implementation when needed
-- Prefer `subagent-driven-development` when subagents are available
-- Use `executing-plans` when subagents are unavailable
-- Finish with `requesting-code-review` and `finishing-a-development-branch`
+Harness-specific metadata in this repo:
 
-Detailed operating notes are in [RELEASE-NOTES.md](E:/tungnt.it/my_works/2026/05/ai-agent/RELEASE-NOTES.md).
+- Claude Code: `.claude-plugin/plugin.json`
+- Codex: `.codex-plugin/plugin.json`
+- Gemini CLI: `gemini-extension.json`
+- Google Antigravity: `.agents/plugins/tungnt-ai-skills/plugin.json`, `.agents/plugins/plugin.json`, `plugin.json`
+- OpenCode: `.opencode/plugins/`
 
-## Contributing To This Fork
+Additional notes:
 
-This is a maintained fork, not the upstream project.
+- Antigravity: [docs/README.antigravity.md](docs/README.antigravity.md)
+- OpenCode: [docs/README.opencode.md](docs/README.opencode.md)
 
-- fork-specific branding or workflow changes belong here, not upstream
-- if you plan to contribute upstream, strip fork-specific behavior first
-- read [CLAUDE.md](CLAUDE.md) before changing skills, hooks, or harness integration
-- use `writing-skills` when changing behavior-shaping skill content
+## Development
+
+Run installer tests:
+
+```bash
+npm run test:installer
+```
+
+The package is intentionally dependency-free. Do not add third-party runtime dependencies unless the project requirements change explicitly.
+
+Before opening a PR, read [CLAUDE.md](CLAUDE.md). This fork has strict contributor rules around real problem statements, duplicate PR checks, complete PR templates, and human review of the full diff.
 
 ## License
 
