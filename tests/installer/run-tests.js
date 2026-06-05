@@ -198,6 +198,22 @@ test('copyPackage copies shared required files', () => {
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
 });
 
+test('copyPackage excludes Python bytecode cache files', () => {
+  const fixture = tempDir();
+  const destination = path.join(tempDir(), 'plugin');
+  const skillDir = path.join(fixture, 'skills', 'example');
+  fs.mkdirSync(path.join(skillDir, 'scripts', '__pycache__'), { recursive: true });
+  fs.writeFileSync(path.join(skillDir, 'SKILL.md'), '---\nname: example\ndescription: example\n---\n');
+  fs.writeFileSync(path.join(skillDir, 'scripts', 'tool.py'), 'print("ok")\n');
+  fs.writeFileSync(path.join(skillDir, 'scripts', '__pycache__', 'tool.cpython-312.pyc'), 'bytecode');
+
+  copyPackage(fixture, destination);
+
+  assert.equal(fs.existsSync(path.join(destination, 'skills', 'example', 'scripts', 'tool.py')), true);
+  assert.equal(fs.existsSync(path.join(destination, 'skills', 'example', 'scripts', '__pycache__')), false);
+  assert.equal(fs.existsSync(path.join(destination, 'skills', 'example', 'scripts', '__pycache__', 'tool.cpython-312.pyc')), false);
+});
+
 test('removeExistingInstall refuses paths outside expected parent', () => {
   const root = tempDir();
   const outside = path.join(root, 'outside', 'plugin');
