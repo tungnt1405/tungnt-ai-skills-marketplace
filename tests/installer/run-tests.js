@@ -9,6 +9,10 @@ import {
   supportedTargetIds,
 } from '../../installer/target-map.js';
 import {
+  parseSyncSkillsArgs,
+  syncSkills,
+} from '../../installer/skill-sync.js';
+import {
   copyPackage,
   ensureInsideExpectedParent,
   getPackageRoot,
@@ -127,6 +131,220 @@ function makeFakeClaudeAlreadyEnabledExecutable(directory) {
   }
   return filePath;
 }
+
+function writeText(filePath, content) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, content);
+}
+
+function makePackageFixture() {
+  const root = tempDir();
+  fs.mkdirSync(path.join(root, 'skills'), { recursive: true });
+  writeText(path.join(root, 'package.json'), '{"name":"fixture"}\n');
+  return root;
+}
+
+function makeSuperpowersFixture() {
+  const root = tempDir();
+  writeText(
+    path.join(root, 'skills', 'brainstorming', 'SKILL.md'),
+    '---\nname: brainstorming\ndescription: updated\n---\n\n# Brainstorming upstream\n',
+  );
+  writeText(
+    path.join(root, 'skills', 'new-upstream-skill', 'SKILL.md'),
+    '---\nname: new-upstream-skill\ndescription: new\n---\n\n# New upstream skill\n',
+  );
+  writeText(path.join(root, 'skills', 'new-upstream-skill', 'notes.txt'), 'notes\n');
+  writeText(path.join(root, 'skills', 'new-upstream-skill', 'scripts', '__pycache__', 'tool.pyc'), 'bytecode');
+  return root;
+}
+
+function makeUiUxFixture() {
+  const root = tempDir();
+  writeText(
+    path.join(root, '.claude', 'skills', 'ui-ux-pro-max', 'SKILL.md'),
+    '---\nname: ui-ux-pro-max\ndescription: upstream\n---\n\n# UI upstream\n',
+  );
+  writeText(path.join(root, 'src', 'ui-ux-pro-max', 'data', 'colors.csv'), 'id,name\n1,Blue\n');
+  writeText(path.join(root, 'src', 'ui-ux-pro-max', 'data', 'tokens.yaml'), 'color: blue\n');
+  writeText(path.join(root, 'src', 'ui-ux-pro-max', 'scripts', 'search.py'), 'print("search")\n');
+  writeText(path.join(root, 'src', 'ui-ux-pro-max', 'templates', 'platforms', 'codex.toml'), 'name = "codex"\n');
+  return root;
+}
+
+test('parseSyncSkillsArgs defaults to dry-run for all sources', () => {
+  const options = parseSyncSkillsArgs([]);
+  assert.equal(options.apply, false);
+  assert.deepEqual(options.sourceIds, ['superpowers', 'ui-ux-pro-max']);
+});
+
+test('syncSkills dry-run plans superpowers changes without writing', () => {
+  const repoRoot = makePackageFixture();
+  const upstream = makeSuperpowersFixture();
+  writeText(
+    path.join(repoRoot, 'skills', 'brainstorming', 'SKILL.md'),
+    '---\nname: brainstorming\ndescription: local\n---\n\n# Local\n',
+  );
+
+  const result = syncSkills({
+    repoRoot,
+    sourceIds: ['superpowers'],
+    repoOverrides: { superpowers: upstream },
+    apply: false,
+  });
+
+  assert.equal(result.sources.length, 1);
+  assert.equal(result.sources[0].id, 'superpowers');
+  assert.equal(result.sources[0].summary.added, 2);
+  assert.equal(result.sources[0].summary.updated, 1);
+  assert.equal(result.sources[0].summary.removed, 0);
+  assert.equal(fs.readFileSync(path.join(repoRoot, 'skills', 'brainstorming', 'SKILL.md'), 'utf8').includes('# Local'), true);
+});
+
+test('syncSkills apply writes added and updated superpowers skill files', () => {
+  const repoRoot = makePackageFixture();
+  const upstream = makeSuperpowersFixture();
+  writeText(
+    path.join(repoRoot, 'skills', 'brainstorming', 'SKILL.md'),
+    '---\nname: brainstorming\ndescription: local\n---\n\n# Local\n',
+  );
+
+  const result = syncSkills({
+    repoRoot,
+    sourceIds: ['superpowers'],
+    repoOverrides: { superpowers: upstream },
+    apply: true,
+  });
+
+  assert.equal(result.sources[0].summary.added, 2);
+  assert.equal(result.sources[0].summary.updated, 1);
+  assert.equal(fs.readFileSync(path.join(repoRoot, 'skills', 'brainstorming', 'SKILL.md'), 'utf8').includes('# Brainstorming upstream'), true);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'new-upstream-skill', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'new-upstream-skill', 'scripts', '__pycache__', 'tool.pyc')), false);
+});
+
+test('syncSkills apply removes stale files only inside managed skill directory', () => {
+  const repoRoot = makePackageFixture();
+  const upstream = makeSuperpowersFixture();
+  writeText(
+    path.join(repoRoot, 'skills', 'new-upstream-skill', 'stale', 'old.txt'),
+    'old\n',
+  );
+
+  const result = syncSkills({
+    repoRoot,
+    sourceIds: ['superpowers'],
+    repoOverrides: { superpowers: upstream },
+    apply: true,
+  });
+
+  assert.equal(result.sources[0].summary.removed, 1);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'new-upstream-skill')), true);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'new-upstream-skill', 'stale')), false);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'skills')), true);
+});
+
+test('syncSkills source selection limits ui-ux-pro-max updates', () => {
+  const repoRoot = makePackageFixture();
+  const upstream = makeUiUxFixture();
+  writeText(
+    path.join(repoRoot, 'skills', 'ui-ux-pro-max', 'SKILL.md'),
+    '---\nname: ui-ux-pro-max\ndescription: local\n---\n\n# Local UI\n',
+  );
+  writeText(path.join(repoRoot, 'skills', 'ui-ux-pro-max', 'PROMPT.md'), '# Local stale prompt\n');
+  writeText(
+    path.join(repoRoot, 'skills', 'brainstorming', 'SKILL.md'),
+    '---\nname: brainstorming\ndescription: local\n---\n\n# Local brainstorming\n',
+  );
+
+  const result = syncSkills({
+    repoRoot,
+    sourceIds: ['ui-ux-pro-max'],
+    repoOverrides: { 'ui-ux-pro-max': upstream },
+    apply: true,
+  });
+
+  assert.equal(result.sources[0].id, 'ui-ux-pro-max');
+  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'ui-ux-pro-max', 'data', 'colors.csv')), true);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'ui-ux-pro-max', 'data', 'tokens.yaml')), true);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'ui-ux-pro-max', 'scripts', 'search.py')), true);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'ui-ux-pro-max', 'templates', 'platforms', 'codex.toml')), true);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'ui-ux-pro-max', 'PROMPT.md')), false);
+  assert.equal(fs.readFileSync(path.join(repoRoot, 'skills', 'brainstorming', 'SKILL.md'), 'utf8').includes('# Local brainstorming'), true);
+});
+
+test('syncSkills apply handles upstream directory replacing local file', () => {
+  const repoRoot = makePackageFixture();
+  const upstream = makeUiUxFixture();
+  writeText(
+    path.join(repoRoot, 'skills', 'ui-ux-pro-max', 'SKILL.md'),
+    '---\nname: ui-ux-pro-max\ndescription: local\n---\n\n# Local UI\n',
+  );
+  writeText(path.join(repoRoot, 'skills', 'ui-ux-pro-max', 'data'), 'stale data file\n');
+
+  const result = syncSkills({
+    repoRoot,
+    sourceIds: ['ui-ux-pro-max'],
+    repoOverrides: { 'ui-ux-pro-max': upstream },
+    apply: true,
+  });
+
+  assert.equal(result.sources[0].summary.removed, 1);
+  assert.equal(fs.statSync(path.join(repoRoot, 'skills', 'ui-ux-pro-max', 'data')).isDirectory(), true);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'ui-ux-pro-max', 'data', 'colors.csv')), true);
+});
+
+test('syncSkills rejects unknown source ids', () => {
+  assert.throws(() => parseSyncSkillsArgs(['--source', 'unknown']), /Unknown sync source/);
+});
+
+test('sync-skills --dry-run prints deterministic source summary', () => {
+  const repoRoot = makePackageFixture();
+  const upstream = makeSuperpowersFixture();
+  writeText(
+    path.join(repoRoot, 'skills', 'brainstorming', 'SKILL.md'),
+    '---\nname: brainstorming\ndescription: local\n---\n\n# Local\n',
+  );
+  const out = capture();
+  const code = runCli(
+    ['sync-skills', '--source', 'superpowers', '--repo', `superpowers=${upstream}`],
+    { ...fakeEnv(tempDir()), TUNGNT_AI_SKILLS_SYNC_ROOT: repoRoot },
+    out.io,
+  );
+
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes('Mode: dry-run'), true);
+  assert.equal(out.stdout().includes('[superpowers]'), true);
+  assert.equal(out.stdout().includes(`Repository: ${upstream}`), true);
+  assert.equal(out.stdout().includes('Added: 2'), true);
+  assert.equal(out.stdout().includes('Updated: 1'), true);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'new-upstream-skill', 'SKILL.md')), false);
+});
+
+test('sync-skills --apply writes through CLI when root override is provided', () => {
+  const repoRoot = makePackageFixture();
+  const upstream = makeUiUxFixture();
+  const out = capture();
+  const code = runCli(
+    ['sync-skills', '--apply', '--source', 'ui-ux-pro-max', '--repo', `ui-ux-pro-max=${upstream}`],
+    { ...fakeEnv(tempDir()), TUNGNT_AI_SKILLS_SYNC_ROOT: repoRoot },
+    out.io,
+  );
+
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes('Mode: apply'), true);
+  assert.equal(out.stdout().includes('[ui-ux-pro-max]'), true);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'ui-ux-pro-max', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'ui-ux-pro-max', 'data', 'colors.csv')), true);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'ui-ux-pro-max', 'templates', 'platforms', 'codex.toml')), true);
+});
+
+test('sync-skills rejects unknown source through CLI', () => {
+  const out = capture();
+  const code = runCli(['sync-skills', '--source', 'unknown'], fakeEnv(tempDir()), out.io);
+  assert.equal(code, 1);
+  assert.equal(out.stderr().includes('Unknown sync source: unknown'), true);
+});
 
 test('target map includes exactly the supported agents', () => {
   assert.deepEqual(supportedTargetIds(), [
