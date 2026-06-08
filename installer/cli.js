@@ -315,6 +315,7 @@ function update(args, env, io) {
           io.out(` --agent ${target.id}`);
         }
         io.out(' --force\n');
+        printUpdateCachePlan(target, env, io);
         if (target.updateCommands) {
           io.out('Native update available with --native\n');
         }
@@ -332,6 +333,7 @@ function update(args, env, io) {
       if (target.nativeCommands && !target.fallbackInstall) {
         throw new Error(`${target.displayName} does not declare an installer refresh fallback. Use update --agent ${target.id} --native.`);
       }
+      cleanUpdateCaches(target, env, io);
       if (target.nativeCommands && target.fallbackInstall) {
         runFallbackInstall(packageRoot, target.fallbackInstall, env, installOptions);
         io.out('Status: updated\n');
@@ -495,6 +497,26 @@ function printNextSteps(target, io) {
   for (const step of target.nextSteps) {
     io.out(`  ${step}\n`);
   }
+}
+
+function printUpdateCachePlan(target, env, io) {
+  for (const cacheDir of resolveUpdateCacheDirs(target, env)) {
+    io.out(`Clean cache/plugin folder: ${cacheDir.destination}\n`);
+  }
+}
+
+function cleanUpdateCaches(target, env, io) {
+  for (const cacheDir of resolveUpdateCacheDirs(target, env)) {
+    removeExistingInstall(cacheDir.destination, cacheDir.expectedParent);
+    io.out(`Cleaned cache/plugin folder: ${cacheDir.destination}\n`);
+  }
+}
+
+function resolveUpdateCacheDirs(target, env) {
+  return (target.updateCacheDirs || []).map((cacheDir) => ({
+    destination: cacheDir.destination(env),
+    expectedParent: cacheDir.expectedParent(env),
+  }));
 }
 
 function runFallbackInstall(packageRoot, fallback, env, options) {

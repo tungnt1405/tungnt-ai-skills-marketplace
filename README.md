@@ -176,7 +176,7 @@ Preview resolved install directories without writing files:
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --dry-run
 ```
 
-For Claude Code, Codex, and Copilot, install dry-run prints the manual marketplace files or settings that would be written and the next install/enable commands to run yourself. With `--native`, install dry-run prints the native marketplace install commands that would be executed. Update dry-run prints either the installer refresh command or the native update commands. Dry-run does not write files.
+For Claude Code, Codex, and Copilot, install dry-run prints the manual marketplace files or settings that would be written and the next install/enable commands to run yourself. With `--native`, install dry-run prints the native marketplace install commands that would be executed. Update dry-run prints either the installer refresh command plus any cache/plugin folders that will be cleaned, or the native update commands. Dry-run does not write files.
 
 Preview one agent only:
 
@@ -538,7 +538,7 @@ Update behavior depends on the target:
 - GitHub Copilot CLI: `update --native` runs marketplace update, then plugin update.
 - Codex: `update --native` refreshes the configured marketplace snapshot, removes the installed plugin, then adds it again from the refreshed snapshot because current Codex CLI does not expose a plugin update command.
 - File-copy targets such as Gemini and Antigravity: `update` refreshes the installed files the same way `install --force` did before.
-- Default Claude/Codex/Copilot fallback paths refresh local marketplace files/settings, then print the manual app/CLI steps when a native plugin update is still needed.
+- Default Claude/Codex/Copilot fallback paths first remove the installer-managed cache/plugin folder for that agent, then refresh local marketplace files/settings and print the manual app/CLI steps when a native plugin update is still needed. This cleans stale skill payloads without clearing the global `npm`/`npx` cache.
 
 If you are updating this local source checkout first, pull the latest repository changes, then rerun the installer:
 

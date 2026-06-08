@@ -755,6 +755,118 @@ test('agy installs plugin folder with marker file and skills', () => {
   assert.equal(fs.existsSync(path.join(home, '.gemini', 'gemini-extension.json')), true);
 });
 
+test('update --agent codex clears installed plugin cache before refreshing fallback', () => {
+  const home = tempDir();
+  const env = emptyPathEnv(home);
+  const cacheDir = path.join(home, '.codex', 'plugins', 'cache', 'tungnt-ai-skills-marketplace');
+  const fallbackDir = path.join(home, '.codex', 'plugins', 'tungnt-ai-skills-marketplace');
+  fs.mkdirSync(path.join(cacheDir, 'tungnt-ai-skills', '0.0.0', 'skills', 'old-skill'), { recursive: true });
+  fs.writeFileSync(path.join(cacheDir, 'tungnt-ai-skills', '0.0.0', 'skills', 'old-skill', 'SKILL.md'), 'stale');
+  fs.mkdirSync(fallbackDir, { recursive: true });
+  fs.writeFileSync(path.join(fallbackDir, 'stale.txt'), 'stale');
+
+  const out = capture();
+  const code = runCli(['update', '--agent', 'codex'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${cacheDir}`), true);
+  assert.equal(fs.existsSync(cacheDir), false);
+  assert.equal(fs.existsSync(path.join(fallbackDir, 'stale.txt')), false);
+  assert.equal(fs.existsSync(path.join(fallbackDir, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
+});
+
+test('update --agent copilot clears plugin cache before refreshing settings fallback', () => {
+  const home = tempDir();
+  const env = emptyPathEnv(home);
+  const cacheDir = path.join(home, '.copilot', 'plugins', 'cache', 'tungnt-ai-skills-marketplace');
+  fs.mkdirSync(path.join(cacheDir, 'tungnt-ai-skills', '0.0.0', 'skills', 'old-skill'), { recursive: true });
+  fs.writeFileSync(path.join(cacheDir, 'tungnt-ai-skills', '0.0.0', 'skills', 'old-skill', 'SKILL.md'), 'stale');
+
+  const out = capture();
+  const code = runCli(['update', '--agent', 'copilot'], env, out.io);
+  const settingsFile = path.join(home, '.copilot', 'settings.json');
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${cacheDir}`), true);
+  assert.equal(fs.existsSync(cacheDir), false);
+  assert.deepEqual(JSON.parse(fs.readFileSync(settingsFile, 'utf8')).extraKnownMarketplaces['tungnt-ai-skills-marketplace'], {
+    source: {
+      source: 'github',
+      repo: 'tungnt1405/tungnt-ai-skills-marketplace',
+    },
+  });
+});
+
+test('update --agent claude clears local marketplace cache before copying fresh skills', () => {
+  const home = tempDir();
+  const env = emptyPathEnv(home);
+  const cacheDir = path.join(home, '.claude', 'plugins', 'cache', 'tungnt-ai-skills-marketplace');
+  fs.mkdirSync(cacheDir, { recursive: true });
+  fs.writeFileSync(path.join(cacheDir, 'stale.txt'), 'stale');
+
+  const out = capture();
+  const code = runCli(['update', '--agent', 'claude'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${cacheDir}`), true);
+  assert.equal(fs.existsSync(path.join(cacheDir, 'stale.txt')), false);
+  assert.equal(fs.existsSync(path.join(cacheDir, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
+});
+
+test('update --agent agy clears stale plugin folder before copying fresh skills', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('agy');
+  const destination = target.defaultTarget(env);
+  fs.mkdirSync(destination, { recursive: true });
+  fs.writeFileSync(path.join(destination, 'stale.txt'), 'stale');
+
+  const out = capture();
+  const code = runCli(['update', '--agent', 'agy'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${destination}`), true);
+  assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
+  assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
+});
+
+test('update --agent antigravity clears stale plugin folder before copying fresh skills', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('antigravity');
+  const destination = target.defaultTarget(env);
+  fs.mkdirSync(destination, { recursive: true });
+  fs.writeFileSync(path.join(destination, 'stale.txt'), 'stale');
+
+  const out = capture();
+  const code = runCli(['update', '--agent', 'antigravity'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${destination}`), true);
+  assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
+  assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
+});
+
+test('update --agent antigravity-ide clears stale plugin folder before copying fresh skills', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('antigravity-ide');
+  const destination = target.defaultTarget(env);
+  fs.mkdirSync(destination, { recursive: true });
+  fs.writeFileSync(path.join(destination, 'stale.txt'), 'stale');
+
+  const out = capture();
+  const code = runCli(['update', '--agent', 'antigravity-ide'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${destination}`), true);
+  assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
+  assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
+});
+
+test('update --agent codex --dry-run prints cache cleanup path', () => {
+  const home = tempDir();
+  const out = capture();
+  const code = runCli(['update', '--agent', 'codex', '--dry-run'], fakeEnv(home), out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stdout().includes(`Clean cache/plugin folder: ${path.join(home, '.codex', 'plugins', 'cache', 'tungnt-ai-skills-marketplace')}`), true);
+  assert.equal(fs.existsSync(path.join(home, '.codex')), false);
+});
+
 async function run() {
   let failed = 0;
   for (const { name, fn } of tests) {
