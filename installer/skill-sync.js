@@ -5,7 +5,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-export const SYNC_SOURCES = {
+export const DEFAULT_SYNC_SOURCES = {
   superpowers: {
     id: 'superpowers',
     repository: 'https://github.com/obra/superpowers.git',
@@ -40,7 +40,6 @@ export const SYNC_SOURCES = {
   },
 };
 
-const SOURCE_IDS = Object.keys(SYNC_SOURCES);
 const EXCLUDED_NAMES = new Set([
   '.DS_Store',
   'Thumbs.db',
@@ -52,7 +51,7 @@ const EXCLUDED_NAMES = new Set([
 export function parseSyncSkillsArgs(args) {
   const options = {
     apply: false,
-    sourceIds: SOURCE_IDS,
+    sourceIds: undefined,
     repoOverrides: {},
   };
 
@@ -80,24 +79,24 @@ export function parseSyncSkillsArgs(args) {
     }
   }
 
-  validateSourceIds(options.sourceIds);
-  validateSourceIds(Object.keys(options.repoOverrides));
   return options;
 }
 
 export function syncSkills(options = {}) {
   const repoRoot = options.repoRoot || packageRoot();
-  const sourceIds = options.sourceIds || SOURCE_IDS;
+  const sourcesConfig = options.sources || loadSyncSources(repoRoot);
+  const sourceIds = options.sourceIds || Object.keys(sourcesConfig);
   const repoOverrides = options.repoOverrides || {};
   const apply = options.apply === true;
 
-  validateSourceIds(sourceIds);
+  validateSourceIds(sourceIds, sourcesConfig);
+  validateSourceIds(Object.keys(repoOverrides), sourcesConfig);
   validateRepoRoot(repoRoot);
 
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'tungnt-ai-skills-sync-'));
   try {
     const sources = sourceIds.map((id) => {
-      const source = SYNC_SOURCES[id];
+      const source = { id, ...sourcesConfig[id] };
       const checkout = resolveCheckout(source, repoOverrides[id], tempRoot);
       const operations = planSource(source, checkout.path, path.join(repoRoot, 'skills'));
       if (apply) {
@@ -117,6 +116,66 @@ export function syncSkills(options = {}) {
   }
 }
 
+export function inspectSkillRepository(options = {}) {
+  const repository = options.repository;
+  if (!repository) {
+    throw new Error('Missing repository for inspect');
+  }
+
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'tungnt-ai-skills-inspect-'));
+  try {
+    const checkout = resolveCheckout({ id: 'inspect', repository }, undefined, tempRoot);
+    const candidates = findSkillCandidates(checkout.path);
+    const recommendation = recommendSource(candidates);
+    return {
+      repository: checkout.repository,
+      candidates,
+      recommendation,
+    };
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
+export function addSyncSource(options = {}) {
+  const repoRoot = options.repoRoot || packageRoot();
+  const name = options.name;
+  const repository = options.repository;
+  if (!name) {
+    throw new Error('Missing source name');
+  }
+  if (!/^[a-z0-9][a-z0-9._-]*$/i.test(name)) {
+    throw new Error(`Invalid source name: ${name}`);
+  }
+  if (!repository) {
+    throw new Error('Missing repository for source');
+  }
+
+  validateRepoRoot(repoRoot);
+  const registry = readSyncRegistry(repoRoot);
+  if (registry.sources[name]) {
+    throw new Error(`Sync source already exists: ${name}`);
+  }
+
+  const inspection = inspectSkillRepository({ repository });
+  if (!inspection.recommendation) {
+    throw new Error(`Could not recommend a sync mapping for ${repository}`);
+  }
+
+  const entry = {
+    repository,
+    mode: inspection.recommendation.mode,
+    sourcePath: inspection.recommendation.sourcePath,
+  };
+  if (inspection.recommendation.destinationSkill) {
+    entry.destinationSkill = inspection.recommendation.destinationSkill;
+  }
+
+  registry.sources[name] = entry;
+  writeSyncRegistry(repoRoot, registry);
+  return entry;
+}
+
 function requiredValue(args, index, flag) {
   if (!args[index + 1] || args[index + 1].startsWith('--')) {
     throw new Error(`Missing value for ${flag}`);
@@ -124,10 +183,42 @@ function requiredValue(args, index, flag) {
   return args[index + 1];
 }
 
-function validateSourceIds(sourceIds) {
+export function loadSyncSources(repoRoot = packageRoot()) {
+  return readSyncRegistry(repoRoot).sources;
+}
+
+function readSyncRegistry(repoRoot = packageRoot()) {
+  const registryFile = path.join(repoRoot, 'skills.sync.json');
+  if (!fs.existsSync(registryFile)) {
+    return { sources: cloneJson(DEFAULT_SYNC_SOURCES) };
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(fs.readFileSync(registryFile, 'utf8'));
+  } catch (error) {
+    throw new Error(`Invalid JSON in ${registryFile}: ${error.message}`);
+  }
+  if (!parsed || typeof parsed !== 'object' || !parsed.sources || typeof parsed.sources !== 'object' || Array.isArray(parsed.sources)) {
+    throw new Error(`${registryFile} must contain an object at sources`);
+  }
+  return parsed;
+}
+
+function cloneJson(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function writeSyncRegistry(repoRoot, registry) {
+  const registryFile = path.join(repoRoot, 'skills.sync.json');
+  fs.writeFileSync(`${registryFile}.tmp`, `${JSON.stringify(registry, null, 2)}\n`);
+  fs.renameSync(`${registryFile}.tmp`, registryFile);
+}
+
+function validateSourceIds(sourceIds, sources) {
   for (const id of sourceIds) {
-    if (!SYNC_SOURCES[id]) {
-      throw new Error(`Unknown sync source: ${id}. Supported sources: ${SOURCE_IDS.join(', ')}`);
+    if (!sources[id]) {
+      throw new Error(`Unknown sync source: ${id}. Supported sources: ${Object.keys(sources).join(', ')}`);
     }
   }
 }
@@ -146,17 +237,17 @@ function validateRepoRoot(repoRoot) {
 }
 
 function resolveCheckout(source, override, tempRoot) {
-  if (override) {
-    const localPath = path.resolve(override);
+  const repository = override || source.repository;
+  if (repository) {
+    const localPath = path.resolve(repository);
     if (fs.existsSync(localPath)) {
       return {
         path: localPath,
-        repository: override,
+        repository,
       };
     }
   }
 
-  const repository = override || source.repository;
   const destination = path.join(tempRoot, source.id);
   const result = spawnSync('git', ['clone', '--depth', '1', repository, destination], {
     encoding: 'utf8',
@@ -172,6 +263,123 @@ function resolveCheckout(source, override, tempRoot) {
     path: destination,
     repository,
   };
+}
+
+function findSkillCandidates(checkoutRoot) {
+  const candidates = [];
+  const skillsRootPaths = [];
+  for (const candidatePath of [
+    'skills',
+    path.join('.claude', 'skills'),
+    path.join('.codex', 'skills'),
+    path.join('.github', 'copilot', 'skills'),
+  ]) {
+    const fullPath = path.join(checkoutRoot, candidatePath);
+    const skills = listImmediateSkills(fullPath);
+    if (skills.length > 0) {
+      const normalizedPath = toPosix(candidatePath);
+      skillsRootPaths.push(normalizedPath);
+      candidates.push({
+        type: 'skills-root',
+        path: normalizedPath,
+        skills,
+      });
+    }
+  }
+
+  for (const skillFile of findSkillFiles(checkoutRoot)) {
+    const relativeDir = path.dirname(path.relative(checkoutRoot, skillFile));
+    const normalizedDir = toPosix(relativeDir === '.' ? '' : relativeDir);
+    if (skillsRootPaths.some((rootPath) => normalizedDir === rootPath || normalizedDir.startsWith(`${rootPath}/`))) {
+      continue;
+    }
+    candidates.push({
+      type: 'single-skill',
+      path: normalizedDir,
+      skill: readSkillName(skillFile) || path.basename(path.dirname(skillFile)),
+    });
+  }
+
+  return candidates;
+}
+
+function listImmediateSkills(root) {
+  if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) {
+    return [];
+  }
+  return fs.readdirSync(root, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .filter((entry) => fs.existsSync(path.join(root, entry.name, 'SKILL.md')))
+    .map((entry) => readSkillName(path.join(root, entry.name, 'SKILL.md')) || entry.name)
+    .sort();
+}
+
+function findSkillFiles(root) {
+  const files = [];
+  collectSkillFiles(root, files);
+  return files;
+}
+
+function collectSkillFiles(current, files) {
+  for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+    if (shouldExcludeName(entry.name)) {
+      continue;
+    }
+    const fullPath = path.join(current, entry.name);
+    if (entry.isDirectory()) {
+      collectSkillFiles(fullPath, files);
+      continue;
+    }
+    if (entry.isFile() && entry.name === 'SKILL.md') {
+      files.push(fullPath);
+    }
+  }
+}
+
+function recommendSource(candidates) {
+  const rootSkills = candidates.find((candidate) => candidate.type === 'skills-root' && candidate.path === 'skills');
+  if (rootSkills) {
+    return {
+      mode: 'skills-root',
+      sourcePath: rootSkills.path,
+      skills: rootSkills.skills,
+    };
+  }
+
+  const skillsRoot = candidates.find((candidate) => candidate.type === 'skills-root');
+  if (skillsRoot) {
+    return {
+      mode: 'skills-root',
+      sourcePath: skillsRoot.path,
+      skills: skillsRoot.skills,
+    };
+  }
+
+  const single = candidates.find((candidate) => candidate.type === 'single-skill');
+  if (single) {
+    return {
+      mode: 'single-skill',
+      sourcePath: single.path || '.',
+      destinationSkill: single.skill,
+      skills: [single.skill],
+    };
+  }
+
+  return undefined;
+}
+
+function readSkillName(skillFile) {
+  const content = fs.readFileSync(skillFile, 'utf8');
+  const match = content.match(/^---\n([\s\S]*?)\n---/);
+  if (!match) {
+    return undefined;
+  }
+  const name = match[1].match(/^name:\s*(.+)$/m);
+  return name ? name[1].trim().replace(/^["']|["']$/g, '') : undefined;
+}
+
+function toPosix(relativePath) {
+  return relativePath.split(path.sep).join('/');
 }
 
 function planSource(source, checkoutRoot, skillsRoot) {
