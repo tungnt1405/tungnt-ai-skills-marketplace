@@ -37,15 +37,17 @@ function frontmatterName(content) {
   return name[1].trim();
 }
 
+const ownerSyncName = ['owner', 'skill', 'sync', 'updater'].join('-');
+
 assert.equal(exists('skills/investigation/SKILL.md'), true, 'investigation skill must exist');
 assert.equal(exists('skills/quick-dev/SKILL.md'), true, 'quick-dev skill must exist');
-assert.equal(exists('skills/owner-skill-sync-updater/SKILL.md'), true, 'owner skill sync updater must exist');
+assert.equal(exists(`skills/${ownerSyncName}/SKILL.md`), false, 'owner sync skill must stay off main');
 assert.equal(exists('skills/api-design/SKILL.md'), true, 'api-design skill must exist');
 
 const bootstrap = read('skills/using-tungnt-ai-skills/SKILL.md');
 assertIncludes(bootstrap, '- `investigation`', 'bootstrap');
 assertIncludes(bootstrap, '- `quick-dev`', 'bootstrap');
-assertIncludes(bootstrap, '- `owner-skill-sync-updater`', 'bootstrap');
+assert.equal(bootstrap.includes(ownerSyncName), false, 'bootstrap must not trigger owner sync on main');
 
 const investigation = read('skills/investigation/SKILL.md');
 assert.equal(frontmatterName(investigation), 'investigation', 'investigation frontmatter name');
@@ -72,12 +74,6 @@ assertIncludes(apiDesign, 'Idempotency/repeatability requirement', 'api-design r
 assertIncludes(apiDesign, 'Additive evolution', 'api-design compatibility');
 assertIncludes(apiDesign, 'Boundary validation', 'api-design validation');
 assertIncludes(apiDesign, 'Compatibility Review', 'api-design compatibility review');
-
-const ownerSkillSync = read('skills/owner-skill-sync-updater/SKILL.md');
-assert.equal(frontmatterName(ownerSkillSync), 'owner-skill-sync-updater', 'owner skill sync frontmatter name');
-assertIncludes(ownerSkillSync, 'review-only', 'owner skill sync policy');
-assertIncludes(ownerSkillSync, 'Preserve trigger order', 'owner skill sync trigger order');
-assertIncludes(ownerSkillSync, 'ui-ux-pro-max', 'owner skill sync domain policy');
 
 const requestReview = read('skills/requesting-code-review/SKILL.md');
 assertIncludes(requestReview, 'Blind Hunter', 'requesting-code-review lenses');

@@ -35,8 +35,6 @@ This fork is a curated workflow skillset with its own structure and naming.
   Purpose: fast path for trivial, low-risk code changes that do not justify the full brainstorming and planning pipeline.
 - `ui-ux-pro-max`
   Purpose: design intelligence for UI/UX work. Use during UI design, review, or implementation to query design databases and generate design-system evidence. This is a domain skill, not a process skill.
-- `owner-skill-sync-updater`
-  Purpose: owner-only workflow for inspecting, comparing, and syncing external skills repositories without bypassing this fork's trigger order.
 
 Treat the workflow skills at the root of `skills/` as the main collection for this fork. Pick the matching skill instead of assuming everything follows one legacy grouping.
 
@@ -106,9 +104,6 @@ Examples:
   Use `quick-dev` only when its scope gate is satisfied. If the work is creative, ambiguous, or changes broader behavior, `brainstorming` remains mandatory before `writing-plans`.
 - "Build a landing page" / "Design a dashboard UI" / "Improve the UI/UX"
   Use `brainstorming` for requirement discovery and design approval when the work is creative or changes behavior. During that design work, use `ui-ux-pro-max` to generate UI/UX evidence and design-system recommendations. Do not let `ui-ux-pro-max` replace the brainstorming gate or change the next step from `writing-plans`.
-- "Add skills from this repo" / "sync skills from upstream" / "compare Superpowers updates"
-  Use `owner-skill-sync-updater` after the normal bootstrap/process skill selection. It classifies external repos before dry-run/apply so upstream workflow sources do not overwrite local trigger logic.
-
 ## Red Flags
 
 These usually mean you are skipping the repo's workflow discipline:
