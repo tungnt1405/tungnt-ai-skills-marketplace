@@ -7,10 +7,6 @@ import {
   supportedTargetIds,
 } from './target-map.js';
 import {
-  parseSyncSkillsArgs,
-  syncSkills,
-} from './skill-sync.js';
-import {
   copyExtraPackages,
   copyPackage,
   getPackageRoot,
@@ -25,7 +21,6 @@ import {
 const USAGE = `Usage:
   tungnt-ai-skills install [--all] [--agent <id>] [--dry-run] [--force] [--native]
   tungnt-ai-skills update [--all] [--agent <id>] [--dry-run] [--native]
-  tungnt-ai-skills sync-skills [--source <id>] [--repo <id=path-or-url>] [--dry-run|--apply]
   tungnt-ai-skills targets
 
 Supported agents: ${supportedTargetIds().join(', ')}`;
@@ -41,9 +36,6 @@ export function runCli(argv = process.argv.slice(2), env = process.env, io = def
   }
   if (command === 'update') {
     return update(argv.slice(1), env, io);
-  }
-  if (command === 'sync-skills') {
-    return syncSkillsCommand(argv.slice(1), env, io);
   }
   io.err(`${USAGE}\n`);
   return 1;
@@ -269,34 +261,6 @@ function nativeCommandsForInstall(target, options) {
     return target.updateCommands;
   }
   return target.nativeCommands;
-}
-
-function syncSkillsCommand(args, env, io) {
-  let options;
-  try {
-    options = parseSyncSkillsArgs(args);
-  } catch (error) {
-    io.err(`${error.message}\n\n${USAGE}\n`);
-    return 1;
-  }
-
-  try {
-    const packageRoot = env.TUNGNT_AI_SKILLS_SYNC_ROOT || getPackageRoot(import.meta.url);
-    const result = syncSkills({ ...options, repoRoot: packageRoot });
-    io.out(`Source: ${packageRoot}\n`);
-    io.out(`Mode: ${result.apply ? 'apply' : 'dry-run'}\n`);
-    for (const source of result.sources) {
-      io.out(`\n[${source.id}]\n`);
-      io.out(`Repository: ${source.repository}\n`);
-      io.out(`Added: ${source.summary.added}\n`);
-      io.out(`Updated: ${source.summary.updated}\n`);
-      io.out(`Removed: ${source.summary.removed}\n`);
-    }
-    return 0;
-  } catch (error) {
-    io.err(`${error.message}\n`);
-    return 1;
-  }
 }
 
 function update(args, env, io) {

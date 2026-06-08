@@ -22,7 +22,7 @@ tungnt-ai-skills sync-skills --source ui-ux-pro-max --apply
 The command synchronizes two upstream sources:
 
 - `superpowers`: `https://github.com/obra/superpowers`, source path `skills/`, destination `skills/`
-- `ui-ux-pro-max`: `https://github.com/nextlevelbuilder/ui-ux-pro-max-skill`, wrapper skill file `.claude/skills/ui-ux-pro-max/SKILL.md` plus source-of-truth directories `src/ui-ux-pro-max/data/`, `src/ui-ux-pro-max/scripts/`, and `src/ui-ux-pro-max/templates/`, destination `skills/ui-ux-pro-max/`
+- `ui-ux-pro-max`: `https://github.com/nextlevelbuilder/ui-ux-pro-max-skill`, source path `src/ui-ux-pro-max/`, destination `skills/ui-ux-pro-max/`
 
 The `superpowers` source can add new skills or update existing skills in the root `skills/` directory. The `ui-ux-pro-max` source updates only `skills/ui-ux-pro-max/`.
 
@@ -33,9 +33,7 @@ The command clones each selected upstream repository into a temporary directory 
 When applying changes, it replaces only the managed destination for the selected source:
 
 - For `superpowers`, each upstream skill directory under upstream `skills/` is copied into local `skills/<skill-name>/`.
-- For `ui-ux-pro-max`, upstream `.claude/skills/ui-ux-pro-max/SKILL.md` and all files under upstream `src/ui-ux-pro-max/data/`, `src/ui-ux-pro-max/scripts/`, and `src/ui-ux-pro-max/templates/` replace local `skills/ui-ux-pro-max/`.
-
-This means non-Markdown assets such as CSV, YAML, TOML, JSON, Python, and future template/data files are copied recursively as long as they live under a managed upstream source directory.
+- For `ui-ux-pro-max`, upstream `src/ui-ux-pro-max/` replaces local `skills/ui-ux-pro-max/`.
 
 The command does not delete local skill directories that are not managed by the selected source. This preserves fork-specific skills such as `using-tungnt-ai-skills`, `quick-dev`, or `investigation` unless an upstream source explicitly manages the same skill name.
 
