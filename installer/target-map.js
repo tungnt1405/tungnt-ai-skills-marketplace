@@ -81,6 +81,12 @@ export const TARGETS = [
       includedEntries: CLAUDE_LOCAL_MARKETPLACE_ENTRIES,
       requiredFiles: [...REQUIRED_SKILL_FILES, '.claude-plugin/marketplace.json', '.claude-plugin/plugin.json'],
     },
+    updateCacheDirs: [
+      {
+        destination: (env = process.env) => joinHome(env, '.claude', 'plugins', 'cache', 'tungnt-ai-skills-marketplace'),
+        expectedParent: (env = process.env) => joinHome(env, '.claude', 'plugins', 'cache'),
+      },
+    ],
     nextSteps: [
       'Claude Code app: Open Claude Code.',
       'Claude Code app: Open the Plugins tab.',
@@ -133,6 +139,12 @@ export const TARGETS = [
         category: 'Coding',
       },
     },
+    updateCacheDirs: [
+      {
+        destination: (env = process.env) => joinHome(env, '.codex', 'plugins', 'cache', 'tungnt-ai-skills-marketplace'),
+        expectedParent: (env = process.env) => joinHome(env, '.codex', 'plugins', 'cache'),
+      },
+    ],
     nextSteps: [
       'Codex CLI: Open a terminal and run codex.',
       'Codex CLI: Run /plugins tungnt-ai-skills.',
@@ -177,6 +189,12 @@ export const TARGETS = [
       },
       // pluginId: 'tungnt-ai-skills@tungnt-ai-skills-marketplace',
     },
+    updateCacheDirs: [
+      {
+        destination: (env = process.env) => joinHome(env, '.copilot', 'plugins', 'cache', 'tungnt-ai-skills-marketplace'),
+        expectedParent: (env = process.env) => joinHome(env, '.copilot', 'plugins', 'cache'),
+      },
+    ],
     nextSteps: [
       'Copilot app: Open GitHub Copilot Chat (Visual Studio Code - VSCode).',
       'Copilot app: Open the Extensions vscode.',
@@ -207,6 +225,12 @@ export const TARGETS = [
         includedEntries: ANTIGRAVITY_GLOBAL_ENTRIES,
       },
     ],
+    updateCacheDirs: [
+      {
+        destination: (env = process.env) => joinHome(env, '.gemini', 'antigravity-cli', 'plugins', PLUGIN_NAME),
+        expectedParent: (env = process.env) => joinHome(env, '.gemini', 'antigravity-cli', 'plugins'),
+      },
+    ],
     requiredFiles: ANTIGRAVITY_PLUGIN_REQUIRED_FILES,
     postInstallNotes: 'Restart Antigravity CLI or reload plugins after installation.',
   },
@@ -220,6 +244,12 @@ export const TARGETS = [
       {
         destination: (env = process.env) => joinHome(env, '.gemini'),
         includedEntries: ANTIGRAVITY_GLOBAL_ENTRIES,
+      },
+    ],
+    updateCacheDirs: [
+      {
+        destination: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins', PLUGIN_NAME),
+        expectedParent: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins'),
       },
     ],
     includeInAll: false,
@@ -236,6 +266,12 @@ export const TARGETS = [
       {
         destination: (env = process.env) => joinHome(env, '.gemini'),
         includedEntries: ANTIGRAVITY_GLOBAL_ENTRIES,
+      },
+    ],
+    updateCacheDirs: [
+      {
+        destination: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins', PLUGIN_NAME),
+        expectedParent: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins'),
       },
     ],
     requiredFiles: ANTIGRAVITY_PLUGIN_REQUIRED_FILES,
