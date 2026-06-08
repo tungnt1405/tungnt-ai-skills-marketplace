@@ -39,10 +39,12 @@ function frontmatterName(content) {
 
 assert.equal(exists('skills/investigation/SKILL.md'), true, 'investigation skill must exist');
 assert.equal(exists('skills/quick-dev/SKILL.md'), true, 'quick-dev skill must exist');
+assert.equal(exists('skills/owner-skill-sync-updater/SKILL.md'), true, 'owner skill sync updater must exist');
 
 const bootstrap = read('skills/using-tungnt-ai-skills/SKILL.md');
 assertIncludes(bootstrap, '- `investigation`', 'bootstrap');
 assertIncludes(bootstrap, '- `quick-dev`', 'bootstrap');
+assertIncludes(bootstrap, '- `owner-skill-sync-updater`', 'bootstrap');
 
 const investigation = read('skills/investigation/SKILL.md');
 assert.equal(frontmatterName(investigation), 'investigation', 'investigation frontmatter name');
@@ -57,6 +59,12 @@ assertIncludes(quickDev, 'under 30 minutes', 'quick-dev scope gate');
 assertIncludes(quickDev, '1-2 non-test/non-doc files', 'quick-dev scope gate');
 assertIncludes(quickDev, 'Escalate Out Of Quick Dev', 'quick-dev red flags');
 assertIncludes(quickDev, 'switch to `brainstorming` then `writing-plans`', 'quick-dev red flags');
+
+const ownerSkillSync = read('skills/owner-skill-sync-updater/SKILL.md');
+assert.equal(frontmatterName(ownerSkillSync), 'owner-skill-sync-updater', 'owner skill sync frontmatter name');
+assertIncludes(ownerSkillSync, 'review-only', 'owner skill sync policy');
+assertIncludes(ownerSkillSync, 'Preserve trigger order', 'owner skill sync trigger order');
+assertIncludes(ownerSkillSync, 'ui-ux-pro-max', 'owner skill sync domain policy');
 
 const requestReview = read('skills/requesting-code-review/SKILL.md');
 assertIncludes(requestReview, 'Blind Hunter', 'requesting-code-review lenses');

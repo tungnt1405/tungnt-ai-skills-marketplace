@@ -7,6 +7,12 @@ import {
   supportedTargetIds,
 } from './target-map.js';
 import {
+  addSyncSource,
+  inspectSkillRepository,
+  parseSyncSkillsArgs,
+  syncSkills,
+} from './skill-sync.js';
+import {
   copyExtraPackages,
   copyPackage,
   getPackageRoot,
@@ -21,6 +27,9 @@ import {
 const USAGE = `Usage:
   tungnt-ai-skills install [--all] [--agent <id>] [--dry-run] [--force] [--native]
   tungnt-ai-skills update [--all] [--agent <id>] [--dry-run] [--native]
+  tungnt-ai-skills sync-skills [--source <id>] [--repo <id=path-or-url>] [--dry-run|--apply]
+  tungnt-ai-skills sync-skills inspect --repo <git-url-or-local-path>
+  tungnt-ai-skills sync-skills add-source --name <id> --repo <git-url-or-local-path> [--policy <policy>]
   tungnt-ai-skills targets
 
 Supported agents: ${supportedTargetIds().join(', ')}`;
@@ -36,6 +45,9 @@ export function runCli(argv = process.argv.slice(2), env = process.env, io = def
   }
   if (command === 'update') {
     return update(argv.slice(1), env, io);
+  }
+  if (command === 'sync-skills') {
+    return syncSkillsCommand(argv.slice(1), env, io);
   }
   io.err(`${USAGE}\n`);
   return 1;
@@ -261,6 +273,169 @@ function nativeCommandsForInstall(target, options) {
     return target.updateCommands;
   }
   return target.nativeCommands;
+}
+
+function syncSkillsCommand(args, env, io) {
+  if (args[0] === 'inspect') {
+    return inspectSyncSourceCommand(args.slice(1), io);
+  }
+  if (args[0] === 'add-source') {
+    return addSyncSourceCommand(args.slice(1), env, io);
+  }
+
+  let options;
+  try {
+    options = parseSyncSkillsArgs(args);
+  } catch (error) {
+    io.err(`${error.message}\n\n${USAGE}\n`);
+    return 1;
+  }
+
+  try {
+    const packageRoot = env.TUNGNT_AI_SKILLS_SYNC_ROOT || getPackageRoot(import.meta.url);
+    const result = syncSkills({ ...options, repoRoot: packageRoot });
+    io.out(`Source: ${packageRoot}\n`);
+    io.out(`Mode: ${result.apply ? 'apply' : 'dry-run'}\n`);
+    for (const source of result.sources) {
+      io.out(`\n[${source.id}]\n`);
+      io.out(`Repository: ${source.repository}\n`);
+      io.out(`Added: ${source.summary.added}\n`);
+      io.out(`Updated: ${source.summary.updated}\n`);
+      io.out(`Removed: ${source.summary.removed}\n`);
+      io.out(`Skipped: ${source.summary.skipped}\n`);
+    }
+    return 0;
+  } catch (error) {
+    io.err(`${error.message}\n`);
+    return 1;
+  }
+}
+
+function inspectSyncSourceCommand(args, io) {
+  let repository;
+  try {
+    ({ repository } = parseRepositoryArg(args));
+  } catch (error) {
+    io.err(`${error.message}\n\n${USAGE}\n`);
+    return 1;
+  }
+
+  try {
+    const result = inspectSkillRepository({ repository });
+    printInspection(result, io);
+    return 0;
+  } catch (error) {
+    io.err(`${error.message}\n`);
+    return 1;
+  }
+}
+
+function addSyncSourceCommand(args, env, io) {
+  let parsed;
+  try {
+    parsed = parseAddSourceArgs(args);
+  } catch (error) {
+    io.err(`${error.message}\n\n${USAGE}\n`);
+    return 1;
+  }
+
+  try {
+    const packageRoot = env.TUNGNT_AI_SKILLS_SYNC_ROOT || getPackageRoot(import.meta.url);
+    const entry = addSyncSource({ repoRoot: packageRoot, ...parsed });
+    io.out(`Source added: ${parsed.name}\n`);
+    io.out(`Repository: ${entry.repository}\n`);
+    io.out(`Mode: ${entry.mode}\n`);
+    io.out(`Policy: ${entry.policy || 'managed'}\n`);
+    io.out(`Source path: ${entry.sourcePath}\n`);
+    if (entry.destinationSkill) {
+      io.out(`Destination skill: ${entry.destinationSkill}\n`);
+    }
+    return 0;
+  } catch (error) {
+    io.err(`${error.message}\n`);
+    return 1;
+  }
+}
+
+function parseRepositoryArg(args) {
+  let repository;
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === '--repo') {
+      if (!args[index + 1] || args[index + 1].startsWith('--')) {
+        throw new Error('Missing value for --repo');
+      }
+      repository = args[index + 1];
+      index += 1;
+    } else {
+      throw new Error(`Unknown option: ${arg}`);
+    }
+  }
+  if (!repository) {
+    throw new Error('Missing --repo');
+  }
+  return { repository };
+}
+
+function parseAddSourceArgs(args) {
+  let name;
+  let repository;
+  let policy;
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === '--name') {
+      if (!args[index + 1] || args[index + 1].startsWith('--')) {
+        throw new Error('Missing value for --name');
+      }
+      name = args[index + 1];
+      index += 1;
+    } else if (arg === '--repo') {
+      if (!args[index + 1] || args[index + 1].startsWith('--')) {
+        throw new Error('Missing value for --repo');
+      }
+      repository = args[index + 1];
+      index += 1;
+    } else if (arg === '--policy') {
+      if (!args[index + 1] || args[index + 1].startsWith('--')) {
+        throw new Error('Missing value for --policy');
+      }
+      policy = args[index + 1];
+      index += 1;
+    } else {
+      throw new Error(`Unknown option: ${arg}`);
+    }
+  }
+  if (!name) {
+    throw new Error('Missing --name');
+  }
+  if (!repository) {
+    throw new Error('Missing --repo');
+  }
+  return { name, repository, policy };
+}
+
+function printInspection(result, io) {
+  io.out(`Repository: ${result.repository}\n`);
+  if (result.recommendation) {
+    io.out(`Recommended mode: ${result.recommendation.mode}\n`);
+    io.out(`Recommended source: ${result.recommendation.sourcePath}\n`);
+    if (result.recommendation.destinationSkill) {
+      io.out(`Recommended destination skill: ${result.recommendation.destinationSkill}\n`);
+    }
+    if (result.recommendation.skills?.length > 0) {
+      io.out(`Skills: ${result.recommendation.skills.join(', ')}\n`);
+    }
+  } else {
+    io.out('Recommended mode: none\n');
+  }
+  io.out('Candidates:\n');
+  for (const candidate of result.candidates) {
+    if (candidate.type === 'skills-root') {
+      io.out(`  ${candidate.type}: ${candidate.path} (${candidate.skills.join(', ')})\n`);
+    } else {
+      io.out(`  ${candidate.type}: ${candidate.path || '.'} (${candidate.skill})\n`);
+    }
+  }
 }
 
 function update(args, env, io) {
