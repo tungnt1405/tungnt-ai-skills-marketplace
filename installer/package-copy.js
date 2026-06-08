@@ -9,6 +9,7 @@ export const INCLUDED_ENTRIES = [
   'GEMINI.md',
   'CLAUDE.md',
   'AGENTS.md',
+  'skills.sync.json',
 ];
 
 const EXCLUDED_NAMES = new Set([

@@ -13,6 +13,10 @@ Start by understanding the current project context, then ask questions one at a 
 Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
 </HARD-GATE>
 
+## Quick-Dev Exception
+
+When the `quick-dev` skill's scope gate passes, `quick-dev` is the selected process skill instead of `brainstorming`. If the quick-dev gate fails or is uncertain, this brainstorming hard gate applies normally.
+
 ## Anti-Pattern: "This Is Too Simple To Need A Design"
 
 Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
@@ -103,6 +107,29 @@ digraph brainstorming {
 - Explore the current structure before proposing changes. Follow existing patterns.
 - Where existing code has problems that affect the work (e.g., a file that's grown too large, unclear boundaries, tangled responsibilities), include targeted improvements as part of the design - the way a good developer improves code they're working in.
 - Don't propose unrelated refactoring. Stay focused on what serves the current goal.
+
+## Spec Kernel
+
+At the end of the approved design, optionally include a compact Spec Kernel that can be copied directly into `writing-plans`.
+
+```markdown
+## Spec Kernel
+
+**Goal:** <one sentence describing the outcome>
+
+**Users:** <who benefits or operates the change>
+
+**Acceptance Criteria:**
+- Given <precondition>, when <action>, then <expected result>.
+
+**Constraints:**
+- <non-negotiable technical, workflow, compatibility, or dependency constraint>
+
+**Out of Scope:**
+- <explicit non-goal>
+```
+
+Use the Spec Kernel when it improves handoff clarity. Do not replace the full design doc when the work is complex.
 
 ## After the Design
 

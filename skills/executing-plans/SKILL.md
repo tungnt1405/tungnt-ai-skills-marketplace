@@ -13,6 +13,27 @@ Load plan, review critically, execute all tasks, report when complete.
 
 **Note:** Tell your human partner that tungnt-ai-skills works much better with access to subagents. The quality of its work will be significantly higher if run on a platform with subagent support (such as Claude Code or Codex). If subagents are available, use `subagent-driven-development` instead of this skill.
 
+## Lightweight Status Tracking
+
+Status tracking is optional but recommended for multi-task plans. Use `docs/superpowers/status/<plan-name>-status.yaml`, where `<plan-name>` is the plan filename without `.md`.
+
+When starting a plan, create the status file if it does not exist:
+
+```yaml
+plan_file: docs/superpowers/plans/example.md
+started_at: YYYY-MM-DD
+overall_status: in-progress
+tasks:
+  - id: 1
+    name: Task name from plan
+    status: pending
+    completed_at:
+```
+
+When starting a task, set that task to `in-progress`. When it is verified and complete, set `status: complete` and `completed_at: YYYY-MM-DD`. When all tasks are complete, set `overall_status: complete`.
+
+Preserve user edits and comments in the status file. If the status file cannot be updated cleanly, continue execution and report the tracking failure.
+
 ## The Process
 
 ### Step 1: Load and Review Plan
@@ -20,6 +41,8 @@ Load plan, review critically, execute all tasks, report when complete.
 2. Review critically - identify any questions or concerns about the plan
 3. If concerns: Raise them with your human partner before starting
 4. If no concerns: Create TodoWrite and proceed
+5. Create or resume the optional status file at `docs/superpowers/status/<plan-name>-status.yaml`
+6. Check for review continuation items before starting new work
 
 ### Step 2: Execute Tasks
 

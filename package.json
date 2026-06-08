@@ -7,6 +7,7 @@
         "tungnt-ai-skills": "./bin/tungnt-ai-skills.js"
     },
     "scripts": {
-        "test:installer": "node tests/installer/run-tests.js"
+        "test:installer": "node tests/installer/run-tests.js",
+        "test:skills": "node tests/skill-content/run-tests.js"
     }
 }

@@ -21,13 +21,32 @@ The bootstrap decides which skill or collection to use next.
 
 This fork currently uses the root `skills/` workflow collection for workflow and execution skills.
 
+## Latest Changes
+
+### 2026-06-08 Workflow Expansion
+
+- Added `investigation` for evidence-graded debugging, incident tracing, and unfamiliar code exploration before fixes.
+- Added `quick-dev` for trivial, low-risk changes that fit a strict fast-path scope gate.
+- Added `ui-ux-pro-max` to the documented workflow as the UI/UX design intelligence domain skill.
+- Added `writing-skills` for creating, editing, and pressure-testing reusable skills.
+- Added optional YAML plan status tracking at `docs/superpowers/status/<plan-name>-status.yaml` for `executing-plans` and `subagent-driven-development`.
+- Added review continuation awareness so resumed plan execution prioritizes unresolved review feedback before new tasks.
+- Added parallel review lenses: Blind Hunter, Edge Case Hunter, and Acceptance Auditor, with Must-Fix, Should-Fix, Consider, and Praise triage.
+- Added optional Spec Kernel output in `brainstorming` for clearer handoff into `writing-plans`.
+- Added Definition-of-Done validation in `finishing-a-development-branch` before merge, PR, keep, or discard options.
+- Added `npm run test:skills` for dependency-free skill content regression checks.
+
 ## Skill Naming
 
 Use the actual skill names defined in each `SKILL.md`.
 
 Examples:
 
+- `investigation`
+- `quick-dev`
 - `brainstorming`
+- `ui-ux-pro-max`
+- `writing-skills`
 - `writing-plans`
 - `using-git-worktrees`
 - `subagent-driven-development`
@@ -38,6 +57,32 @@ Examples:
 Do not assume a plugin-prefixed call style like `tungnt-ai-skills:writing-plans`.
 
 ## Recommended Workflow
+
+### When investigating a bug or unfamiliar code
+
+Use:
+
+- `investigation`
+
+When:
+
+- a bug, stack trace, failing test, or suspicious behavior needs diagnosis
+- you need evidence-graded findings before choosing a fix
+- you need to map an unfamiliar code path before changing behavior
+
+### When making a small low-risk change
+
+Use:
+
+- `quick-dev`
+
+When:
+
+- the intent is clear without design exploration
+- the change is expected to take under 30 minutes
+- the change usually touches 1-2 non-test/non-doc files
+
+Escalate out to `brainstorming` then `writing-plans` when scope, ambiguity, or risk grows.
 
 ### When starting from an idea
 
@@ -51,6 +96,26 @@ When:
 - the task is vague
 - the user wants options or tradeoffs
 - architecture or scope is still unclear
+
+Current handoff:
+
+- `brainstorming` may include a Spec Kernel with goal, users, acceptance criteria, constraints, and out-of-scope items.
+
+### When working on UI/UX
+
+Use:
+
+- `ui-ux-pro-max`
+
+When:
+
+- designing, reviewing, or improving UI/UX for a web or mobile application
+- you need evidence for visual direction, color, typography, layout, UX guidelines, charts, or stack-specific UI choices
+
+Important:
+
+- `ui-ux-pro-max` is a domain skill, not a process replacement
+- keep the normal order: `brainstorming` for design approval, `writing-plans` for implementation planning, then execution/review skills
 
 ### When the design is approved
 
@@ -105,6 +170,11 @@ Use that when:
 - subagents are unavailable
 - you need inline execution in one session
 
+Current tracking:
+
+- multi-task plans may maintain `docs/superpowers/status/<plan-name>-status.yaml`
+- resumed `executing-plans` sessions should check unresolved review continuation items before starting new plan tasks
+
 ### During review and completion
 
 Use:
@@ -117,6 +187,12 @@ When:
 - implementation is done
 - you want structured review before merge or handoff
 - you need cleanup of a skill-owned worktree
+
+Current review and completion gates:
+
+- code review uses Blind Hunter, Edge Case Hunter, and Acceptance Auditor lenses
+- findings are triaged as Must-Fix, Should-Fix, Consider, or Praise
+- branch finishing validates Definition-of-Done before presenting completion options
 
 ## Docs And Runtime Namespaces
 
@@ -215,6 +291,36 @@ Use when:
 - you need alternatives
 - you need a spec before coding
 
+May emit:
+
+- Spec Kernel for handoff to `writing-plans`
+
+### `ui-ux-pro-max`
+
+Use when:
+
+- building, designing, reviewing, or improving UI/UX for web or mobile applications
+- the work needs design-system evidence, style direction, color palettes, font pairings, UX guidelines, chart guidance, or stack-specific UI recommendations
+
+Does not replace:
+
+- `brainstorming`
+- `writing-plans`
+- execution or review skills
+
+### `investigation`
+
+Use when:
+
+- diagnosing bugs, incidents, failing tests, or unfamiliar code paths
+- you need Confirmed, Deduced, and Hypothesized findings separated clearly
+
+### `quick-dev`
+
+Use when:
+
+- a change is small, clear, low risk, and expected to touch only 1-2 non-test/non-doc files
+
 ### `writing-plans`
 
 Use when:
@@ -246,6 +352,11 @@ Use when:
 - subagents are unavailable
 - you still want the plan executed in a structured way
 
+Supports:
+
+- optional YAML status tracking
+- review continuation checks on resumed work
+
 ### `requesting-code-review`
 
 Use when:
@@ -253,12 +364,30 @@ Use when:
 - a change is ready for review
 - you want findings before merge or handoff
 
+Uses:
+
+- Blind Hunter
+- Edge Case Hunter
+- Acceptance Auditor
+
 ### `finishing-a-development-branch`
 
 Use when:
 
 - implementation and review are complete
 - you need final verification, merge choice, or worktree cleanup
+
+Requires:
+
+- Definition-of-Done validation before completion options
+
+### `writing-skills`
+
+Use when:
+
+- creating new skills
+- editing existing skills
+- verifying skill behavior before deployment
 
 ## Notes For Maintaining The Fork
 
