@@ -54,8 +54,9 @@ assertIncludes(investigation, '## Case File Template', 'investigation case templ
 const quickDev = read('skills/quick-dev/SKILL.md');
 assert.equal(frontmatterName(quickDev), 'quick-dev', 'quick-dev frontmatter name');
 assertIncludes(quickDev, 'under 30 minutes', 'quick-dev scope gate');
-assertIncludes(quickDev, '1-2 files', 'quick-dev scope gate');
-assertIncludes(quickDev, 'Switch to `writing-plans`', 'quick-dev red flags');
+assertIncludes(quickDev, '1-2 non-test/non-doc files', 'quick-dev scope gate');
+assertIncludes(quickDev, 'Escalate Out Of Quick Dev', 'quick-dev red flags');
+assertIncludes(quickDev, 'switch to `brainstorming` then `writing-plans`', 'quick-dev red flags');
 
 const requestReview = read('skills/requesting-code-review/SKILL.md');
 assertIncludes(requestReview, 'Blind Hunter', 'requesting-code-review lenses');
