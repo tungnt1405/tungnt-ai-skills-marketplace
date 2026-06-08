@@ -39,12 +39,10 @@ function frontmatterName(content) {
 
 assert.equal(exists('skills/investigation/SKILL.md'), true, 'investigation skill must exist');
 assert.equal(exists('skills/quick-dev/SKILL.md'), true, 'quick-dev skill must exist');
-assert.equal(exists('skills/upstream-skill-onboarding/SKILL.md'), true, 'upstream-skill-onboarding skill must exist');
 
 const bootstrap = read('skills/using-tungnt-ai-skills/SKILL.md');
 assertIncludes(bootstrap, '- `investigation`', 'bootstrap');
 assertIncludes(bootstrap, '- `quick-dev`', 'bootstrap');
-assertIncludes(bootstrap, '- `upstream-skill-onboarding`', 'bootstrap');
 
 const investigation = read('skills/investigation/SKILL.md');
 assert.equal(frontmatterName(investigation), 'investigation', 'investigation frontmatter name');
@@ -59,12 +57,6 @@ assertIncludes(quickDev, 'under 30 minutes', 'quick-dev scope gate');
 assertIncludes(quickDev, '1-2 non-test/non-doc files', 'quick-dev scope gate');
 assertIncludes(quickDev, 'Escalate Out Of Quick Dev', 'quick-dev red flags');
 assertIncludes(quickDev, 'switch to `brainstorming` then `writing-plans`', 'quick-dev red flags');
-
-const upstreamSkillOnboarding = read('skills/upstream-skill-onboarding/SKILL.md');
-assert.equal(frontmatterName(upstreamSkillOnboarding), 'upstream-skill-onboarding', 'upstream-skill-onboarding frontmatter name');
-assertIncludes(upstreamSkillOnboarding, 'sync-skills inspect', 'upstream-skill-onboarding inspect flow');
-assertIncludes(upstreamSkillOnboarding, 'sync-skills add-source', 'upstream-skill-onboarding add-source flow');
-assertIncludes(upstreamSkillOnboarding, 'skills.sync.json', 'upstream-skill-onboarding registry');
 
 const requestReview = read('skills/requesting-code-review/SKILL.md');
 assertIncludes(requestReview, 'Blind Hunter', 'requesting-code-review lenses');

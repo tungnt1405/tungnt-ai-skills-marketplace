@@ -7,8 +7,6 @@ import {
   supportedTargetIds,
 } from './target-map.js';
 import {
-  addSyncSource,
-  inspectSkillRepository,
   parseSyncSkillsArgs,
   syncSkills,
 } from './skill-sync.js';
@@ -28,8 +26,6 @@ const USAGE = `Usage:
   tungnt-ai-skills install [--all] [--agent <id>] [--dry-run] [--force] [--native]
   tungnt-ai-skills update [--all] [--agent <id>] [--dry-run] [--native]
   tungnt-ai-skills sync-skills [--source <id>] [--repo <id=path-or-url>] [--dry-run|--apply]
-  tungnt-ai-skills sync-skills inspect --repo <git-url-or-local-path>
-  tungnt-ai-skills sync-skills add-source --name <id> --repo <git-url-or-local-path>
   tungnt-ai-skills targets
 
 Supported agents: ${supportedTargetIds().join(', ')}`;
@@ -276,13 +272,6 @@ function nativeCommandsForInstall(target, options) {
 }
 
 function syncSkillsCommand(args, env, io) {
-  if (args[0] === 'inspect') {
-    return inspectSyncSourceCommand(args.slice(1), io);
-  }
-  if (args[0] === 'add-source') {
-    return addSyncSourceCommand(args.slice(1), env, io);
-  }
-
   let options;
   try {
     options = parseSyncSkillsArgs(args);
@@ -307,125 +296,6 @@ function syncSkillsCommand(args, env, io) {
   } catch (error) {
     io.err(`${error.message}\n`);
     return 1;
-  }
-}
-
-function inspectSyncSourceCommand(args, io) {
-  let repository;
-  try {
-    ({ repository } = parseRepositoryArg(args));
-  } catch (error) {
-    io.err(`${error.message}\n\n${USAGE}\n`);
-    return 1;
-  }
-
-  try {
-    const result = inspectSkillRepository({ repository });
-    printInspection(result, io);
-    return 0;
-  } catch (error) {
-    io.err(`${error.message}\n`);
-    return 1;
-  }
-}
-
-function addSyncSourceCommand(args, env, io) {
-  let parsed;
-  try {
-    parsed = parseAddSourceArgs(args);
-  } catch (error) {
-    io.err(`${error.message}\n\n${USAGE}\n`);
-    return 1;
-  }
-
-  try {
-    const packageRoot = env.TUNGNT_AI_SKILLS_SYNC_ROOT || getPackageRoot(import.meta.url);
-    const entry = addSyncSource({ repoRoot: packageRoot, ...parsed });
-    io.out(`Source added: ${parsed.name}\n`);
-    io.out(`Repository: ${entry.repository}\n`);
-    io.out(`Mode: ${entry.mode}\n`);
-    io.out(`Source path: ${entry.sourcePath}\n`);
-    if (entry.destinationSkill) {
-      io.out(`Destination skill: ${entry.destinationSkill}\n`);
-    }
-    return 0;
-  } catch (error) {
-    io.err(`${error.message}\n`);
-    return 1;
-  }
-}
-
-function parseRepositoryArg(args) {
-  let repository;
-  for (let index = 0; index < args.length; index += 1) {
-    const arg = args[index];
-    if (arg === '--repo') {
-      if (!args[index + 1] || args[index + 1].startsWith('--')) {
-        throw new Error('Missing value for --repo');
-      }
-      repository = args[index + 1];
-      index += 1;
-    } else {
-      throw new Error(`Unknown option: ${arg}`);
-    }
-  }
-  if (!repository) {
-    throw new Error('Missing --repo');
-  }
-  return { repository };
-}
-
-function parseAddSourceArgs(args) {
-  let name;
-  let repository;
-  for (let index = 0; index < args.length; index += 1) {
-    const arg = args[index];
-    if (arg === '--name') {
-      if (!args[index + 1] || args[index + 1].startsWith('--')) {
-        throw new Error('Missing value for --name');
-      }
-      name = args[index + 1];
-      index += 1;
-    } else if (arg === '--repo') {
-      if (!args[index + 1] || args[index + 1].startsWith('--')) {
-        throw new Error('Missing value for --repo');
-      }
-      repository = args[index + 1];
-      index += 1;
-    } else {
-      throw new Error(`Unknown option: ${arg}`);
-    }
-  }
-  if (!name) {
-    throw new Error('Missing --name');
-  }
-  if (!repository) {
-    throw new Error('Missing --repo');
-  }
-  return { name, repository };
-}
-
-function printInspection(result, io) {
-  io.out(`Repository: ${result.repository}\n`);
-  if (result.recommendation) {
-    io.out(`Recommended mode: ${result.recommendation.mode}\n`);
-    io.out(`Recommended source: ${result.recommendation.sourcePath}\n`);
-    if (result.recommendation.destinationSkill) {
-      io.out(`Recommended destination skill: ${result.recommendation.destinationSkill}\n`);
-    }
-    if (result.recommendation.skills?.length > 0) {
-      io.out(`Skills: ${result.recommendation.skills.join(', ')}\n`);
-    }
-  } else {
-    io.out('Recommended mode: none\n');
-  }
-  io.out('Candidates:\n');
-  for (const candidate of result.candidates) {
-    if (candidate.type === 'skills-root') {
-      io.out(`  ${candidate.type}: ${candidate.path} (${candidate.skills.join(', ')})\n`);
-    } else {
-      io.out(`  ${candidate.type}: ${candidate.path || '.'} (${candidate.skill})\n`);
-    }
   }
 }
 

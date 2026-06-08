@@ -9,9 +9,6 @@ import {
   supportedTargetIds,
 } from '../../installer/target-map.js';
 import {
-  addSyncSource,
-  inspectSkillRepository,
-  loadSyncSources,
   parseSyncSkillsArgs,
   syncSkills,
 } from '../../installer/skill-sync.js';
@@ -162,20 +159,6 @@ function makeSuperpowersFixture() {
   return root;
 }
 
-function makeExternalSkillsRootFixture() {
-  const root = tempDir();
-  writeText(
-    path.join(root, 'skills', 'alpha', 'SKILL.md'),
-    '---\nname: alpha\ndescription: alpha\n---\n\n# Alpha\n',
-  );
-  writeText(
-    path.join(root, 'skills', 'beta', 'SKILL.md'),
-    '---\nname: beta\ndescription: beta\n---\n\n# Beta\n',
-  );
-  writeText(path.join(root, 'skills', 'alpha', 'data', 'items.csv'), 'id,name\n1,A\n');
-  return root;
-}
-
 function makeUiUxFixture() {
   const root = tempDir();
   writeText(
@@ -192,28 +175,7 @@ function makeUiUxFixture() {
 test('parseSyncSkillsArgs defaults to dry-run for all sources', () => {
   const options = parseSyncSkillsArgs([]);
   assert.equal(options.apply, false);
-  assert.equal(options.sourceIds, undefined);
-});
-
-test('loadSyncSources reads repository registry file', () => {
-  const repoRoot = makePackageFixture();
-  writeText(path.join(repoRoot, 'skills.sync.json'), `${JSON.stringify({
-    sources: {
-      custom: {
-        repository: 'https://example.test/custom.git',
-        mode: 'skills-root',
-        sourcePath: 'skills',
-      },
-    },
-  }, null, 2)}\n`);
-
-  assert.deepEqual(loadSyncSources(repoRoot), {
-    custom: {
-      repository: 'https://example.test/custom.git',
-      mode: 'skills-root',
-      sourcePath: 'skills',
-    },
-  });
+  assert.deepEqual(options.sourceIds, ['superpowers', 'ui-ux-pro-max']);
 });
 
 test('syncSkills dry-run plans superpowers changes without writing', () => {
@@ -333,46 +295,7 @@ test('syncSkills apply handles upstream directory replacing local file', () => {
 });
 
 test('syncSkills rejects unknown source ids', () => {
-  assert.throws(() => syncSkills({ repoRoot: makePackageFixture(), sourceIds: ['unknown'] }), /Unknown sync source/);
-});
-
-test('inspectSkillRepository recommends skills-root for common skills layout', () => {
-  const upstream = makeExternalSkillsRootFixture();
-  const result = inspectSkillRepository({ repository: upstream });
-
-  assert.equal(result.recommendation.mode, 'skills-root');
-  assert.equal(result.recommendation.sourcePath, 'skills');
-  assert.deepEqual(result.recommendation.skills, ['alpha', 'beta']);
-  assert.equal(result.candidates.some((candidate) => candidate.path === 'skills'), true);
-});
-
-test('addSyncSource writes registry entry that syncSkills can use', () => {
-  const repoRoot = makePackageFixture();
-  const upstream = makeExternalSkillsRootFixture();
-
-  const entry = addSyncSource({
-    repoRoot,
-    name: 'external-pack',
-    repository: upstream,
-  });
-
-  assert.deepEqual(entry, {
-    repository: upstream,
-    mode: 'skills-root',
-    sourcePath: 'skills',
-  });
-  assert.equal(loadSyncSources(repoRoot)['external-pack'].sourcePath, 'skills');
-
-  const result = syncSkills({
-    repoRoot,
-    sourceIds: ['external-pack'],
-    apply: true,
-  });
-
-  assert.equal(result.sources[0].summary.added, 3);
-  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'alpha', 'SKILL.md')), true);
-  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'alpha', 'data', 'items.csv')), true);
-  assert.equal(fs.existsSync(path.join(repoRoot, 'skills', 'beta', 'SKILL.md')), true);
+  assert.throws(() => parseSyncSkillsArgs(['--source', 'unknown']), /Unknown sync source/);
 });
 
 test('sync-skills --dry-run prints deterministic source summary', () => {
@@ -421,33 +344,6 @@ test('sync-skills rejects unknown source through CLI', () => {
   const code = runCli(['sync-skills', '--source', 'unknown'], fakeEnv(tempDir()), out.io);
   assert.equal(code, 1);
   assert.equal(out.stderr().includes('Unknown sync source: unknown'), true);
-});
-
-test('sync-skills inspect prints recommendation for local repository', () => {
-  const upstream = makeExternalSkillsRootFixture();
-  const out = capture();
-  const code = runCli(['sync-skills', 'inspect', '--repo', upstream], fakeEnv(tempDir()), out.io);
-
-  assert.equal(code, 0, out.stderr());
-  assert.equal(out.stdout().includes('Repository:'), true);
-  assert.equal(out.stdout().includes('Recommended mode: skills-root'), true);
-  assert.equal(out.stdout().includes('Recommended source: skills'), true);
-  assert.equal(out.stdout().includes('Skills: alpha, beta'), true);
-});
-
-test('sync-skills add-source writes registry through CLI', () => {
-  const repoRoot = makePackageFixture();
-  const upstream = makeExternalSkillsRootFixture();
-  const out = capture();
-  const code = runCli(
-    ['sync-skills', 'add-source', '--name', 'external-pack', '--repo', upstream],
-    { ...fakeEnv(tempDir()), TUNGNT_AI_SKILLS_SYNC_ROOT: repoRoot },
-    out.io,
-  );
-
-  assert.equal(code, 0, out.stderr());
-  assert.equal(out.stdout().includes('Source added: external-pack'), true);
-  assert.equal(loadSyncSources(repoRoot)['external-pack'].sourcePath, 'skills');
 });
 
 test('target map includes exactly the supported agents', () => {
@@ -505,7 +401,6 @@ test('planned package entries include core files', () => {
     'GEMINI.md',
     'CLAUDE.md',
     'AGENTS.md',
-    'skills.sync.json',
   ]);
   assert.equal(entries.includes('package.json'), false);
   assert.equal(entries.includes('README.md'), false);

@@ -33,8 +33,6 @@ This fork is a curated workflow skillset with its own structure and naming.
   Purpose: evidence-graded debugging, incident tracing, and code-area exploration before fixes or plans.
 - `quick-dev`
   Purpose: fast path for trivial, low-risk code changes that do not justify the full brainstorming and planning pipeline.
-- `upstream-skill-onboarding`
-  Purpose: inspect and onboard external skill repositories through `skills.sync.json` and the sync CLI instead of manual copying.
 - `ui-ux-pro-max`
   Purpose: design intelligence for UI/UX work. Use during UI design, review, or implementation to query design databases and generate design-system evidence. This is a domain skill, not a process skill.
 
@@ -104,8 +102,6 @@ Examples:
   Use `investigation` before proposing fixes.
 - "Make this tiny fix" / "small tweak in one file"
   Use `quick-dev` only when its scope gate is satisfied. If the work is creative, ambiguous, or changes broader behavior, `brainstorming` remains mandatory before `writing-plans`.
-- "Add skills from this repo" / "import this skill repository" / "sync skills from <repo>"
-  Use `upstream-skill-onboarding` to inspect the repository, add a source mapping, dry-run, ask before apply, and run tests.
 - "Build a landing page" / "Design a dashboard UI" / "Improve the UI/UX"
   Use `brainstorming` for requirement discovery and design approval when the work is creative or changes behavior. During that design work, use `ui-ux-pro-max` to generate UI/UX evidence and design-system recommendations. Do not let `ui-ux-pro-max` replace the brainstorming gate or change the next step from `writing-plans`.
 
