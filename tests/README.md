@@ -1,94 +1,164 @@
-# Testing and Manual Sync
+# Testing And Manual Skill Updates
 
-This file is a quick operator guide for manually checking the upstream skill sync tool before committing changes.
+Use this guide when an agent needs to compare, update, or add skills from another repository without changing the main branch directly or breaking this fork's skill trigger order.
 
-## Sync Tool
+## Branch Model
 
-The sync command is exposed through the existing CLI. From this repository root, use `npm exec`:
+Use `owner/skill-sync-updater` as the reusable work branch for skill update operations:
 
-```bash
-npm exec -- tungnt-ai-skills sync-skills
-npm exec -- tungnt-ai-skills sync-skills --source superpowers
-npm exec -- tungnt-ai-skills sync-skills --source ui-ux-pro-max
+```powershell
+git switch owner/skill-sync-updater
+git pull
 ```
 
-On Windows PowerShell, use `npm.cmd` if `npm.ps1` is blocked:
+This branch contains the sync tooling, owner-only skill updater workflow, and minor version `1.1.0`. If you look at `main` before merging this branch or a feature branch based on it, `main` can still show the older version.
+
+Do not run skill sync work directly on `main`.
+
+After the update is reviewed and tested, create a clean feature branch for the change you want to merge:
+
+```powershell
+git switch -c feature/add-skill-abc
+git add .
+git commit -m "feat: add skill abc"
+git push -u origin feature/add-skill-abc
+```
+
+Open the PR from `feature/add-skill-abc` into `main`.
+
+## Quick Run Checklist
+
+Start from the updater branch:
+
+```powershell
+git switch owner/skill-sync-updater
+git pull
+```
+
+Ask the agent to inspect and dry-run first. After you approve the apply step, run:
+
+```powershell
+npm.cmd run test:installer
+npm.cmd run test:skills
+git diff --check
+git status --short
+```
+
+Create the branch you want to merge into `main`:
+
+```powershell
+git switch -c feature/add-skill-abc
+git add .
+git commit -m "feat: add skill abc"
+git push -u origin feature/add-skill-abc
+```
+
+## Agent Prompt
+
+Use a prompt like this:
+
+```text
+Toi muon them/cap nhat skills tu repo https://github.com/example/skills-pack.
+Hay dung owner-skill-sync-updater: inspect repo, phan loai policy, dry-run,
+giai thich skill nao nen them/sua va ly do. Khong apply khi chua hoi toi.
+```
+
+The agent should follow this order:
+
+1. Load the normal bootstrap/process skills first.
+2. Use `owner-skill-sync-updater`.
+3. Inspect the repo.
+4. Classify the source policy.
+5. Dry-run.
+6. Explain what should change and why.
+7. Ask before `--apply`.
+8. Run tests after apply.
+9. Show the diff before commit.
+
+## Source Policies
+
+`superpowers`: `review-only`
+
+- Compare upstream ideas and report candidate local edits.
+- Do not copy upstream skills.
+- Do not add `using-superpowers`.
+- Do not overwrite local `using-tungnt-ai-skills`, `quick-dev`, `brainstorming`, TDD, planning, or review trigger logic.
+
+BMAD-derived workflow rules: `review-only`
+
+- Cherry-pick ideas such as quick-dev gates only after rewriting for this fork.
+- Do not change the fork's process logic unless the owner explicitly approves the specific behavior change.
+
+`ui-ux-pro-max`: managed composite source
+
+- Sync data/scripts/templates recursively when approved.
+- Review wrapper text such as `SKILL.md` and `PROMPT.md` before accepting upstream wording.
+- Keep it as a domain skill; it must not replace process skills.
+
+New skills repos: `preserve-existing`
+
+- Add brand-new skills.
+- Existing local skills are compared and skipped.
+- Design triggers so they do not weaken this fork's TDD, planning, review, or bootstrap gates.
+
+## Commands
+
+Dry-run all known sources:
 
 ```powershell
 npm.cmd exec -- tungnt-ai-skills sync-skills
+```
+
+Dry-run one known source:
+
+```powershell
 npm.cmd exec -- tungnt-ai-skills sync-skills --source superpowers
 npm.cmd exec -- tungnt-ai-skills sync-skills --source ui-ux-pro-max
 ```
 
-You can also run the bin directly:
+Inspect a new repo:
 
-```bash
-node bin/tungnt-ai-skills.js sync-skills --source superpowers
+```powershell
+npm.cmd exec -- tungnt-ai-skills sync-skills inspect --repo https://github.com/example/skills-pack.git
 ```
 
-The shorter command works only after the package is installed or linked into your PATH:
+Add a new skills repo with the default `preserve-existing` policy:
 
-```bash
-npm link
-tungnt-ai-skills sync-skills --source superpowers
+```powershell
+npm.cmd exec -- tungnt-ai-skills sync-skills add-source --name example-pack --repo https://github.com/example/skills-pack.git
 ```
 
-Dry-run is the default. It clones the upstream repo into a temporary directory, compares files, prints a summary, and does not write to this checkout.
+Add a forked workflow/process repo as review-only:
 
-To apply changes:
+```powershell
+npm.cmd exec -- tungnt-ai-skills sync-skills add-source --name workflow-pack --repo https://github.com/example/workflow-pack.git --policy review-only
+```
 
-```bash
-npm exec -- tungnt-ai-skills sync-skills --apply
-npm exec -- tungnt-ai-skills sync-skills --source superpowers --apply
-npm exec -- tungnt-ai-skills sync-skills --source ui-ux-pro-max --apply
+Dry-run the new source:
+
+```powershell
+npm.cmd exec -- tungnt-ai-skills sync-skills --source example-pack
+```
+
+Apply only after review:
+
+```powershell
+npm.cmd exec -- tungnt-ai-skills sync-skills --source example-pack --apply
 ```
 
 `--apply` is policy-aware. Review-only sources still do not write files.
 
-## What Gets Synced
+## Review Before Commit
 
-`superpowers` syncs upstream skill directories from:
+Inspect the diff:
 
-```text
-https://github.com/obra/superpowers.git
-upstream: skills/
-local:    skills/
-```
-
-This source uses `policy: review-only`:
-
-- Existing local skill directories are compared, not overwritten.
-- Files inside existing local skill directories are not added, updated, or deleted automatically.
-- Differences inside existing local skill directories are counted as `Skipped` for review.
-- New upstream skill directories are also counted as `Skipped`; they are not copied automatically.
-- `using-superpowers` is excluded because this fork uses `using-tungnt-ai-skills` as its bootstrap skill.
-
-`ui-ux-pro-max` is a composite sync:
-
-```text
-https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git
-upstream: .claude/skills/ui-ux-pro-max/SKILL.md
-upstream: src/ui-ux-pro-max/data/
-upstream: src/ui-ux-pro-max/scripts/
-upstream: src/ui-ux-pro-max/templates/
-local:    skills/ui-ux-pro-max/
-```
-
-That means CSV, YAML, TOML, JSON, Python, Markdown, and future files under those managed directories are copied recursively. Cache and transient files such as `.git`, `node_modules`, `__pycache__`, `.pyc`, `.DS_Store`, and `Thumbs.db` are skipped.
-
-## Before Commit
-
-After applying a sync, inspect the diff first:
-
-```bash
+```powershell
 git status --short
 git diff --stat
 git diff -- skills
 ```
 
-Then run the regression checks.
-
-On Windows PowerShell, prefer `npm.cmd` because some machines block `npm.ps1`:
+Run checks:
 
 ```powershell
 npm.cmd run test:installer
@@ -96,96 +166,16 @@ npm.cmd run test:skills
 git diff --check
 ```
 
-On shells where `npm` works directly:
-
-```bash
-npm run test:installer
-npm run test:skills
-git diff --check
-```
-
-Commit only after the tests pass and the skill diff matches the upstream sync you intended.
+Commit only after tests pass and the diff is focused on the intended skill update.
 
 ## Network Notes
 
-Manual sync requires `git` and network access to GitHub. If the command fails before cloning, verify:
+Manual sync requires `git` and network access to GitHub. If cloning fails, verify:
 
-```bash
+```powershell
 git --version
 git ls-remote https://github.com/obra/superpowers.git HEAD
 git ls-remote https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git HEAD
 ```
 
-The installer tests do not require network access; they use local fixtures to verify sync behavior.
-
-## Adding Another Skills Repository
-
-Use inspect first. It does not write files:
-
-```bash
-npm exec -- tungnt-ai-skills sync-skills inspect --repo https://github.com/example/skills-pack.git
-```
-
-If the recommendation is clear, add it to the registry. New skills repos default to `policy: preserve-existing`:
-
-```bash
-npm exec -- tungnt-ai-skills sync-skills add-source --name example-pack --repo https://github.com/example/skills-pack.git
-```
-
-For forked workflow/process repos, use review-only:
-
-```bash
-npm exec -- tungnt-ai-skills sync-skills add-source --name workflow-pack --repo https://github.com/example/workflow-pack.git --policy review-only
-```
-
-This writes a new entry to:
-
-```text
-skills.sync.json
-```
-
-Then run a dry-run:
-
-```bash
-npm exec -- tungnt-ai-skills sync-skills --source example-pack
-```
-
-Apply only after reviewing the dry-run:
-
-```bash
-npm exec -- tungnt-ai-skills sync-skills --source example-pack --apply
-```
-
-The auto-detected layouts currently support common repositories shaped like:
-
-```text
-skills/<skill-name>/SKILL.md
-.claude/skills/<skill-name>/SKILL.md
-.codex/skills/<skill-name>/SKILL.md
-.github/copilot/skills/<skill-name>/SKILL.md
-SKILL.md
-```
-
-For unusual layouts, inspect the repository, decide the mapping, and edit `skills.sync.json` explicitly. Composite sources can map explicit files and directories into a single local skill.
-
-## Agent Prompt Flow
-
-When asking an AI agent to add a new skills repo, use a prompt like:
-
-```text
-Tôi muốn thêm skills từ repo https://github.com/example/skills-pack.
-Hãy inspect repo, đề xuất mapping, thêm source, dry-run, rồi hỏi tôi trước khi apply.
-```
-
-The agent should use the `owner-skill-sync-updater` skill and follow this order:
-
-1. Load the normal bootstrap/process skills first, so current skill trigger order is not bypassed.
-2. `sync-skills inspect --repo <repo>`
-3. Explain the detected mapping, source policy, and any source exclusions before writing config.
-4. `sync-skills add-source --name <name> --repo <repo>` or add `--policy review-only` for forked workflow/process repos.
-5. `sync-skills --source <name>`
-6. Ask before `--apply`.
-7. Run tests after apply.
-8. Show the diff before commit.
-
-Do not add an upstream bootstrap skill when this fork already has an equivalent local bootstrap. For example, `using-superpowers` stays excluded because `using-tungnt-ai-skills` owns the session-start trigger order here. Likewise, upstream examples that were renamed locally should be compared for review instead of copied back under old names.
+Installer tests do not require network access; they use local fixtures.
