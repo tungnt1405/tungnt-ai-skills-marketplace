@@ -5,7 +5,7 @@ description: Use when completing tasks, implementing major features, or before m
 
 # Requesting Code Review
 
-Dispatch a code reviewer subagent to catch issues before they cascade. The reviewer gets precisely crafted context for evaluation — never your session's history. This keeps the reviewer focused on the work product, not your thought process, and preserves your own context for continued work.
+Dispatch a code reviewer subagent to catch issues before they cascade. The reviewer gets precisely crafted context for evaluation - never your session's history. This keeps the reviewer focused on the work product, not your thought process, and preserves your own context for continued work.
 
 **Core principle:** Review early, review often.
 
@@ -39,11 +39,26 @@ Use Task tool with `general-purpose` type, fill template at `code-reviewer.md`
 - `{BASE_SHA}` - Starting commit
 - `{HEAD_SHA}` - Ending commit
 
+## Three Review Lenses
+
+A code review pass uses three independent lenses inside the same reviewer subagent. These lenses do not change how many review subagents the workflow dispatches.
+
+1. **Blind Hunter** receives only the diff. It looks for bugs, security issues, broken assumptions, missing migrations, unsafe defaults, and suspicious omissions without project narrative.
+2. **Edge Case Hunter** receives the diff and can inspect the project. It walks changed branches and boundary conditions: empty input, missing defaults, state transitions, concurrency, retries, timeouts, filesystem and network failure, path handling, and cleanup.
+3. **Acceptance Auditor** receives the diff plus plan or requirements. It verifies every acceptance criterion, constraint, and non-goal against the implementation.
+
+Triage findings into:
+
+- **Must-Fix**: correctness, security, data loss, broken acceptance criteria, or failing tests.
+- **Should-Fix**: maintainability, test gaps, unclear error behavior, or fragile design that should be fixed before proceeding.
+- **Consider**: real improvement but not required for this change.
+- **Praise**: specific evidence of good implementation choices.
+
 **3. Act on feedback:**
-- Fix Critical issues immediately
-- Fix Important issues before proceeding
-- Note Minor issues for later
-- Push back if reviewer is wrong (with reasoning)
+- Fix Must-Fix items immediately.
+- Fix Should-Fix items before proceeding unless you can defend a narrower scope with evidence.
+- Track Consider items separately when they are outside the current change.
+- Push back on incorrect findings with code, tests, or source citations.
 
 ## Example
 
@@ -62,11 +77,12 @@ HEAD_SHA=$(git rev-parse HEAD)
   HEAD_SHA: 3df7661
 
 [Subagent returns]:
-  Strengths: Clean architecture, real tests
-  Issues:
-    Important: Missing progress indicators
-    Minor: Magic number (100) for reporting interval
-  Assessment: Ready to proceed
+  Praise: Clean architecture, real tests
+  Should-Fix:
+    Missing progress indicators
+  Consider:
+    Magic number (100) for reporting interval
+  Assessment: Ready to proceed with fixes
 
 You: [Fix progress indicators]
 [Continue to Task 3]
@@ -91,8 +107,8 @@ You: [Fix progress indicators]
 
 **Never:**
 - Skip review because "it's simple"
-- Ignore Critical issues
-- Proceed with unfixed Important issues
+- Ignore Must-Fix issues
+- Proceed with unfixed Should-Fix issues without evidence
 - Argue with valid technical feedback
 
 **If reviewer wrong:**

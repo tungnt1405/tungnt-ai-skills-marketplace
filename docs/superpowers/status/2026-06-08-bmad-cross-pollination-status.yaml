@@ -12,11 +12,11 @@ tasks:
     completed_at: 2026-06-08
   - id: 3
     name: Add Parallel Review Lenses to Code Review Prompts
-    status: in-progress
-    completed_at:
+    status: complete
+    completed_at: 2026-06-08
   - id: 4
     name: Add Optional Plan Status Tracking
-    status: pending
+    status: in-progress
     completed_at:
   - id: 5
     name: Add Quick-Dev Fast Path and Bootstrap Routing

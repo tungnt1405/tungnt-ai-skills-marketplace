@@ -32,6 +32,22 @@ Task tool (general-purpose):
 
     ## What to Check
 
+    ### Required Review Lenses
+
+    Run all three lenses independently before writing the final review:
+
+    ### Blind Hunter
+
+    Review only the diff first. Ignore the implementation story and look for bugs, security issues, missing cleanup, broken invariants, unsafe defaults, and suspicious omissions.
+
+    ### Edge Case Hunter
+
+    Walk every changed branch and boundary condition that is directly reachable from the diff. Check empty values, missing defaults, error paths, retries, timeouts, concurrency, path handling, filesystem/network failure, and cleanup behavior.
+
+    ### Acceptance Auditor
+
+    Compare the implementation against the provided plan or requirements. Flag missing acceptance criteria, violated constraints, unimplemented edge cases, and behavior added outside the requested scope.
+
     **Plan alignment:**
     - Does the implementation match the plan / requirements?
     - Are deviations justified improvements, or problematic departures?
@@ -64,8 +80,8 @@ Task tool (general-purpose):
 
     ## Calibration
 
-    Categorize issues by actual severity. Not everything is Critical.
-    Acknowledge what was done well before listing issues — accurate praise
+    Categorize issues by actual severity. Reserve Must-Fix for correctness, security, data loss, failing tests, or acceptance violations.
+    Acknowledge what was done well before listing issues - accurate praise
     helps the implementer trust the rest of the feedback.
 
     If you find significant deviations from the plan, flag them specifically
@@ -75,94 +91,87 @@ Task tool (general-purpose):
 
     ## Output Format
 
-    ### Strengths
-    [What's well done? Be specific.]
+    ### Praise
+    [Specific implementation choices that are genuinely good.]
 
-    ### Issues
+    ### Must-Fix
+    [Correctness, security, data loss, failing tests, or acceptance violations.]
 
-    #### Critical (Must Fix)
-    [Bugs, security issues, data loss risks, broken functionality]
+    ### Should-Fix
+    [Maintainability issues, missing important tests, fragile error behavior, unclear boundaries.]
 
-    #### Important (Should Fix)
-    [Architecture problems, missing features, poor error handling, test gaps]
+    ### Consider
+    [Useful but non-blocking improvements or follow-up work.]
 
-    #### Minor (Nice to Have)
-    [Code style, optimization opportunities, documentation polish]
-
-    For each issue:
+    For each finding:
     - File:line reference
     - What's wrong
     - Why it matters
     - How to fix (if not obvious)
 
-    ### Recommendations
-    [Improvements for code quality, architecture, or process]
-
     ### Assessment
 
-    **Ready to merge?** [Yes | No | With fixes]
+    **Ready to proceed?** [Yes | No | With fixes]
 
-    **Reasoning:** [1-2 sentence technical assessment]
+    **Reasoning:** [1-2 sentence technical assessment.]
 
-    ## Critical Rules
+    ## Review Rules
 
     **DO:**
+    - Run all three review lenses before writing the final review
     - Categorize by actual severity
     - Be specific (file:line, not vague)
     - Explain WHY each issue matters
-    - Acknowledge strengths
+    - Acknowledge strengths as Praise
     - Give a clear verdict
 
     **DON'T:**
     - Say "looks good" without checking
-    - Mark nitpicks as Critical
+    - Mark non-blocking improvements as Must-Fix
     - Give feedback on code you didn't actually read
     - Be vague ("improve error handling")
     - Avoid giving a clear verdict
 ```
 
 **Placeholders:**
-- `{DESCRIPTION}` — brief summary of what was built
-- `{PLAN_OR_REQUIREMENTS}` — what it should do (plan file path, task text, or requirements)
-- `{BASE_SHA}` — starting commit
-- `{HEAD_SHA}` — ending commit
+- `{DESCRIPTION}` - brief summary of what was built
+- `{PLAN_OR_REQUIREMENTS}` - what it should do (plan file path, task text, or requirements)
+- `{BASE_SHA}` - starting commit
+- `{HEAD_SHA}` - ending commit
 
-**Reviewer returns:** Strengths, Issues (Critical / Important / Minor), Recommendations, Assessment
+**Reviewer returns:** Praise, Must-Fix, Should-Fix, Consider, Assessment
 
 ## Example Output
 
 ```
-### Strengths
+### Praise
 - Clean database schema with proper migrations (db.ts:15-42)
 - Comprehensive test coverage (18 tests, all edge cases)
 - Good error handling with fallbacks (summarizer.ts:85-92)
 
-### Issues
+### Must-Fix
+No findings.
 
-#### Important
+### Should-Fix
 1. **Missing help text in CLI wrapper**
    - File: index-conversations:1-31
-   - Issue: No --help flag, users won't discover --concurrency
-   - Fix: Add --help case with usage examples
+   - Issue: No --help flag, users will not discover --concurrency.
+   - Fix: Add --help case with usage examples.
 
 2. **Date validation missing**
    - File: search.ts:25-27
-   - Issue: Invalid dates silently return no results
-   - Fix: Validate ISO format, throw error with example
+   - Issue: Invalid dates silently return no results.
+   - Fix: Validate ISO format and throw an error with an example.
 
-#### Minor
+### Consider
 1. **Progress indicators**
    - File: indexer.ts:130
-   - Issue: No "X of Y" counter for long operations
-   - Impact: Users don't know how long to wait
-
-### Recommendations
-- Add progress reporting for user experience
-- Consider config file for excluded projects (portability)
+   - Issue: No "X of Y" counter for long operations.
+   - Impact: Users do not know how long to wait.
 
 ### Assessment
 
-**Ready to merge: With fixes**
+**Ready to proceed?** With fixes
 
-**Reasoning:** Core implementation is solid with good architecture and tests. Important issues (help text, date validation) are easily fixed and don't affect core functionality.
+**Reasoning:** Core implementation is solid with good architecture and tests. The Should-Fix items are small but should be addressed before continuing.
 ```
