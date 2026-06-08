@@ -40,6 +40,7 @@ function frontmatterName(content) {
 assert.equal(exists('skills/investigation/SKILL.md'), true, 'investigation skill must exist');
 assert.equal(exists('skills/quick-dev/SKILL.md'), true, 'quick-dev skill must exist');
 assert.equal(exists('skills/owner-skill-sync-updater/SKILL.md'), true, 'owner skill sync updater must exist');
+assert.equal(exists('skills/api-design/SKILL.md'), true, 'api-design skill must exist');
 
 const bootstrap = read('skills/using-tungnt-ai-skills/SKILL.md');
 assertIncludes(bootstrap, '- `investigation`', 'bootstrap');
@@ -59,6 +60,18 @@ assertIncludes(quickDev, 'under 30 minutes', 'quick-dev scope gate');
 assertIncludes(quickDev, '1-2 non-test/non-doc files', 'quick-dev scope gate');
 assertIncludes(quickDev, 'Escalate Out Of Quick Dev', 'quick-dev red flags');
 assertIncludes(quickDev, 'switch to `brainstorming` then `writing-plans`', 'quick-dev red flags');
+
+const apiDesign = read('skills/api-design/SKILL.md');
+assert.equal(frontmatterName(apiDesign), 'api-design', 'api-design frontmatter name');
+assertIncludes(apiDesign, 'TDD Trigger Coverage', 'api-design TDD coverage');
+assertIncludes(apiDesign, 'Baseline failure', 'api-design TDD coverage');
+assertIncludes(apiDesign, 'Skill counter', 'api-design TDD coverage');
+assertIncludes(apiDesign, 'Contract-first resources', 'api-design TDD coverage');
+assertIncludes(apiDesign, 'One structured error shape', 'api-design error semantics');
+assertIncludes(apiDesign, 'Idempotency/repeatability requirement', 'api-design retry safety');
+assertIncludes(apiDesign, 'Additive evolution', 'api-design compatibility');
+assertIncludes(apiDesign, 'Boundary validation', 'api-design validation');
+assertIncludes(apiDesign, 'Compatibility Review', 'api-design compatibility review');
 
 const ownerSkillSync = read('skills/owner-skill-sync-updater/SKILL.md');
 assert.equal(frontmatterName(ownerSkillSync), 'owner-skill-sync-updater', 'owner skill sync frontmatter name');
