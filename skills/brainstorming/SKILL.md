@@ -108,6 +108,29 @@ digraph brainstorming {
 - Where existing code has problems that affect the work (e.g., a file that's grown too large, unclear boundaries, tangled responsibilities), include targeted improvements as part of the design - the way a good developer improves code they're working in.
 - Don't propose unrelated refactoring. Stay focused on what serves the current goal.
 
+## Spec Kernel
+
+At the end of the approved design, optionally include a compact Spec Kernel that can be copied directly into `writing-plans`.
+
+```markdown
+## Spec Kernel
+
+**Goal:** <one sentence describing the outcome>
+
+**Users:** <who benefits or operates the change>
+
+**Acceptance Criteria:**
+- Given <precondition>, when <action>, then <expected result>.
+
+**Constraints:**
+- <non-negotiable technical, workflow, compatibility, or dependency constraint>
+
+**Out of Scope:**
+- <explicit non-goal>
+```
+
+Use the Spec Kernel when it improves handoff clarity. Do not replace the full design doc when the work is complex.
+
 ## After the Design
 
 **Documentation:**
