@@ -5,7 +5,10 @@
 ## What This Fork Provides
 
 - `using-tungnt-ai-skills` bootstrap rules for this fork
-- workflow skills under `skills/` for brainstorming, planning, implementation, review, and branch finish work
+- workflow skills under `skills/` for investigation, quick fixes, brainstorming, planning, implementation, review, and branch finish work
+- `ui-ux-pro-max` design intelligence for UI/UX work across web and mobile applications
+- `writing-skills` guidance for creating, editing, and pressure-testing skills
+- optional YAML plan status tracking under `docs/superpowers/status/`
 - plugin metadata for Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and Google Antigravity
 - a zero-dependency npm installer that copies the package into supported agent plugin directories
 
@@ -41,15 +44,28 @@ Some compatibility paths still use the old upstream name. In particular, `docs/s
 
 Agents should start with `using-tungnt-ai-skills`, then choose the smallest relevant workflow skill:
 
+- bug diagnosis, incident tracing, or unfamiliar code exploration: `investigation`
+- trivial low-risk changes that can be completed quickly: `quick-dev`
 - fuzzy idea or design work: `brainstorming`
+- UI/UX design, review, or implementation evidence: `ui-ux-pro-max`
 - approved design that needs an implementation plan: `writing-plans`
 - substantial work that needs isolation: `using-git-worktrees`
 - plan execution with subagents: `subagent-driven-development`
 - plan execution without subagents: `executing-plans`
 - review before handoff: `requesting-code-review`
 - final merge, cleanup, or handoff: `finishing-a-development-branch`
+- creating or updating reusable skills: `writing-skills`
 
 Skill calls use the real names from each `SKILL.md` file, not a plugin-prefixed namespace.
+
+Recent workflow additions:
+
+- `ui-ux-pro-max` provides UI/UX design intelligence as a domain skill; use it inside the normal workflow without replacing `brainstorming`, `writing-plans`, or execution gates.
+- `brainstorming` can emit an optional Spec Kernel with goal, users, acceptance criteria, constraints, and out-of-scope items for handoff to `writing-plans`.
+- `executing-plans` and `subagent-driven-development` can maintain lightweight YAML status files at `docs/superpowers/status/<plan-name>-status.yaml`.
+- `executing-plans` checks for unresolved review continuation items before starting new plan tasks.
+- `requesting-code-review` and the subagent code-quality prompt use Blind Hunter, Edge Case Hunter, and Acceptance Auditor lenses with Must-Fix, Should-Fix, Consider, and Praise buckets.
+- `finishing-a-development-branch` now validates Definition-of-Done before presenting merge, PR, keep, or discard options.
 
 ## Install
 
@@ -563,6 +579,12 @@ Run installer tests:
 
 ```bash
 npm run test:installer
+```
+
+Run skill content regression tests:
+
+```bash
+npm run test:skills
 ```
 
 The package is intentionally dependency-free. Do not add third-party runtime dependencies unless the project requirements change explicitly.
