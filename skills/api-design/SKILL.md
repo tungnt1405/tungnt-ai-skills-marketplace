@@ -20,6 +20,19 @@ Use stricter local API standards first.
 
 Do not use for private helpers unless they cross a team, package, process, or deployment boundary.
 
+## Domain Workflow Trigger
+
+This is a domain skill for API contract design. It supplies API design judgment inside the selected process workflow; it does not choose or replace `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development`, or review skills.
+
+Invoke this skill during a workflow only when the work involves designing, creating, updating, or reviewing REST/HTTP API contracts:
+
+- During `brainstorming`, use it when the user asks to create or change an API, endpoint, request schema, response schema, error semantics, pagination, filtering, sorting, versioning, idempotency, retry behavior, or compatibility behavior.
+- During `writing-plans`, use it when an approved spec includes API contract behavior that must become TDD tasks and failing tests.
+- During execution, use it as a constraint when a plan task implements or changes API contract behavior; if implementation reveals a contract gap, stop and revise the spec or plan instead of inventing behavior in code.
+- During review, use it as an API lens when the diff changes endpoints, schemas, errors, pagination, retries, idempotency, versioning, validation, or compatibility.
+
+Do not invoke this skill for generic backend logic, private helpers, database-only changes, UI-only work, or implementation tasks that do not expose or change an API contract.
+
 ## TDD Trigger Coverage
 
 These are the RED scenarios this skill must prevent:
