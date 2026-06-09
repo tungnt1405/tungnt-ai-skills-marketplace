@@ -43,6 +43,7 @@ assert.equal(exists('skills/investigation/SKILL.md'), true, 'investigation skill
 assert.equal(exists('skills/quick-dev/SKILL.md'), true, 'quick-dev skill must exist');
 assert.equal(exists(`skills/${ownerSyncName}/SKILL.md`), false, 'owner sync skill must stay off main');
 assert.equal(exists('skills/api-design/SKILL.md'), true, 'api-design skill must exist');
+assert.equal(exists('skills/security-and-hardening/SKILL.md'), true, 'security-and-hardening skill must exist');
 
 const bootstrap = read('skills/using-tungnt-ai-skills/SKILL.md');
 assertIncludes(bootstrap, '- `investigation`', 'bootstrap');
@@ -74,6 +75,26 @@ assertIncludes(apiDesign, 'Idempotency/repeatability requirement', 'api-design r
 assertIncludes(apiDesign, 'Additive evolution', 'api-design compatibility');
 assertIncludes(apiDesign, 'Boundary validation', 'api-design validation');
 assertIncludes(apiDesign, 'Compatibility Review', 'api-design compatibility review');
+
+const security = read('skills/security-and-hardening/SKILL.md');
+assert.equal(frontmatterName(security), 'security-and-hardening', 'security-and-hardening frontmatter name');
+assertIncludes(security, 'Use when securing or reviewing software', 'security-and-hardening trigger');
+assertIncludes(security, 'Domain Workflow Trigger', 'security-and-hardening workflow trigger');
+assertIncludes(security, 'TDD Trigger Coverage', 'security-and-hardening TDD coverage');
+assertIncludes(security, 'OWASP Top 10:2025', 'security-and-hardening OWASP 2025');
+assertIncludes(security, 'A03:2025 Software Supply Chain Failures', 'security-and-hardening supply chain');
+assertIncludes(security, 'DevSecOps Pipeline Gates', 'security-and-hardening devsecops');
+assertIncludes(security, 'scripts/security-smoke-scan.mjs', 'security-and-hardening smoke scan');
+assert.equal(exists('skills/security-and-hardening/references/owasp-2025-map.md'), true, 'security OWASP reference must exist');
+assert.equal(exists('skills/security-and-hardening/references/devsecops-gates.md'), true, 'security DevSecOps reference must exist');
+assert.equal(exists('skills/security-and-hardening/references/cors.md'), true, 'security CORS reference must exist');
+assert.equal(exists('skills/security-and-hardening/scripts/security-smoke-scan.mjs'), true, 'security smoke scan script must exist');
+
+const cors = read('skills/security-and-hardening/references/cors.md');
+assertIncludes(cors, 'CORS is not authorization', 'CORS reference auth warning');
+assertIncludes(cors, 'Do not reflect arbitrary `Origin` values', 'CORS reference origin reflection');
+assertIncludes(cors, 'Vary: Origin', 'CORS reference vary origin');
+assertIncludes(cors, 'Access-Control-Allow-Credentials', 'CORS reference credentials');
 
 const requestReview = read('skills/requesting-code-review/SKILL.md');
 assertIncludes(requestReview, 'Blind Hunter', 'requesting-code-review lenses');
