@@ -27,12 +27,37 @@ If a local project instruction conflicts with a skill, follow the project instru
 
 This fork is a curated workflow skillset with its own structure and naming.
 
+### Process Skills
+
+Process skills choose the workflow and enforce gates. Exactly one process path should lead the work before any domain skill is used:
+
 - `using-tungnt-ai-skills`
   Purpose: bootstrap skill. Read this first, then use the right skill for the task.
 - `investigation`
   Purpose: evidence-graded debugging, incident tracing, and code-area exploration before fixes or plans.
 - `quick-dev`
   Purpose: fast path for trivial, low-risk code changes that do not justify the full brainstorming and planning pipeline.
+- `brainstorming`
+  Purpose: design exploration and approval gate before creative work or behavior changes.
+- `writing-plans`
+  Purpose: turn approved specs or explicit requirements into implementation plans.
+- `executing-plans` / `subagent-driven-development`
+  Purpose: execute written plans with verification and review checkpoints.
+- `requesting-code-review` / `receiving-code-review`
+  Purpose: review completed work or evaluate incoming review feedback.
+- `finishing-a-development-branch`
+  Purpose: verify Definition-of-Done, then handle final branch integration.
+- `writing-skills`
+  Purpose: create, edit, or validate skills using skill-documentation TDD.
+
+### Domain Skills
+
+Domain skills add specialized judgment inside an already selected process workflow. They are never a substitute for the process gate.
+
+- `api-design`
+  Purpose: REST/HTTP API contract judgment during brainstorming, planning, execution, or review.
+- `security-and-hardening`
+  Purpose: application security and DevSecOps judgment during brainstorming, planning, execution, or review.
 - `ui-ux-pro-max`
   Purpose: design intelligence for UI/UX work. Use during UI design, review, or implementation to query design databases and generate design-system evidence. This is a domain skill, not a process skill.
 
@@ -75,6 +100,8 @@ Some skills use Claude Code tool names in their instructions. For platform-speci
 
 Invoke relevant or requested skills before any meaningful response or action, including exploratory steps when a skill collection clearly applies.
 
+The selected process skill controls the workflow. Domain skills may add constraints, evidence, examples, checklists, or review lenses, but they do not satisfy or bypass `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development`, `investigation`, review, or `writing-skills` gates.
+
 Examples:
 
 - Planning or decomposition work: check the root workflow skills in `skills/`
@@ -90,10 +117,43 @@ When multiple skills may apply, use this order:
 2. Choose a process skill that determines approach and gates
 3. Choose a domain skill that supplies evidence, constraints, or implementation guidance inside that process
 
+## Ambiguous Project Triage
+
+When the user's description is vague, broad, or mixes several concerns, do a short project/context triage before choosing domain lenses:
+
+1. **Read project signals first.** Check nearby docs, package/build files, folder names, framework files, and current diff/status when available.
+2. **Classify the work shape.** Is this a bug investigation, tiny edit, new behavior, approved plan, code review, skill authoring, or finish/merge task?
+3. **Choose the process skill.** Process choice comes from the work shape, not from the domain. If still unclear, use `brainstorming` for new behavior or ask one concise clarification.
+4. **Scan domain signals.** After process selection, use the domain lens routing table below.
+5. **Name the priority.** If multiple lenses match, use the one tied to the highest risk first: security/data loss > public API contract > UI/UX polish. Additional lenses are secondary.
+
+Do not use domain signals as permission to skip the process workflow. "Auth dashboard" means `brainstorming` first, then `security-and-hardening` and `ui-ux-pro-max` as lenses.
+
+## Domain Lens Routing
+
+After selecting the process skill, scan the user request, approved plan, current diff, error, and project context for these signals:
+
+| Signals | Add domain lens |
+| --- | --- |
+| REST, HTTP, endpoint, route, controller, request schema, response schema, error shape, pagination, filtering, sorting, idempotency, versioning, backward compatibility, SDK contract | `api-design` |
+| auth, authentication, authorization, session, cookie, CORS, CSRF, secrets, PII, payment, tenant isolation, file upload, webhook, SSRF, dependency audit, supply chain, OWASP, DevSecOps, LLM output, tool permissions | `security-and-hardening` |
+| UI, UX, dashboard, layout, component, form, table, mobile screen, web app screen, design system, visual hierarchy, responsive behavior, accessibility, interaction pattern | `ui-ux-pro-max` |
+
+Domain routing examples:
+
+- "Tests auth middleware are failing because user A can read user B's resource" -> process `investigation`, then lens `security-and-hardening`.
+- "Add REST endpoint to create invoice with idempotency and paginated list" -> process `brainstorming`, then lens `api-design`; add `security-and-hardening` if money, auth, tenant, or PII behavior is involved.
+- "Review auth diff before merge" -> process `requesting-code-review`, then lens `security-and-hardening`.
+- "Build permissions dashboard with roles, invites, and audit log" -> process `brainstorming`, then lenses `ui-ux-pro-max` and `security-and-hardening`.
+
 Examples:
 
 - "Design an endpoint"
-  First check the most relevant workflow skill, then `writing-plans` if the work is multi-step.
+  Use `brainstorming` first for new behavior, then use `api-design` inside that design workflow. Use `writing-plans` only after the design/spec gate is satisfied.
+- "Add auth, CORS, or payment handling"
+  Use `brainstorming` first unless `quick-dev` clearly passes. Use `security-and-hardening` as a domain lens inside the selected workflow.
+- "Create or update a skill"
+  Use `writing-skills`; domain skills cannot replace the RED/GREEN skill-testing gate.
 - "Plan a feature"
   First check `writing-plans`.
 - "Brainstorm a solution"
@@ -112,6 +172,8 @@ These usually mean you are skipping the repo's workflow discipline:
 - "I will inspect files first and decide later"
 - "I remember how an older version handled this"
 - "The folder name looks close enough"
+- "The domain skill has a checklist, so I can implement now"
+- "Security/API/UI guidance is enough; no need for the process workflow"
 
 Stop and load the matching current skill instead.
 

@@ -1,6 +1,6 @@
 ---
 name: ui-ux-pro-max
-description: "Use when building, designing, reviewing, or improving UI/UX for any web or mobile application. Provides design intelligence with 67 styles, 161 color palettes, 57 font pairings, 99 UX guidelines, and 25 chart types across 15 technology stacks."
+description: Use only after using-tungnt-ai-skills has selected a process workflow, as a supporting domain lens inside brainstorming, planning, execution, or review
 ---
 
 # ui-ux-pro-max

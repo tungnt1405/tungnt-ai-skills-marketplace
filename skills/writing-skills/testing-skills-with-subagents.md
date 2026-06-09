@@ -10,7 +10,7 @@ You run scenarios without the skill (RED - watch agent fail), write skill addres
 
 **Core principle:** If you didn't watch an agent fail without the skill, you don't know if the skill prevents the right failures.
 
-**REQUIRED BACKGROUND:** You MUST understand the RED-GREEN-REFACTOR cycle before using this reference. If a `test-driven-development` skill exists in the active skill set, load it as supporting background. This reference provides skill-specific test formats (pressure scenarios, rationalization tables).
+**REQUIRED BACKGROUND:** You MUST understand the RED-GREEN-REFACTOR cycle before using this reference. If the active skill set includes a dedicated TDD skill, load it as supporting background. This reference provides skill-specific test formats (pressure scenarios, rationalization tables).
 
 **Complete worked example:** See `examples/PROJECT_INSTRUCTIONS_TESTING.md` for a full test campaign testing project instruction variants.
 
