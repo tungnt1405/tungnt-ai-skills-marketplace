@@ -6,7 +6,7 @@
 
 - `using-tungnt-ai-skills` bootstrap rules for this fork
 - workflow skills under `skills/` for investigation, quick fixes, brainstorming, planning, implementation, review, and branch finish work
-- `ui-ux-pro-max` design intelligence for UI/UX work across web and mobile applications
+- domain skills for API design, security hardening, and UI/UX evidence inside the normal workflow
 - `writing-skills` guidance for creating, editing, and pressure-testing skills
 - optional YAML plan status tracking under `docs/superpowers/status/`
 - plugin metadata for Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and Google Antigravity
@@ -42,12 +42,11 @@ Some compatibility paths still use the old upstream name. In particular, `docs/s
 
 ## Core Workflow
 
-Agents should start with `using-tungnt-ai-skills`, then choose the smallest relevant workflow skill:
+Agents should start with `using-tungnt-ai-skills`, then choose the smallest relevant process skill:
 
 - bug diagnosis, incident tracing, or unfamiliar code exploration: `investigation`
 - trivial low-risk changes that can be completed quickly: `quick-dev`
 - fuzzy idea or design work: `brainstorming`
-- UI/UX design, review, or implementation evidence: `ui-ux-pro-max`
 - approved design that needs an implementation plan: `writing-plans`
 - substantial work that needs isolation: `using-git-worktrees`
 - plan execution with subagents: `subagent-driven-development`
@@ -55,6 +54,14 @@ Agents should start with `using-tungnt-ai-skills`, then choose the smallest rele
 - review before handoff: `requesting-code-review`
 - final merge, cleanup, or handoff: `finishing-a-development-branch`
 - creating or updating reusable skills: `writing-skills`
+
+Domain skills are supporting references, not workflow selectors:
+
+- REST/HTTP contract design evidence: `api-design`
+- application security and DevSecOps evidence: `security-and-hardening`
+- UI/UX design evidence: `ui-ux-pro-max`
+
+Domain skills must be used inside the selected process workflow. They do not replace `brainstorming`, `writing-plans`, execution, review, investigation, or `writing-skills` gates.
 
 Skill calls use the real names from each `SKILL.md` file, not a plugin-prefixed namespace.
 

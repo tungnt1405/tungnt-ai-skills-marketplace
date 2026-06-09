@@ -25,14 +25,14 @@ else
 fi
 echo ""
 
-# Test: use systematic-debugging
-echo ">>> Test 2: use-systematic-debugging"
-if "$SCRIPT_DIR/run-test.sh" "systematic-debugging" "$PROMPTS_DIR/use-systematic-debugging.txt"; then
+# Test: use investigation
+echo ">>> Test 2: use-investigation"
+if "$SCRIPT_DIR/run-test.sh" "investigation" "$PROMPTS_DIR/use-investigation.txt"; then
     PASSED=$((PASSED + 1))
-    RESULTS="$RESULTS\nPASS: use-systematic-debugging"
+    RESULTS="$RESULTS\nPASS: use-investigation"
 else
     FAILED=$((FAILED + 1))
-    RESULTS="$RESULTS\nFAIL: use-systematic-debugging"
+    RESULTS="$RESULTS\nFAIL: use-investigation"
 fi
 echo ""
 

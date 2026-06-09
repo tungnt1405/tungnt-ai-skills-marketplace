@@ -1,6 +1,6 @@
 ---
 name: ui-ux-pro-max
-description: "Use when building, designing, reviewing, or improving UI/UX for any web or mobile application. Provides design intelligence with 67 styles, 161 color palettes, 57 font pairings, 99 UX guidelines, and 25 chart types across 15 technology stacks."
+description: "Use as a supporting domain reference when the active workflow involves building, designing, reviewing, or improving UI/UX for a web or mobile application"
 ---
 
 # ui-ux-pro-max

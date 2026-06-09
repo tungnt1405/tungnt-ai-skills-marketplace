@@ -1,6 +1,6 @@
 ---
 name: security-and-hardening
-description: Use when securing or reviewing software that handles user input, authentication, authorization, sessions, secrets, sensitive data, file uploads, webhooks, URL fetches, external integrations, dependencies, CI/CD pipelines, LLM output, OWASP Top 10 risks, or DevSecOps gates
+description: Use as a supporting domain reference when the active workflow involves user input, authentication, authorization, sessions, secrets, sensitive data, file uploads, webhooks, URL fetches, external integrations, dependencies, CI/CD pipelines, LLM output, OWASP Top 10 risks, or DevSecOps gates
 ---
 
 # Security and Hardening

@@ -48,6 +48,12 @@ assert.equal(exists('skills/security-and-hardening/SKILL.md'), true, 'security-a
 const bootstrap = read('skills/using-tungnt-ai-skills/SKILL.md');
 assertIncludes(bootstrap, '- `investigation`', 'bootstrap');
 assertIncludes(bootstrap, '- `quick-dev`', 'bootstrap');
+assertIncludes(bootstrap, '### Process Skills', 'bootstrap process taxonomy');
+assertIncludes(bootstrap, '### Domain Skills', 'bootstrap domain taxonomy');
+assertIncludes(bootstrap, '- `api-design`', 'bootstrap api domain');
+assertIncludes(bootstrap, '- `security-and-hardening`', 'bootstrap security domain');
+assertIncludes(bootstrap, 'Domain skills add specialized judgment inside an already selected process workflow', 'bootstrap domain rule');
+assertIncludes(bootstrap, 'domain skills cannot replace the RED/GREEN skill-testing gate', 'bootstrap writing-skills gate');
 assert.equal(bootstrap.includes(ownerSyncName), false, 'bootstrap must not trigger owner sync on main');
 
 const investigation = read('skills/investigation/SKILL.md');
@@ -66,6 +72,7 @@ assertIncludes(quickDev, 'switch to `brainstorming` then `writing-plans`', 'quic
 
 const apiDesign = read('skills/api-design/SKILL.md');
 assert.equal(frontmatterName(apiDesign), 'api-design', 'api-design frontmatter name');
+assertIncludes(apiDesign, 'Use as a supporting domain reference', 'api-design supporting domain trigger');
 assertIncludes(apiDesign, 'TDD Trigger Coverage', 'api-design TDD coverage');
 assertIncludes(apiDesign, 'Baseline failure', 'api-design TDD coverage');
 assertIncludes(apiDesign, 'Skill counter', 'api-design TDD coverage');
@@ -78,7 +85,7 @@ assertIncludes(apiDesign, 'Compatibility Review', 'api-design compatibility revi
 
 const security = read('skills/security-and-hardening/SKILL.md');
 assert.equal(frontmatterName(security), 'security-and-hardening', 'security-and-hardening frontmatter name');
-assertIncludes(security, 'Use when securing or reviewing software', 'security-and-hardening trigger');
+assertIncludes(security, 'Use as a supporting domain reference', 'security-and-hardening supporting domain trigger');
 assertIncludes(security, 'Domain Workflow Trigger', 'security-and-hardening workflow trigger');
 assertIncludes(security, 'TDD Trigger Coverage', 'security-and-hardening TDD coverage');
 assertIncludes(security, 'OWASP Top 10:2025', 'security-and-hardening OWASP 2025');
@@ -95,6 +102,11 @@ assertIncludes(cors, 'CORS is not authorization', 'CORS reference auth warning')
 assertIncludes(cors, 'Do not reflect arbitrary `Origin` values', 'CORS reference origin reflection');
 assertIncludes(cors, 'Vary: Origin', 'CORS reference vary origin');
 assertIncludes(cors, 'Access-Control-Allow-Credentials', 'CORS reference credentials');
+
+const uiUx = read('skills/ui-ux-pro-max/SKILL.md');
+assert.equal(frontmatterName(uiUx), 'ui-ux-pro-max', 'ui-ux-pro-max frontmatter name');
+assertIncludes(uiUx, 'Use as a supporting domain reference', 'ui-ux-pro-max supporting domain trigger');
+assertIncludes(uiUx, 'must not replace `brainstorming`, `writing-plans`, or execution/review skills', 'ui-ux-pro-max process guard');
 
 const requestReview = read('skills/requesting-code-review/SKILL.md');
 assertIncludes(requestReview, 'Blind Hunter', 'requesting-code-review lenses');
@@ -131,6 +143,21 @@ const forbiddenSkillTokens = [
   '{implementation_artifacts}',
   '<frozen-after-approval',
 ];
+
+const forbiddenRepoTokens = [
+  ['Context', '7'].join(''),
+];
+
+for (const file of walk(root)) {
+  const relative = path.relative(root, file);
+  if (relative.startsWith('.git')) {
+    continue;
+  }
+  const content = fs.readFileSync(file, 'utf8');
+  for (const token of forbiddenRepoTokens) {
+    assert.equal(content.includes(token), false, `${relative} must not contain ${token}`);
+  }
+}
 
 for (const relativePath of ['skills/investigation/SKILL.md', 'skills/quick-dev/SKILL.md']) {
   const content = read(relativePath);
