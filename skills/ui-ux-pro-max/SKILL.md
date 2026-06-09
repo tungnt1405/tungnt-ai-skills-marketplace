@@ -1,6 +1,6 @@
 ---
 name: ui-ux-pro-max
-description: "Use as a supporting domain reference when the active workflow involves building, designing, reviewing, or improving UI/UX for a web or mobile application"
+description: Use only after using-tungnt-ai-skills has selected a process workflow, as a supporting domain lens inside brainstorming, planning, execution, or review
 ---
 
 # ui-ux-pro-max

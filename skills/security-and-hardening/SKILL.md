@@ -1,6 +1,6 @@
 ---
 name: security-and-hardening
-description: Use as a supporting domain reference when the active workflow involves user input, authentication, authorization, sessions, secrets, sensitive data, file uploads, webhooks, URL fetches, external integrations, dependencies, CI/CD pipelines, LLM output, OWASP Top 10 risks, or DevSecOps gates
+description: Use only after using-tungnt-ai-skills has selected a process workflow, as a supporting domain lens inside brainstorming, planning, execution, or review
 ---
 
 # Security and Hardening
@@ -23,6 +23,8 @@ Use stricter local security standards first.
 Do not use this as a replacement for a qualified security review, threat model, penetration test, or compliance assessment.
 
 ## Domain Workflow Trigger
+
+Do not invoke this skill before `using-tungnt-ai-skills` and the active process workflow. If this skill was loaded first, immediately load `using-tungnt-ai-skills`, choose the process skill, and return here only as a supporting lens.
 
 This is a domain skill for application security and DevSecOps. It supplies security judgment inside the selected process workflow; it does not replace `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development`, or review skills.
 

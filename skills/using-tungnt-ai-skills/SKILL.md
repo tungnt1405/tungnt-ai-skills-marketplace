@@ -117,6 +117,35 @@ When multiple skills may apply, use this order:
 2. Choose a process skill that determines approach and gates
 3. Choose a domain skill that supplies evidence, constraints, or implementation guidance inside that process
 
+## Ambiguous Project Triage
+
+When the user's description is vague, broad, or mixes several concerns, do a short project/context triage before choosing domain lenses:
+
+1. **Read project signals first.** Check nearby docs, package/build files, folder names, framework files, and current diff/status when available.
+2. **Classify the work shape.** Is this a bug investigation, tiny edit, new behavior, approved plan, code review, skill authoring, or finish/merge task?
+3. **Choose the process skill.** Process choice comes from the work shape, not from the domain. If still unclear, use `brainstorming` for new behavior or ask one concise clarification.
+4. **Scan domain signals.** After process selection, use the domain lens routing table below.
+5. **Name the priority.** If multiple lenses match, use the one tied to the highest risk first: security/data loss > public API contract > UI/UX polish. Additional lenses are secondary.
+
+Do not use domain signals as permission to skip the process workflow. "Auth dashboard" means `brainstorming` first, then `security-and-hardening` and `ui-ux-pro-max` as lenses.
+
+## Domain Lens Routing
+
+After selecting the process skill, scan the user request, approved plan, current diff, error, and project context for these signals:
+
+| Signals | Add domain lens |
+| --- | --- |
+| REST, HTTP, endpoint, route, controller, request schema, response schema, error shape, pagination, filtering, sorting, idempotency, versioning, backward compatibility, SDK contract | `api-design` |
+| auth, authentication, authorization, session, cookie, CORS, CSRF, secrets, PII, payment, tenant isolation, file upload, webhook, SSRF, dependency audit, supply chain, OWASP, DevSecOps, LLM output, tool permissions | `security-and-hardening` |
+| UI, UX, dashboard, layout, component, form, table, mobile screen, web app screen, design system, visual hierarchy, responsive behavior, accessibility, interaction pattern | `ui-ux-pro-max` |
+
+Domain routing examples:
+
+- "Tests auth middleware are failing because user A can read user B's resource" -> process `investigation`, then lens `security-and-hardening`.
+- "Add REST endpoint to create invoice with idempotency and paginated list" -> process `brainstorming`, then lens `api-design`; add `security-and-hardening` if money, auth, tenant, or PII behavior is involved.
+- "Review auth diff before merge" -> process `requesting-code-review`, then lens `security-and-hardening`.
+- "Build permissions dashboard with roles, invites, and audit log" -> process `brainstorming`, then lenses `ui-ux-pro-max` and `security-and-hardening`.
+
 Examples:
 
 - "Design an endpoint"
