@@ -15,12 +15,12 @@ Load plan, review critically, execute all tasks, report when complete.
 
 ## Lightweight Status Tracking
 
-Status tracking is optional but recommended for multi-task plans. Use `docs/superpowers/status/<plan-name>-status.yaml`, where `<plan-name>` is the plan filename without `.md`.
+Status tracking is optional but recommended for multi-task plans. Use `docs/tungnt-ai-skills/status/<plan-name>-status.yaml`, where `<plan-name>` is the plan filename without `.md`.
 
 When starting a plan, create the status file if it does not exist:
 
 ```yaml
-plan_file: docs/superpowers/plans/example.md
+plan_file: docs/tungnt-ai-skills/plans/example.md
 started_at: YYYY-MM-DD
 overall_status: in-progress
 tasks:
@@ -41,7 +41,7 @@ Preserve user edits and comments in the status file. If the status file cannot b
 2. Review critically - identify any questions or concerns about the plan
 3. If concerns: Raise them with your human partner before starting
 4. If no concerns: Create TodoWrite and proceed
-5. Create or resume the optional status file at `docs/superpowers/status/<plan-name>-status.yaml`
+5. Create or resume the optional status file at `docs/tungnt-ai-skills/status/<plan-name>-status.yaml`
 6. Check for review continuation items before starting new work
 
 ### Step 2: Execute Tasks

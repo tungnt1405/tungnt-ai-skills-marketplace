@@ -29,7 +29,7 @@ This fork currently uses the root `skills/` workflow collection for workflow and
 - Added `quick-dev` for trivial, low-risk changes that fit a strict fast-path scope gate.
 - Added `ui-ux-pro-max` to the documented workflow as the UI/UX design intelligence domain skill.
 - Added `writing-skills` for creating, editing, and pressure-testing reusable skills.
-- Added optional YAML plan status tracking at `docs/superpowers/status/<plan-name>-status.yaml` for `executing-plans` and `subagent-driven-development`.
+- Added optional YAML plan status tracking at `docs/tungnt-ai-skills/status/<plan-name>-status.yaml` for `executing-plans` and `subagent-driven-development`.
 - Added review continuation awareness so resumed plan execution prioritizes unresolved review feedback before new tasks.
 - Added parallel review lenses: Blind Hunter, Edge Case Hunter, and Acceptance Auditor, with Must-Fix, Should-Fix, Consider, and Praise triage.
 - Added optional Spec Kernel output in `brainstorming` for clearer handoff into `writing-plans`.
@@ -172,7 +172,7 @@ Use that when:
 
 Current tracking:
 
-- multi-task plans may maintain `docs/superpowers/status/<plan-name>-status.yaml`
+- multi-task plans may maintain `docs/tungnt-ai-skills/status/<plan-name>-status.yaml`
 - resumed `executing-plans` sessions should check unresolved review continuation items before starting new plan tasks
 
 ### During review and completion
@@ -202,7 +202,7 @@ Some names remain intentionally legacy for compatibility.
 
 Current docs root:
 
-- `docs/superpowers/`
+- `docs/tungnt-ai-skills/`
 
 This is intentional. New plans/specs still use that location unless you migrate the repo in a coordinated way.
 
@@ -393,5 +393,5 @@ Use when:
 
 - Keep upstream attribution where it explains origin or compatibility.
 - Do not reintroduce `using-superpowers` as the active bootstrap path.
-- Do not rewrite `docs/superpowers/` unless the whole repo migrates together.
+- Keep `docs/tungnt-ai-skills/` as the canonical docs root.
 - Do not mix real skill names with fake plugin-prefixed aliases in tests or docs.

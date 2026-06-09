@@ -64,6 +64,25 @@ assertIncludes(bootstrap, 'Tests auth middleware are failing', 'bootstrap invest
 assertIncludes(bootstrap, 'Add REST endpoint to create invoice', 'bootstrap api example');
 assert.equal(bootstrap.includes(ownerSyncName), false, 'bootstrap must not trigger owner sync on main');
 
+const platformReferencePaths = [
+  'skills/using-tungnt-ai-skills/references/copilot-tools.md',
+  'skills/using-tungnt-ai-skills/references/codex-tools.md',
+  'skills/using-tungnt-ai-skills/references/gemini-tools.md',
+];
+
+for (const referencePath of platformReferencePaths) {
+  assertIncludes(bootstrap, `\`${referencePath}\``, 'bootstrap platform reference path');
+  assert.equal(exists(referencePath), true, `bootstrap platform reference must exist: ${referencePath}`);
+}
+
+for (const ambiguousPath of [
+  '`references/copilot-tools.md`',
+  '`references/codex-tools.md`',
+  '`references/gemini-tools.md`',
+]) {
+  assert.equal(bootstrap.includes(ambiguousPath), false, `bootstrap must not use ambiguous platform reference path: ${ambiguousPath}`);
+}
+
 const investigation = read('skills/investigation/SKILL.md');
 assert.equal(frontmatterName(investigation), 'investigation', 'investigation frontmatter name');
 assertIncludes(investigation, '**Confirmed.**', 'investigation evidence grading');
@@ -133,7 +152,7 @@ const codeQualityPrompt = read('skills/subagent-driven-development/code-quality-
 assertIncludes(codeQualityPrompt, 'Run all three lenses inside this single reviewer pass', 'code quality reviewer prompt');
 
 const executingPlans = read('skills/executing-plans/SKILL.md');
-assertIncludes(executingPlans, 'docs/superpowers/status/<plan-name>-status.yaml', 'executing-plans status tracking');
+assertIncludes(executingPlans, 'docs/tungnt-ai-skills/status/<plan-name>-status.yaml', 'executing-plans status tracking');
 assertIncludes(executingPlans, 'review continuation', 'executing-plans continuation');
 
 const sdd = read('skills/subagent-driven-development/SKILL.md');
@@ -180,7 +199,7 @@ for (const relativePath of ['skills/investigation/SKILL.md', 'skills/quick-dev/S
 
 const scannedDirs = [
   path.join(root, 'skills'),
-  path.join(root, 'docs', 'superpowers', 'specs'),
+  path.join(root, 'docs', 'tungnt-ai-skills', 'specs'),
 ];
 
 const absolutePathPattern = /(?:^|[^A-Za-z])(?:[A-Za-z]:[\\/]|\/e\/tungnt\.it\/|\/mnt\/[a-z]\/)/m;
