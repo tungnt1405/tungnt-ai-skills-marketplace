@@ -71,8 +71,8 @@ Use the actual folder layout in this repo when choosing files or giving instruct
   Bootstrap skill and platform references for this fork.
 - `skills/`
   Root location for the fork's workflow skills such as `brainstorming`, `writing-plans`, `using-git-worktrees`, `ui-ux-pro-max`, and related execution/review skills.
-- `docs/superpowers/`
-  Current docs root for legacy plans and specs. The folder name is legacy, but the content belongs to `tungnt-ai-skills`.
+- `docs/tungnt-ai-skills/`
+  Current docs root for plans, specs, investigations, and status files.
 - `tests/`
   Regression and integration tests for the forked skill behavior.
 
@@ -92,9 +92,9 @@ In other environments, use the platform's documented skill-loading mechanism.
 
 Some skills use Claude Code tool names in their instructions. For platform-specific tool mapping:
 
-- Copilot CLI: `references/copilot-tools.md`
-- Codex: `references/codex-tools.md`
-- Gemini CLI: `references/gemini-tools.md`
+- Copilot CLI: `skills/using-tungnt-ai-skills/references/copilot-tools.md`
+- Codex: `skills/using-tungnt-ai-skills/references/codex-tools.md`
+- Gemini CLI: `skills/using-tungnt-ai-skills/references/gemini-tools.md`
 
 ## The Rule
 
