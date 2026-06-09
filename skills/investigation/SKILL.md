@@ -15,7 +15,7 @@ Investigate before fixing. Reconstruct what is happening from evidence, document
 
 ## Output
 
-Create or update a case file at `docs/superpowers/investigations/<slug>.md` for bugs, incidents, resumable investigations, or non-trivial code-area exploration. For a lightweight "explain this code path" request, report findings directly unless the user asks for a persistent case file.
+Create or update a case file at `docs/tungnt-ai-skills/investigations/<slug>.md` for bugs, incidents, resumable investigations, or non-trivial code-area exploration. For a lightweight "explain this code path" request, report findings directly unless the user asks for a persistent case file.
 
 The slug is a ticket ID when one exists. Otherwise derive a short lowercase kebab-case name from the problem statement. If the file already exists, resume it when the user asked for resume or follow-up; otherwise create `<slug>-YYYY-MM-DD.md`.
 

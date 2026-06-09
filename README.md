@@ -8,11 +8,11 @@
 - workflow skills under `skills/` for investigation, quick fixes, brainstorming, planning, implementation, review, and branch finish work
 - domain skills for API design, security hardening, and UI/UX evidence inside the normal workflow
 - `writing-skills` guidance for creating, editing, and pressure-testing skills
-- optional YAML plan status tracking under `docs/superpowers/status/`
+- optional YAML plan status tracking under `docs/tungnt-ai-skills/status/`
 - plugin metadata for Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and Google Antigravity
 - a zero-dependency npm installer that copies the package into supported agent plugin directories
 
-Some compatibility paths still use the old upstream name. In particular, `docs/superpowers/` remains the active docs root for plans and specs.
+The active docs root for plans, specs, investigations, and status files is `docs/tungnt-ai-skills/`.
 
 ## Menu
 
@@ -33,7 +33,7 @@ Some compatibility paths still use the old upstream name. In particular, `docs/s
 
 - `skills/` bundled workflow skills
 - `skills/using-tungnt-ai-skills/` session bootstrap and platform references
-- `docs/superpowers/` active plans and specs root
+- `docs/tungnt-ai-skills/` active plans and specs root
 - `hooks/` session bootstrap and cross-platform hook wrappers
 - `installer/` npm installer target map and copy logic
 - `bin/tungnt-ai-skills.js` npm executable entrypoint
@@ -69,7 +69,7 @@ Recent workflow additions:
 
 - `ui-ux-pro-max` provides UI/UX design intelligence as a domain skill; use it inside the normal workflow without replacing `brainstorming`, `writing-plans`, or execution gates.
 - `brainstorming` can emit an optional Spec Kernel with goal, users, acceptance criteria, constraints, and out-of-scope items for handoff to `writing-plans`.
-- `executing-plans` and `subagent-driven-development` can maintain lightweight YAML status files at `docs/superpowers/status/<plan-name>-status.yaml`.
+- `executing-plans` and `subagent-driven-development` can maintain lightweight YAML status files at `docs/tungnt-ai-skills/status/<plan-name>-status.yaml`.
 - `executing-plans` checks for unresolved review continuation items before starting new plan tasks.
 - `requesting-code-review` and the subagent code-quality prompt use Blind Hunter, Edge Case Hunter, and Acceptance Auditor lenses with Must-Fix, Should-Fix, Consider, and Praise buckets.
 - `finishing-a-development-branch` now validates Definition-of-Done before presenting merge, PR, keep, or discard options.
@@ -564,7 +564,7 @@ Every manual integration has the same requirements:
 
 - load `skills/using-tungnt-ai-skills/SKILL.md` automatically at session start
 - expose the bundled `skills/` directory to the harness
-- preserve compatibility paths such as `docs/superpowers/`
+- use `docs/tungnt-ai-skills/` as the canonical docs root
 - keep skill invocations using the names declared in each `SKILL.md`
 
 Harness-specific metadata in this repo:

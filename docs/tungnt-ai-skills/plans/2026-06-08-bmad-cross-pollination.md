@@ -122,7 +122,7 @@ const codeQualityPrompt = read('skills/subagent-driven-development/code-quality-
 assertIncludes(codeQualityPrompt, 'Run all three lenses inside this single reviewer pass', 'code quality reviewer prompt');
 
 const executingPlans = read('skills/executing-plans/SKILL.md');
-assertIncludes(executingPlans, 'docs/superpowers/status/<plan-name>-status.yaml', 'executing-plans status tracking');
+assertIncludes(executingPlans, 'docs/tungnt-ai-skills/status/<plan-name>-status.yaml', 'executing-plans status tracking');
 assertIncludes(executingPlans, 'review continuation', 'executing-plans continuation');
 
 const sdd = read('skills/subagent-driven-development/SKILL.md');
@@ -154,7 +154,7 @@ for (const relativePath of ['skills/investigation/SKILL.md', 'skills/quick-dev/S
 
 const scannedDirs = [
   path.join(root, 'skills'),
-  path.join(root, 'docs', 'superpowers', 'specs'),
+  path.join(root, 'docs', 'tungnt-ai-skills', 'specs'),
 ];
 
 const absolutePathPattern = /(?:[A-Za-z]:\\|\/e\/tungnt\.it\/|\/mnt\/[a-z]\/)/;
@@ -224,7 +224,7 @@ Investigate before fixing. Reconstruct what is happening from evidence, document
 
 ## Output
 
-Create or update a case file at `docs/superpowers/investigations/<slug>.md`.
+Create or update a case file at `docs/tungnt-ai-skills/investigations/<slug>.md`.
 
 The slug is a ticket ID when one exists. Otherwise derive a short lowercase kebab-case name from the problem statement. If the file already exists, ask whether to resume it or create `<slug>-YYYY-MM-DD.md`.
 
@@ -577,12 +577,12 @@ Add a "Lightweight Status Tracking" section before "The Process":
 ````markdown
 ## Lightweight Status Tracking
 
-Status tracking is optional but recommended for multi-task plans. Use `docs/superpowers/status/<plan-name>-status.yaml`, where `<plan-name>` is the plan filename without `.md`.
+Status tracking is optional but recommended for multi-task plans. Use `docs/tungnt-ai-skills/status/<plan-name>-status.yaml`, where `<plan-name>` is the plan filename without `.md`.
 
 When starting a plan, create the status file if it does not exist:
 
 ```yaml
-plan_file: docs/superpowers/plans/example.md
+plan_file: docs/tungnt-ai-skills/plans/example.md
 started_at: YYYY-MM-DD
 overall_status: in-progress
 tasks:
@@ -600,7 +600,7 @@ Preserve user edits and comments in the status file. If the status file cannot b
 In Step 1 of the process, after TodoWrite creation, add:
 
 ```markdown
-4. Create or resume the optional status file at `docs/superpowers/status/<plan-name>-status.yaml`.
+4. Create or resume the optional status file at `docs/tungnt-ai-skills/status/<plan-name>-status.yaml`.
 5. Check for review continuation items before starting new work.
 ```
 
@@ -611,7 +611,7 @@ Add a "Status Tracking" section after "Continuous execution":
 ```markdown
 ## Status Tracking
 
-For plans with multiple tasks, maintain `docs/superpowers/status/<plan-name>-status.yaml` alongside TodoWrite.
+For plans with multiple tasks, maintain `docs/tungnt-ai-skills/status/<plan-name>-status.yaml` alongside TodoWrite.
 
 - Create it after reading the plan and extracting tasks.
 - Mark each task `in-progress` immediately before dispatching its implementer subagent.
@@ -850,7 +850,7 @@ Run:
 ```bash
 rg -n "resolve_customization.py|customize\\.toml|\\{communication_language\\}|\\{user_skill_level\\}|\\{implementation_artifacts\\}" skills/investigation skills/quick-dev
 rg -n "bmad-" skills/investigation skills/quick-dev skills/using-tungnt-ai-skills
-rg -n "https://github.com/bmad-code-org/BMAD-METHOD" skills docs/superpowers/specs
+rg -n "https://github.com/bmad-code-org/BMAD-METHOD" skills docs/tungnt-ai-skills/specs
 ```
 
 Expected:
@@ -867,7 +867,7 @@ Run:
 npm run test:skills
 ```
 
-Expected: absolute-path scan passes for `skills` and `docs/superpowers/specs`.
+Expected: absolute-path scan passes for `skills` and `docs/tungnt-ai-skills/specs`.
 
 - [ ] **Step 4: Optional upstream merge compatibility check**
 
@@ -892,11 +892,11 @@ git commit -m "chore: tighten bmad cross pollination validation"
 
 ## Acceptance Criteria
 
-- `skills/investigation/SKILL.md` exists, uses evidence grading, creates case files under `docs/superpowers/investigations/`, and contains no BMad config/persona machinery.
+- `skills/investigation/SKILL.md` exists, uses evidence grading, creates case files under `docs/tungnt-ai-skills/investigations/`, and contains no BMad config/persona machinery.
 - `skills/quick-dev/SKILL.md` exists, has a strict scope gate, and routes out to `writing-plans` when risk grows.
 - `skills/using-tungnt-ai-skills/SKILL.md` lists and routes `investigation` and `quick-dev`.
 - Code review docs and prompts define Blind Hunter, Edge Case Hunter, Acceptance Auditor, and triage into Must-Fix, Should-Fix, Consider, and Praise.
-- `executing-plans` and `subagent-driven-development` document optional YAML status tracking at `docs/superpowers/status/<plan-name>-status.yaml`.
+- `executing-plans` and `subagent-driven-development` document optional YAML status tracking at `docs/tungnt-ai-skills/status/<plan-name>-status.yaml`.
 - `executing-plans` prioritizes unresolved review feedback on resume.
 - `brainstorming` includes an optional Spec Kernel with Goal, Users, Acceptance Criteria, Constraints, and Out of Scope.
 - `finishing-a-development-branch` runs a Definition-of-Done validation before presenting branch completion options.

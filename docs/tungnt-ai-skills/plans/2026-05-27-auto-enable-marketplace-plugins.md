@@ -63,7 +63,7 @@
 - [ ] Task 5: Update README installer notes and run the full verification commands.
 - [ ] Task 6: Commit implementation with message:
   ```bash
-  git add installer/config-writers.js installer/target-map.js installer/cli.js tests/installer/run-tests.js README.md docs/superpowers/plans/2026-05-27-auto-enable-marketplace-plugins.md
+  git add installer/config-writers.js installer/target-map.js installer/cli.js tests/installer/run-tests.js README.md docs/tungnt-ai-skills/plans/2026-05-27-auto-enable-marketplace-plugins.md
   git commit -m "Enable marketplace plugins during install"
   ```
 

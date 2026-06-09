@@ -15,7 +15,7 @@ Execute plan by dispatching fresh subagent per task, with two-stage review after
 
 ## Status Tracking
 
-Use status tracking for plans with multiple tasks by maintaining `docs/superpowers/status/<plan-name>-status.yaml` alongside TodoWrite.
+Use status tracking for plans with multiple tasks by maintaining `docs/tungnt-ai-skills/status/<plan-name>-status.yaml` alongside TodoWrite.
 
 - Create it after reading the plan and extracting tasks.
 - Mark each task `in-progress` immediately before dispatching its implementer subagent.
@@ -142,7 +142,7 @@ Implementer subagents report one of four statuses. Handle each appropriately:
 ```
 You: I'm using Subagent-Driven Development to execute this plan.
 
-[Read plan file once: docs/superpowers/plans/feature-plan.md]
+[Read plan file once: docs/tungnt-ai-skills/plans/feature-plan.md]
 [Extract all 5 tasks with full text and context]
 [Create TodoWrite with all tasks]
 

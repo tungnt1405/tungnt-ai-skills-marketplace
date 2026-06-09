@@ -69,7 +69,7 @@ Create a lightweight, optional tracking mechanism for task completion during pla
   - `skills/executing-plans/SKILL.md` (Modify)
   - `skills/subagent-driven-development/SKILL.md` (Modify)
 - **Implementation:**
-  - Define a standard YAML format at `docs/superpowers/status/<plan-name>-status.yaml`.
+  - Define a standard YAML format at `docs/tungnt-ai-skills/status/<plan-name>-status.yaml`.
   - When starting a plan, the agent creates this file containing `plan_file`, `started_at`, `overall_status: in-progress`, and the list of tasks.
   - Upon task completion, the executor updates `status: complete` and `completed_at` for that task in the status file.
   - When the final task is finished, the agent sets `overall_status: complete` in the status file.
