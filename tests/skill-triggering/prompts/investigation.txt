@@ -1,0 +1,9 @@
+The tests are failing with this error:
+
+```
+FAIL src/utils/parser.test.ts
+  Parser should handle nested objects
+  TypeError: Cannot read property 'value' of undefined
+```
+
+Can you figure out what's going wrong before changing code?

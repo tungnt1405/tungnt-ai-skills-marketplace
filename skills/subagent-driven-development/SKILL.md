@@ -285,7 +285,7 @@ Done!
 - **finishing-a-development-branch** - Complete development after all tasks
 
 **Subagents should use:**
-- **test-driven-development** - Subagents follow TDD for each task
+- The task's written RED/GREEN verification steps from `writing-plans`. If a local project provides a dedicated TDD skill, use it as supporting guidance; otherwise the plan's failing-test-first steps are the TDD authority.
 
 **Alternative workflow:**
 - **executing-plans** - Use for parallel session instead of same-session execution
