@@ -1,0 +1,32 @@
+plan_file: docs/superpowers/plans/2026-06-08-bmad-cross-pollination.md
+started_at: 2026-06-08
+overall_status: in-progress
+tasks:
+  - id: 1
+    name: Add Skill Content Regression Tests
+    status: complete
+    completed_at: 2026-06-08
+  - id: 2
+    name: Add the Investigation Skill and Bootstrap Routing
+    status: complete
+    completed_at: 2026-06-08
+  - id: 3
+    name: Add Parallel Review Lenses to Code Review Prompts
+    status: complete
+    completed_at: 2026-06-08
+  - id: 4
+    name: Add Optional Plan Status Tracking
+    status: in-progress
+    completed_at:
+  - id: 5
+    name: Add Quick-Dev Fast Path and Bootstrap Routing
+    status: complete
+    completed_at: 2026-06-08
+  - id: 6
+    name: Add Spec Kernel, Review Continuation, and Definition-of-Done Gate
+    status: pending
+    completed_at:
+  - id: 7
+    name: Final Verification and Sync Guard
+    status: pending
+    completed_at:

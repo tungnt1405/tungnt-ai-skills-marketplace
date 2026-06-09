@@ -29,6 +29,12 @@ This fork is a curated workflow skillset with its own structure and naming.
 
 - `using-tungnt-ai-skills`
   Purpose: bootstrap skill. Read this first, then use the right skill for the task.
+- `investigation`
+  Purpose: evidence-graded debugging, incident tracing, and code-area exploration before fixes or plans.
+- `quick-dev`
+  Purpose: fast path for trivial, low-risk code changes that do not justify the full brainstorming and planning pipeline.
+- `ui-ux-pro-max`
+  Purpose: design intelligence for UI/UX work. Use during UI design, review, or implementation to query design databases and generate design-system evidence. This is a domain skill, not a process skill.
 
 Treat the workflow skills at the root of `skills/` as the main collection for this fork. Pick the matching skill instead of assuming everything follows one legacy grouping.
 
@@ -39,7 +45,7 @@ Use the actual folder layout in this repo when choosing files or giving instruct
 - `skills/using-tungnt-ai-skills/`
   Bootstrap skill and platform references for this fork.
 - `skills/`
-  Root location for the fork's workflow skills such as `brainstorming`, `writing-plans`, `using-git-worktrees`, and related execution/review skills.
+  Root location for the fork's workflow skills such as `brainstorming`, `writing-plans`, `using-git-worktrees`, `ui-ux-pro-max`, and related execution/review skills.
 - `docs/superpowers/`
   Current docs root for legacy plans and specs. The folder name is legacy, but the content belongs to `tungnt-ai-skills`.
 - `tests/`
@@ -81,8 +87,8 @@ If no skill clearly applies, continue normally.
 When multiple skills may apply, use this order:
 
 1. Bootstrap with `using-tungnt-ai-skills`
-2. Choose a process skill that determines approach
-3. Choose a domain skill that guides implementation
+2. Choose a process skill that determines approach and gates
+3. Choose a domain skill that supplies evidence, constraints, or implementation guidance inside that process
 
 Examples:
 
@@ -92,7 +98,12 @@ Examples:
   First check `writing-plans`.
 - "Brainstorm a solution"
   First check `brainstorming`.
-
+- "Investigate why this fails" / "trace this bug" / "explain this unfamiliar code path"
+  Use `investigation` before proposing fixes.
+- "Make this tiny fix" / "small tweak in one file"
+  Use `quick-dev` only when its scope gate is satisfied. If the work is creative, ambiguous, or changes broader behavior, `brainstorming` remains mandatory before `writing-plans`.
+- "Build a landing page" / "Design a dashboard UI" / "Improve the UI/UX"
+  Use `brainstorming` for requirement discovery and design approval when the work is creative or changes behavior. During that design work, use `ui-ux-pro-max` to generate UI/UX evidence and design-system recommendations. Do not let `ui-ux-pro-max` replace the brainstorming gate or change the next step from `writing-plans`.
 ## Red Flags
 
 These usually mean you are skipping the repo's workflow discipline:
@@ -112,4 +123,3 @@ Use these names instead:
 
 - `tungnt-ai-skills` for the overall fork
 - the root `skills/` workflow collection for the forked planning/execution/review skills
-

@@ -14,6 +14,7 @@ export const INCLUDED_ENTRIES = [
 const EXCLUDED_NAMES = new Set([
   '.DS_Store',
   'Thumbs.db',
+  '__pycache__',
 ]);
 
 const EXCLUDED_RELATIVE_PATHS = new Set([
@@ -96,7 +97,7 @@ function extraRequiredFiles(target = {}) {
 function copyEntry(source, destination, relativePath) {
   const normalized = toPosix(relativePath);
   const name = path.basename(source);
-  if (EXCLUDED_NAMES.has(name) || EXCLUDED_RELATIVE_PATHS.has(normalized)) {
+  if (EXCLUDED_NAMES.has(name) || name.endsWith('.pyc') || EXCLUDED_RELATIVE_PATHS.has(normalized)) {
     return;
   }
 

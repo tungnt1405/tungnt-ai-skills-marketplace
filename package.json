@@ -1,12 +1,13 @@
 {
     "type": "module",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "name": "tungnt-ai-skills",
     "main": ".opencode/plugins/superpowers.js",
     "bin": {
         "tungnt-ai-skills": "./bin/tungnt-ai-skills.js"
     },
     "scripts": {
-        "test:installer": "node tests/installer/run-tests.js"
+        "test:installer": "node tests/installer/run-tests.js",
+        "test:skills": "node tests/skill-content/run-tests.js"
     }
 }

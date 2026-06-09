@@ -5,7 +5,10 @@
 ## What This Fork Provides
 
 - `using-tungnt-ai-skills` bootstrap rules for this fork
-- workflow skills under `skills/` for brainstorming, planning, implementation, review, and branch finish work
+- workflow skills under `skills/` for investigation, quick fixes, brainstorming, planning, implementation, review, and branch finish work
+- `ui-ux-pro-max` design intelligence for UI/UX work across web and mobile applications
+- `writing-skills` guidance for creating, editing, and pressure-testing skills
+- optional YAML plan status tracking under `docs/superpowers/status/`
 - plugin metadata for Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and Google Antigravity
 - a zero-dependency npm installer that copies the package into supported agent plugin directories
 
@@ -41,15 +44,28 @@ Some compatibility paths still use the old upstream name. In particular, `docs/s
 
 Agents should start with `using-tungnt-ai-skills`, then choose the smallest relevant workflow skill:
 
+- bug diagnosis, incident tracing, or unfamiliar code exploration: `investigation`
+- trivial low-risk changes that can be completed quickly: `quick-dev`
 - fuzzy idea or design work: `brainstorming`
+- UI/UX design, review, or implementation evidence: `ui-ux-pro-max`
 - approved design that needs an implementation plan: `writing-plans`
 - substantial work that needs isolation: `using-git-worktrees`
 - plan execution with subagents: `subagent-driven-development`
 - plan execution without subagents: `executing-plans`
 - review before handoff: `requesting-code-review`
 - final merge, cleanup, or handoff: `finishing-a-development-branch`
+- creating or updating reusable skills: `writing-skills`
 
 Skill calls use the real names from each `SKILL.md` file, not a plugin-prefixed namespace.
+
+Recent workflow additions:
+
+- `ui-ux-pro-max` provides UI/UX design intelligence as a domain skill; use it inside the normal workflow without replacing `brainstorming`, `writing-plans`, or execution gates.
+- `brainstorming` can emit an optional Spec Kernel with goal, users, acceptance criteria, constraints, and out-of-scope items for handoff to `writing-plans`.
+- `executing-plans` and `subagent-driven-development` can maintain lightweight YAML status files at `docs/superpowers/status/<plan-name>-status.yaml`.
+- `executing-plans` checks for unresolved review continuation items before starting new plan tasks.
+- `requesting-code-review` and the subagent code-quality prompt use Blind Hunter, Edge Case Hunter, and Acceptance Auditor lenses with Must-Fix, Should-Fix, Consider, and Praise buckets.
+- `finishing-a-development-branch` now validates Definition-of-Done before presenting merge, PR, keep, or discard options.
 
 ## Install
 
@@ -160,7 +176,7 @@ Preview resolved install directories without writing files:
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --dry-run
 ```
 
-For Claude Code, Codex, and Copilot, install dry-run prints the manual marketplace files or settings that would be written and the next install/enable commands to run yourself. With `--native`, install dry-run prints the native marketplace install commands that would be executed. Update dry-run prints either the installer refresh command or the native update commands. Dry-run does not write files.
+For Claude Code, Codex, and Copilot, install dry-run prints the manual marketplace files or settings that would be written and the next install/enable commands to run yourself. With `--native`, install dry-run prints the native marketplace install commands that would be executed. Update dry-run prints either the installer refresh command plus any cache/plugin folders that will be cleaned, or the native update commands. Dry-run does not write files.
 
 Preview one agent only:
 
@@ -522,7 +538,7 @@ Update behavior depends on the target:
 - GitHub Copilot CLI: `update --native` runs marketplace update, then plugin update.
 - Codex: `update --native` refreshes the configured marketplace snapshot, removes the installed plugin, then adds it again from the refreshed snapshot because current Codex CLI does not expose a plugin update command.
 - File-copy targets such as Gemini and Antigravity: `update` refreshes the installed files the same way `install --force` did before.
-- Default Claude/Codex/Copilot fallback paths refresh local marketplace files/settings, then print the manual app/CLI steps when a native plugin update is still needed.
+- Default Claude/Codex/Copilot fallback paths first remove the installer-managed cache/plugin folder for that agent, then refresh local marketplace files/settings and print the manual app/CLI steps when a native plugin update is still needed. This cleans stale skill payloads without clearing the global `npm`/`npx` cache.
 
 If you are updating this local source checkout first, pull the latest repository changes, then rerun the installer:
 
@@ -563,6 +579,12 @@ Run installer tests:
 
 ```bash
 npm run test:installer
+```
+
+Run skill content regression tests:
+
+```bash
+npm run test:skills
 ```
 
 The package is intentionally dependency-free. Do not add third-party runtime dependencies unless the project requirements change explicitly.
