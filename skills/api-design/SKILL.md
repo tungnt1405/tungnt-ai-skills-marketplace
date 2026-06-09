@@ -1,6 +1,6 @@
 ---
 name: api-design
-description: Use when designing or changing REST APIs, HTTP endpoints, public service contracts, SDK-facing schemas, request/response shapes, error semantics, pagination, versioning, idempotency, or backward-compatible API evolution
+description: Use as a supporting domain reference when the active workflow involves REST APIs, HTTP endpoints, public service contracts, SDK-facing schemas, request/response shapes, error semantics, pagination, versioning, idempotency, or backward-compatible API evolution
 ---
 
 # API Design
