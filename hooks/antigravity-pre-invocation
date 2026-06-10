@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# PreInvocation hook for Antigravity one-shot tungnt-ai-skills bootstrap.
+
+set -euo pipefail
+
+stdin_payload="$(cat || true)"
+invocation_num="$(printf '%s' "$stdin_payload" | sed -n 's/.*"invocationNum"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' | head -n 1)"
+
+if [ -n "$invocation_num" ] && [ "$invocation_num" -gt 1 ]; then
+  printf '{\n  "injectSteps": []\n}\n'
+  exit 0
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+bootstrap_file="${PLUGIN_ROOT}/skills/using-tungnt-ai-skills/SKILL.md"
+
+bootstrap_content="$(cat "$bootstrap_file" 2>&1 || echo "Error reading using-tungnt-ai-skills skill")"
+
+escape_for_json() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\n'/\\n}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\t'/\\t}"
+  printf '%s' "$s"
+}
+
+session_context="<EXTREMELY_IMPORTANT>
+You have tungnt-ai-skills.
+
+Below is the full content of your bootstrap skill (using-tungnt-ai-skills). Read it before responding or taking action. Follow its routing rules and use the relevant Antigravity skill/plugin mechanism for any additional skills.
+
+${bootstrap_content}
+</EXTREMELY_IMPORTANT>"
+
+session_context_escaped="$(escape_for_json "$session_context")"
+
+printf '{\n  "injectSteps": [\n    {\n      "ephemeralMessage": "%s"\n    }\n  ]\n}\n' "$session_context_escaped"
+
+exit 0
