@@ -359,7 +359,21 @@ test('copilot hook manifest uses documented sessionStart command shape', () => {
   assert.equal(hooks.hooks.sessionStart.length, 1);
   assert.equal(entry.type, 'command');
   assert.equal(entry.bash, 'bash ./hooks/session-start');
-  assert.equal(entry.powershell, '& .\\hooks\\session-start.cmd');
+  assert.equal(entry.powershell, '& .\\hooks\\session-start.ps1');
+  assert.equal(entry.cwd, '.');
+  assert.equal(entry.timeoutSec, 30);
+});
+
+test('copilot default hook discovery file is native sessionStart shape', () => {
+  const hooks = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.json'), 'utf8'));
+  const entry = hooks.hooks.sessionStart[0];
+
+  assert.equal(hooks.version, 1);
+  assert.equal(Array.isArray(hooks.hooks.sessionStart), true);
+  assert.equal(hooks.hooks.sessionStart.length, 1);
+  assert.equal(entry.type, 'command');
+  assert.equal(entry.bash, 'bash ./hooks/session-start');
+  assert.equal(entry.powershell, '& .\\hooks\\session-start.ps1');
   assert.equal(entry.cwd, '.');
   assert.equal(entry.timeoutSec, 30);
 });
@@ -372,6 +386,7 @@ test('copilot source validation requires bootstrap hook files', () => {
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.cmd')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.ps1')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.copilot.json')), true);
 });
 
@@ -380,7 +395,7 @@ test('antigravity hook manifest uses documented PreInvocation injectSteps shape'
     ? 'hooks.antigravity.windows.json'
     : 'hooks.antigravity.unix.json';
   const expectedCommand = process.platform === 'win32'
-    ? './hooks/antigravity-pre-invocation.cmd'
+    ? 'hooks\\antigravity-pre-invocation.cmd'
     : 'bash ./hooks/antigravity-pre-invocation';
   const hooks = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks', manifestFile), 'utf8'));
   const hook = hooks['tungnt-ai-skills-bootstrap'];
@@ -741,6 +756,7 @@ test('claude fallback source includes bootstrap hook entrypoints', () => {
   validateSource(PACKAGE_ROOT, target);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.cmd')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.ps1')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.windows.json')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.unix.json')), true);
 });
@@ -847,6 +863,24 @@ test('agy installs plugin folder with marker file and skills', () => {
   assert.equal(fs.existsSync(path.join(home, '.gemini', 'CLAUDE.md')), true);
   assert.equal(fs.existsSync(path.join(home, '.gemini', 'GEMINI.md')), true);
   assert.equal(fs.existsSync(path.join(home, '.gemini', 'gemini-extension.json')), true);
+});
+
+test('agy install writes Antigravity root hooks manifest with platform command', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('agy');
+  const destination = target.defaultTarget(env);
+  const out = capture();
+  const code = runCli(['install', '--agent', 'agy'], env, out.io);
+  const hooks = JSON.parse(fs.readFileSync(path.join(destination, 'hooks.json'), 'utf8'));
+  const command = hooks['tungnt-ai-skills-bootstrap'].PreInvocation[0].command;
+
+  assert.equal(code, 0, out.stderr());
+  if (process.platform === 'win32') {
+    assert.equal(command, 'hooks\\antigravity-pre-invocation.cmd');
+  } else {
+    assert.equal(command, 'bash ./hooks/antigravity-pre-invocation');
+  }
 });
 
 test('update --agent codex clears installed plugin cache before refreshing fallback', () => {
