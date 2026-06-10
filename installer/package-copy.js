@@ -21,8 +21,8 @@ const EXCLUDED_RELATIVE_PATHS = new Set([
   '.git',
   'node_modules',
   'tests',
-  'docs/superpowers/plans',
-  'docs/superpowers/specs',
+  'docs/tungnt-ai-skills/plans',
+  'docs/tungnt-ai-skills/specs',
 ]);
 
 export function getPackageRoot(importMetaUrl) {

@@ -93,8 +93,8 @@ Exclude:
 - `.git/`
 - `node_modules/`
 - `tests/`
-- `docs/superpowers/plans/`
-- `docs/superpowers/specs/`
+- `docs/tungnt-ai-skills/plans/`
+- `docs/tungnt-ai-skills/specs/`
 - `assets/`
 - `.antigravitycli/`
 - `.opencode/`

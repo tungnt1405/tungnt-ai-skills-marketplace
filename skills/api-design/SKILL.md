@@ -1,6 +1,6 @@
 ---
 name: api-design
-description: Use as a supporting domain reference when the active workflow involves REST APIs, HTTP endpoints, public service contracts, SDK-facing schemas, request/response shapes, error semantics, pagination, versioning, idempotency, or backward-compatible API evolution
+description: Use only after using-tungnt-ai-skills has selected a process workflow, as a supporting domain lens inside brainstorming, planning, execution, or review
 ---
 
 # API Design
