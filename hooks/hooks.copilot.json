@@ -5,7 +5,7 @@
       {
         "type": "command",
         "bash": "bash ./hooks/session-start",
-        "powershell": "& .\\hooks\\session-start.cmd",
+        "powershell": "& .\\hooks\\session-start.ps1",
         "cwd": ".",
         "timeoutSec": 30
       }

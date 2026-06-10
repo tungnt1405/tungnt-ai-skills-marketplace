@@ -359,7 +359,21 @@ test('copilot hook manifest uses documented sessionStart command shape', () => {
   assert.equal(hooks.hooks.sessionStart.length, 1);
   assert.equal(entry.type, 'command');
   assert.equal(entry.bash, 'bash ./hooks/session-start');
-  assert.equal(entry.powershell, '& .\\hooks\\session-start.cmd');
+  assert.equal(entry.powershell, '& .\\hooks\\session-start.ps1');
+  assert.equal(entry.cwd, '.');
+  assert.equal(entry.timeoutSec, 30);
+});
+
+test('copilot default hook discovery file is native sessionStart shape', () => {
+  const hooks = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.json'), 'utf8'));
+  const entry = hooks.hooks.sessionStart[0];
+
+  assert.equal(hooks.version, 1);
+  assert.equal(Array.isArray(hooks.hooks.sessionStart), true);
+  assert.equal(hooks.hooks.sessionStart.length, 1);
+  assert.equal(entry.type, 'command');
+  assert.equal(entry.bash, 'bash ./hooks/session-start');
+  assert.equal(entry.powershell, '& .\\hooks\\session-start.ps1');
   assert.equal(entry.cwd, '.');
   assert.equal(entry.timeoutSec, 30);
 });
@@ -372,6 +386,7 @@ test('copilot source validation requires bootstrap hook files', () => {
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.cmd')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.ps1')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.copilot.json')), true);
 });
 
@@ -741,6 +756,7 @@ test('claude fallback source includes bootstrap hook entrypoints', () => {
   validateSource(PACKAGE_ROOT, target);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.cmd')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.ps1')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.windows.json')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.unix.json')), true);
 });

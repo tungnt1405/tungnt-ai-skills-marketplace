@@ -494,7 +494,7 @@ The Copilot plugin uses the root `plugin.json` manifest. That manifest exposes b
 hooks/hooks.copilot.json
 ```
 
-This hook manifest is separate from the Claude/Cursor hook manifests. It uses Copilot's `sessionStart` hook shape to run `hooks/session-start`, which injects `skills/using-tungnt-ai-skills/SKILL.md` as session context.
+Copilot discovers `hooks/hooks.json` by default in the installed plugin. The source `hooks/hooks.json` therefore uses Copilot's `sessionStart` hook shape to run `hooks/session-start`, which injects `skills/using-tungnt-ai-skills/SKILL.md` as session context. `hooks/hooks.copilot.json` is kept as the named Copilot manifest mirror.
 
 Then choose the path that matches how you use Copilot:
 

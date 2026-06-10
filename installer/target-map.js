@@ -108,6 +108,7 @@ export const TARGETS = [
         '.claude-plugin/plugin.json',
         'hooks/session-start',
         'hooks/session-start.cmd',
+        'hooks/session-start.ps1',
         'hooks/hooks.windows.json',
         'hooks/hooks.unix.json',
       ],
@@ -198,6 +199,7 @@ export const TARGETS = [
       ...REQUIRED_SKILL_FILES,
       'hooks/session-start',
       'hooks/session-start.cmd',
+      'hooks/session-start.ps1',
       'hooks/hooks.copilot.json',
     ],
     nativeCommands: [
