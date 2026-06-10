@@ -437,14 +437,18 @@ Install Antigravity CLI:
 
 ```bash
 mkdir -p ~/.gemini/antigravity-cli/plugins/tungnt-ai-skills
-cp -R plugin.json skills ~/.gemini/antigravity-cli/plugins/tungnt-ai-skills/
+cp -R plugin.json hooks skills ~/.gemini/antigravity-cli/plugins/tungnt-ai-skills/
+cp hooks/hooks.antigravity.unix.json ~/.gemini/antigravity-cli/plugins/tungnt-ai-skills/hooks.json
+# On Windows, copy hooks/hooks.antigravity.windows.json instead.
 ```
 
 Install Antigravity IDE:
 
 ```bash
 mkdir -p ~/.gemini/config/plugins/tungnt-ai-skills
-cp -R plugin.json skills ~/.gemini/config/plugins/tungnt-ai-skills/
+cp -R plugin.json hooks skills ~/.gemini/config/plugins/tungnt-ai-skills/
+cp hooks/hooks.antigravity.unix.json ~/.gemini/config/plugins/tungnt-ai-skills/hooks.json
+# On Windows, copy hooks/hooks.antigravity.windows.json instead.
 ```
 
 Copy the shared global files used by both layouts:
@@ -455,7 +459,7 @@ cp AGENTS.md CLAUDE.md GEMINI.md gemini-extension.json ~/.gemini/
 
 Restart Antigravity CLI or Antigravity IDE after copying files, then open `/plugins` and verify `tungnt-ai-skills`.
 
-The root `plugin.json` and `skills/` directory are the Antigravity plugin payload. The root `skills/` directory remains the single source of truth; no Antigravity-specific skills are duplicated.
+The root `plugin.json`, generated root `hooks.json`, `hooks/`, and `skills/` directory are the Antigravity plugin payload. The Antigravity hook uses `PreInvocation` to inject `using-tungnt-ai-skills` once at session start. The root `skills/` directory remains the single source of truth; no Antigravity-specific skills are duplicated.
 
 Detailed Antigravity notes:
 
@@ -483,6 +487,14 @@ with the marketplace entry:
   }
 }
 ```
+
+The Copilot plugin uses the root `plugin.json` manifest. That manifest exposes bundled skills through `skills/` and points Copilot at the Copilot-native hook manifest:
+
+```text
+hooks/hooks.copilot.json
+```
+
+This hook manifest is separate from the Claude/Cursor hook manifests. It uses Copilot's `sessionStart` hook shape to run `hooks/session-start`, which injects `skills/using-tungnt-ai-skills/SKILL.md` as session context.
 
 Then choose the path that matches how you use Copilot:
 
@@ -532,6 +544,14 @@ copilot plugin marketplace update tungnt-ai-skills-marketplace
 copilot plugin update tungnt-ai-skills@tungnt-ai-skills-marketplace
 ```
 
+After installing or updating, restart Copilot and run this clean-session acceptance prompt:
+
+```text
+Let's make a react todo list
+```
+
+A working integration loads `using-tungnt-ai-skills` at session start and selects `brainstorming` before writing code.
+
 ## Update
 
 Use `update` for an existing install:
@@ -578,6 +598,7 @@ Harness-specific metadata in this repo:
 
 - Claude Code: `.claude-plugin/plugin.json`
 - Codex: `.codex-plugin/plugin.json`, `.agents/plugins/marketplace.json`
+- GitHub Copilot CLI: `plugin.json`, `hooks/hooks.copilot.json`
 - Gemini CLI: `gemini-extension.json`
 - Google Antigravity: `.agents/plugins/tungnt-ai-skills-marketplace/plugin.json`, `plugin.json`
 - OpenCode: `.opencode/plugins/`

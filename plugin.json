@@ -20,5 +20,6 @@
     "design-system",
     "antigravity"
   ],
-  "skills": "./skills/"
+  "skills": "./skills/",
+  "hooks": "hooks/hooks.copilot.json"
 }

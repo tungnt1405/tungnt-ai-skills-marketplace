@@ -1,0 +1,11 @@
+{
+  "tungnt-ai-skills-bootstrap": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "bash ./hooks/antigravity-pre-invocation",
+        "timeout": 10
+      }
+    ]
+  }
+}
