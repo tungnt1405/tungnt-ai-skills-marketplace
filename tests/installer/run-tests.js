@@ -380,7 +380,7 @@ test('antigravity hook manifest uses documented PreInvocation injectSteps shape'
     ? 'hooks.antigravity.windows.json'
     : 'hooks.antigravity.unix.json';
   const expectedCommand = process.platform === 'win32'
-    ? './hooks/antigravity-pre-invocation.cmd'
+    ? 'hooks\\antigravity-pre-invocation.cmd'
     : 'bash ./hooks/antigravity-pre-invocation';
   const hooks = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks', manifestFile), 'utf8'));
   const hook = hooks['tungnt-ai-skills-bootstrap'];
@@ -847,6 +847,24 @@ test('agy installs plugin folder with marker file and skills', () => {
   assert.equal(fs.existsSync(path.join(home, '.gemini', 'CLAUDE.md')), true);
   assert.equal(fs.existsSync(path.join(home, '.gemini', 'GEMINI.md')), true);
   assert.equal(fs.existsSync(path.join(home, '.gemini', 'gemini-extension.json')), true);
+});
+
+test('agy install writes Antigravity root hooks manifest with platform command', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('agy');
+  const destination = target.defaultTarget(env);
+  const out = capture();
+  const code = runCli(['install', '--agent', 'agy'], env, out.io);
+  const hooks = JSON.parse(fs.readFileSync(path.join(destination, 'hooks.json'), 'utf8'));
+  const command = hooks['tungnt-ai-skills-bootstrap'].PreInvocation[0].command;
+
+  assert.equal(code, 0, out.stderr());
+  if (process.platform === 'win32') {
+    assert.equal(command, 'hooks\\antigravity-pre-invocation.cmd');
+  } else {
+    assert.equal(command, 'bash ./hooks/antigravity-pre-invocation');
+  }
 });
 
 test('update --agent codex clears installed plugin cache before refreshing fallback', () => {
