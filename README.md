@@ -218,6 +218,13 @@ skills/
 hooks/
 ```
 
+Bootstrap logic lives in `hooks/session-start`. Installer-managed Claude installs select the hook manifest by OS:
+
+- Windows installs write `hooks/hooks.json` to call `hooks/session-start.cmd`.
+- Linux/macOS installs write `hooks/hooks.json` to call `bash "${CLAUDE_PLUGIN_ROOT}/hooks/session-start"`.
+
+Both paths load the same `skills/using-tungnt-ai-skills/SKILL.md` bootstrap content.
+
 After the marketplace package is present, choose the path that matches how you use Claude:
 
 Claude Code app:

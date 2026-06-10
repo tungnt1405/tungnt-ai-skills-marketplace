@@ -223,7 +223,7 @@ Use the repository hook/bootstrap files from this repo.
 Important files:
 
 - `hooks/session-start`
-- `hooks/run-hook.cmd`
+- `hooks/session-start.cmd`
 - `skills/using-tungnt-ai-skills/SKILL.md`
 
 Requirement:

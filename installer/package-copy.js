@@ -67,6 +67,7 @@ export function copyPackage(packageRoot, destination, target = {}) {
   for (const entry of plannedEntries(packageRoot, target)) {
     copyEntry(path.join(packageRoot, entry), path.join(destination, entry), entry);
   }
+  copySelectedHookManifest(packageRoot, destination, target);
 }
 
 export function copyExtraPackages(packageRoot, target = {}, env = process.env) {
@@ -76,6 +77,16 @@ export function copyExtraPackages(packageRoot, target = {}, env = process.env) {
       copyEntry(path.join(packageRoot, entry), path.join(copy.destination, entry), entry);
     }
   }
+}
+
+function copySelectedHookManifest(packageRoot, destination, target = {}) {
+  if (!target.hookManifestFile) {
+    return;
+  }
+  const source = path.join(packageRoot, target.hookManifestFile);
+  const destinationFile = path.join(destination, 'hooks', 'hooks.json');
+  fs.mkdirSync(path.dirname(destinationFile), { recursive: true });
+  fs.copyFileSync(source, destinationFile);
 }
 
 function plannedEntries(packageRoot, target = {}) {

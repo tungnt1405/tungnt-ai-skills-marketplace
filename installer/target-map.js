@@ -36,6 +36,10 @@ const CLAUDE_LOCAL_MARKETPLACE_ENTRIES = [
   'skills',
 ];
 
+const CLAUDE_HOOK_MANIFEST_FILE = process.platform === 'win32'
+  ? 'hooks/hooks.windows.json'
+  : 'hooks/hooks.unix.json';
+
 function homeDir(env = process.env) {
   return env.HOME || env.USERPROFILE || os.homedir();
 }
@@ -79,7 +83,16 @@ export const TARGETS = [
       defaultTarget: (env = process.env) => joinHome(env, '.claude', 'plugins', 'cache', 'tungnt-ai-skills-marketplace'),
       expectedParent: (env = process.env) => joinHome(env, '.claude', 'plugins', 'cache'),
       includedEntries: CLAUDE_LOCAL_MARKETPLACE_ENTRIES,
-      requiredFiles: [...REQUIRED_SKILL_FILES, '.claude-plugin/marketplace.json', '.claude-plugin/plugin.json'],
+      requiredFiles: [
+        ...REQUIRED_SKILL_FILES,
+        '.claude-plugin/marketplace.json',
+        '.claude-plugin/plugin.json',
+        'hooks/session-start',
+        'hooks/session-start.cmd',
+        'hooks/hooks.windows.json',
+        'hooks/hooks.unix.json',
+      ],
+      hookManifestFile: CLAUDE_HOOK_MANIFEST_FILE,
     },
     updateCacheDirs: [
       {

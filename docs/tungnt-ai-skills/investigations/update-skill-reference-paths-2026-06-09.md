@@ -126,7 +126,6 @@ For Codex specifically, run a clean marketplace cache refresh and verify nested 
 ## Side Findings
 
 - Confirmed: `/Users/tungnt/.copilot/installed-plugins/tungnt-ai-skills-marketplace/tungnt-ai-skills` is at commit `2d37089`, while the local repo is at `a167d54`.
-- Confirmed: the installed Copilot plugin has a local modification in `hooks/run-hook.cmd`, unrelated to the reference-path failure.
 
 ## Follow-up: 2026-06-09
 

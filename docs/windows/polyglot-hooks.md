@@ -22,12 +22,12 @@ A polyglot script is valid syntax in multiple languages simultaneously. Our wrap
 ```cmd
 : << 'CMDBLOCK'
 @echo off
-"C:\Program Files\Git\bin\bash.exe" -l -c "\"$(cygpath -u \"$CLAUDE_PLUGIN_ROOT\")/hooks/session-start.sh\""
+"C:\Program Files\Git\bin\bash.exe" -l -c "\"$(cygpath -u \"$CLAUDE_PLUGIN_ROOT\")/hooks/session-start\""
 exit /b
 CMDBLOCK
 
 # Unix shell runs from here
-"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh"
+"${CLAUDE_PLUGIN_ROOT}/hooks/session-start"
 ```
 
 ### How It Works
@@ -55,7 +55,7 @@ CMDBLOCK
 hooks/
 ├── hooks.json           # Points to the .cmd wrapper
 ├── session-start.cmd    # Polyglot wrapper (cross-platform entry point)
-└── session-start.sh     # Actual hook logic (bash script)
+└── session-start        # Actual hook logic (bash script)
 ```
 
 ### hooks.json
@@ -133,56 +133,16 @@ escape_for_json() {
 }
 ```
 
-## Reusable Wrapper Pattern
+## Repository Pattern
 
-For plugins with multiple hooks, you can create a generic wrapper that takes the script name as an argument:
+This repository keeps one bootstrap implementation and separate launchers:
 
-### run-hook.cmd
-```cmd
-: << 'CMDBLOCK'
-@echo off
-set "SCRIPT_DIR=%~dp0"
-set "SCRIPT_NAME=%~1"
-"C:\Program Files\Git\bin\bash.exe" -l -c "cd \"$(cygpath -u \"%SCRIPT_DIR%\")\" && \"./%SCRIPT_NAME%\""
-exit /b
-CMDBLOCK
+- `hooks/session-start` contains the actual bootstrap logic.
+- `hooks/session-start.cmd` is the Windows launcher.
+- `hooks/hooks.windows.json` calls the Windows launcher.
+- `hooks/hooks.unix.json` calls `bash "${CLAUDE_PLUGIN_ROOT}/hooks/session-start"` directly.
 
-# Unix shell runs from here
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SCRIPT_NAME="$1"
-shift
-"${SCRIPT_DIR}/${SCRIPT_NAME}" "$@"
-```
-
-### hooks.json using the reusable wrapper
-```json
-{
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd\" session-start.sh"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd\" validate-bash.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
+Installer-managed Claude installs copy the selected template to `hooks/hooks.json` in the installed plugin folder.
 
 ## Troubleshooting
 

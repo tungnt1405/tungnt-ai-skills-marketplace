@@ -655,6 +655,31 @@ test('install --agent claude imports local marketplace by default', () => {
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
 });
 
+test('install --agent claude writes platform-specific hooks manifest', () => {
+  const home = tempDir();
+  const out = capture();
+  const code = runCli(['install', '--agent', 'claude'], emptyPathEnv(home), out.io);
+  const hooksFile = path.join(home, '.claude', 'plugins', 'cache', 'tungnt-ai-skills-marketplace', 'hooks', 'hooks.json');
+  const hooks = JSON.parse(fs.readFileSync(hooksFile, 'utf8'));
+  const command = hooks.hooks.SessionStart[0].hooks[0].command;
+
+  assert.equal(code, 0, out.stderr());
+  if (process.platform === 'win32') {
+    assert.equal(command, '"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.cmd"');
+  } else {
+    assert.equal(command, 'bash "${CLAUDE_PLUGIN_ROOT}/hooks/session-start"');
+  }
+});
+
+test('claude fallback source includes bootstrap hook entrypoints', () => {
+  const target = getTargetById('claude').fallbackInstall;
+  validateSource(PACKAGE_ROOT, target);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.cmd')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.windows.json')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.unix.json')), true);
+});
+
 test('install --agent agy --dry-run uses Antigravity CLI plugin layout', () => {
   const home = tempDir();
   const out = capture();
