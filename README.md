@@ -484,6 +484,14 @@ with the marketplace entry:
 }
 ```
 
+The Copilot plugin uses the root `plugin.json` manifest. That manifest exposes bundled skills through `skills/` and points Copilot at the Copilot-native hook manifest:
+
+```text
+hooks/hooks.copilot.json
+```
+
+This hook manifest is separate from the Claude/Cursor hook manifests. It uses Copilot's `sessionStart` hook shape to run `hooks/session-start`, which injects `skills/using-tungnt-ai-skills/SKILL.md` as session context.
+
 Then choose the path that matches how you use Copilot:
 
 Copilot app (VSCODE):
@@ -532,6 +540,14 @@ copilot plugin marketplace update tungnt-ai-skills-marketplace
 copilot plugin update tungnt-ai-skills@tungnt-ai-skills-marketplace
 ```
 
+After installing or updating, restart Copilot and run this clean-session acceptance prompt:
+
+```text
+Let's make a react todo list
+```
+
+A working integration loads `using-tungnt-ai-skills` at session start and selects `brainstorming` before writing code.
+
 ## Update
 
 Use `update` for an existing install:
@@ -578,6 +594,7 @@ Harness-specific metadata in this repo:
 
 - Claude Code: `.claude-plugin/plugin.json`
 - Codex: `.codex-plugin/plugin.json`, `.agents/plugins/marketplace.json`
+- GitHub Copilot CLI: `plugin.json`, `hooks/hooks.copilot.json`
 - Gemini CLI: `gemini-extension.json`
 - Google Antigravity: `.agents/plugins/tungnt-ai-skills-marketplace/plugin.json`, `plugin.json`
 - OpenCode: `.opencode/plugins/`

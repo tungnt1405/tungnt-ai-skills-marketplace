@@ -174,7 +174,13 @@ export const TARGETS = [
     displayName: 'GitHub Copilot CLI',
     defaultTarget: (env = process.env) => joinHome(env, '.copilot'),
     expectedParent: (env = process.env) => joinHome(env),
-    requiredFiles: [],
+    requiredFiles: [
+      'plugin.json',
+      ...REQUIRED_SKILL_FILES,
+      'hooks/session-start',
+      'hooks/session-start.cmd',
+      'hooks/hooks.copilot.json',
+    ],
     nativeCommands: [
       ['copilot', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
       ['copilot', 'plugin', 'install', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],

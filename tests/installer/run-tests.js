@@ -343,6 +343,38 @@ test('install --agent copilot imports marketplace settings by default', () => {
   });
 });
 
+test('copilot plugin declares native bootstrap hook manifest', () => {
+  const plugin = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'plugin.json'), 'utf8'));
+
+  assert.equal(plugin.skills, './skills/');
+  assert.equal(plugin.hooks, 'hooks/hooks.copilot.json');
+});
+
+test('copilot hook manifest uses documented sessionStart command shape', () => {
+  const hooks = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.copilot.json'), 'utf8'));
+  const entry = hooks.hooks.sessionStart[0];
+
+  assert.equal(hooks.version, 1);
+  assert.equal(Array.isArray(hooks.hooks.sessionStart), true);
+  assert.equal(hooks.hooks.sessionStart.length, 1);
+  assert.equal(entry.type, 'command');
+  assert.equal(entry.bash, 'bash ./hooks/session-start');
+  assert.equal(entry.powershell, '& .\\hooks\\session-start.cmd');
+  assert.equal(entry.cwd, '.');
+  assert.equal(entry.timeoutSec, 30);
+});
+
+test('copilot source validation requires bootstrap hook files', () => {
+  const target = getTargetById('copilot');
+
+  validateSource(PACKAGE_ROOT, target);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'plugin.json')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.cmd')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.copilot.json')), true);
+});
+
 test('install --agent codex imports local marketplace by default', () => {
   const home = tempDir();
   const out = capture();
