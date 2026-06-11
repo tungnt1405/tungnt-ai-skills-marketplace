@@ -358,10 +358,14 @@ test('copilot hook manifest uses documented sessionStart command shape', () => {
   assert.equal(Array.isArray(hooks.hooks.sessionStart), true);
   assert.equal(hooks.hooks.sessionStart.length, 1);
   assert.equal(entry.type, 'command');
-  assert.equal(entry.bash, 'bash ./hooks/session-start');
-  assert.equal(entry.powershell, '& .\\hooks\\session-start.ps1');
-  assert.equal(entry.cwd, '.');
   assert.equal(entry.timeoutSec, 30);
+  assert.equal(Object.hasOwn(entry, 'cwd'), false);
+  assert.match(entry.bash, /hooks\/session-start/);
+  assert.match(entry.bash, /TUNGNT_AI_SKILLS_PLUGIN_ROOT/);
+  assert.match(entry.bash, /\.copilot\/installed-plugins\/tungnt-ai-skills-marketplace\/tungnt-ai-skills/);
+  assert.match(entry.powershell, /session-start\.ps1/);
+  assert.match(entry.powershell, /TUNGNT_AI_SKILLS_PLUGIN_ROOT/);
+  assert.match(entry.powershell, /installed-plugins\\tungnt-ai-skills-marketplace\\tungnt-ai-skills/);
 });
 
 test('copilot default hook discovery file is native sessionStart shape', () => {
@@ -372,10 +376,14 @@ test('copilot default hook discovery file is native sessionStart shape', () => {
   assert.equal(Array.isArray(hooks.hooks.sessionStart), true);
   assert.equal(hooks.hooks.sessionStart.length, 1);
   assert.equal(entry.type, 'command');
-  assert.equal(entry.bash, 'bash ./hooks/session-start');
-  assert.equal(entry.powershell, '& .\\hooks\\session-start.ps1');
-  assert.equal(entry.cwd, '.');
   assert.equal(entry.timeoutSec, 30);
+  assert.equal(Object.hasOwn(entry, 'cwd'), false);
+  assert.match(entry.bash, /hooks\/session-start/);
+  assert.match(entry.bash, /TUNGNT_AI_SKILLS_PLUGIN_ROOT/);
+  assert.match(entry.bash, /\.copilot\/installed-plugins\/tungnt-ai-skills-marketplace\/tungnt-ai-skills/);
+  assert.match(entry.powershell, /session-start\.ps1/);
+  assert.match(entry.powershell, /TUNGNT_AI_SKILLS_PLUGIN_ROOT/);
+  assert.match(entry.powershell, /installed-plugins\\tungnt-ai-skills-marketplace\\tungnt-ai-skills/);
 });
 
 test('copilot source validation requires bootstrap hook files', () => {
