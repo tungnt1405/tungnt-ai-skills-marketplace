@@ -8,6 +8,7 @@
     },
     "scripts": {
         "test:installer": "node tests/installer/run-tests.js",
+        "test:copilot-bootstrap": "node tests/copilot-bootstrap/run-tests.js",
         "test:skills": "node scripts/validate-skill-structure.mjs && node tests/skill-content/run-tests.js",
         "test:skill-structure": "node scripts/validate-skill-structure.mjs"
     }

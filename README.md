@@ -496,6 +496,8 @@ hooks/hooks.copilot.json
 
 Copilot discovers `hooks/hooks.json` by default in the installed plugin. The source `hooks/hooks.json` therefore uses Copilot's `sessionStart` hook shape to run `hooks/session-start`, which injects `skills/using-tungnt-ai-skills/SKILL.md` as session context. `hooks/hooks.copilot.json` is kept as the named Copilot manifest mirror.
 
+The Copilot hook command must resolve the installed plugin root, not the user's active workspace. The manifests first use a Copilot-provided `COPILOT_PLUGIN_ROOT` when available, then a test override `TUNGNT_AI_SKILLS_PLUGIN_ROOT`, then the standard installed plugin path under the current user's home directory. Do not hardcode a machine-specific path such as `C:\Users\<name>`.
+
 Then choose the path that matches how you use Copilot:
 
 Copilot app (VSCODE):
@@ -543,6 +545,15 @@ copilot plugin install tungnt-ai-skills@tungnt-ai-skills-marketplace
 copilot plugin marketplace update tungnt-ai-skills-marketplace
 copilot plugin update tungnt-ai-skills@tungnt-ai-skills-marketplace
 ```
+
+If Copilot logs show this error, the plugin was installed but the bootstrap hook did not reach the script:
+
+```text
+Hook from "tungnt-ai-skills@tungnt-ai-skills-marketplace" execution failed
+.\hooks\session-start.ps1 is not recognized
+```
+
+Update the plugin, restart Copilot, and confirm the hook command no longer resolves from the workspace cwd.
 
 After installing or updating, restart Copilot and run this clean-session acceptance prompt:
 

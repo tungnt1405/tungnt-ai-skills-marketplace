@@ -1,0 +1,32 @@
+plan_file: docs/tungnt-ai-skills/plans/2026-06-11-copilot-bootstrap-hook-cwd-fix.md
+overall_status: complete
+updated_at: 2026-06-11
+tasks:
+  - id: task-1-confirm-current-failing-baseline
+    title: Confirm Current Failing Baseline
+    status: complete
+    completed_at: 2026-06-11
+  - id: task-2-focused-test-independent-from-installed-cache
+    title: Make the Focused Test Independent from Installed Plugin Cache
+    status: complete
+    completed_at: 2026-06-11
+  - id: task-3-plugin-root-aware-manifests
+    title: Make Copilot Hook Manifests Plugin-Root-Aware
+    status: complete
+    completed_at: 2026-06-11
+  - id: task-4-installer-manifest-assertions
+    title: Update Installer Manifest Assertions
+    status: complete
+    completed_at: 2026-06-11
+  - id: task-5-readme-troubleshooting
+    title: Update README Troubleshooting
+    status: complete
+    completed_at: 2026-06-11
+  - id: task-6-investigation-follow-up
+    title: Record Final Investigation Follow-Up
+    status: complete
+    completed_at: 2026-06-11
+  - id: task-7-final-verification
+    title: Final Verification
+    status: complete
+    completed_at: 2026-06-11
