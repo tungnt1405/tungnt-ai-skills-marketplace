@@ -50,7 +50,7 @@ User reported that after updating the skill from git, attempts to read platform 
 
 ### Finding 4: Installed Copilot plugin has the same layout
 
-**Evidence:** `/Users/tungnt/.copilot/installed-plugins/tungnt-ai-skills-marketplace/tungnt-ai-skills/skills/using-tungnt-ai-skills/references/copilot-tools.md`
+**Evidence:** `~/.copilot/installed-plugins/tungnt-ai-skills-marketplace/tungnt-ai-skills/skills/using-tungnt-ai-skills/references/copilot-tools.md`
 
 **Detail:** The installed plugin has the bootstrap reference file. The corresponding investigation path is missing, matching the source layout.
 
@@ -125,7 +125,7 @@ For Codex specifically, run a clean marketplace cache refresh and verify nested 
 
 ## Side Findings
 
-- Confirmed: `/Users/tungnt/.copilot/installed-plugins/tungnt-ai-skills-marketplace/tungnt-ai-skills` is at commit `2d37089`, while the local repo is at `a167d54`.
+- Confirmed: `~/.copilot/installed-plugins/tungnt-ai-skills-marketplace/tungnt-ai-skills` is at commit `2d37089`, while the local repo is at `a167d54`.
 
 ## Follow-up: 2026-06-09
 
