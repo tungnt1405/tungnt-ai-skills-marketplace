@@ -152,3 +152,41 @@ Run `npm run test:copilot-bootstrap`. On the current code it should fail on the 
 
 - In this PowerShell environment, `copilot --help` resolves to `copilot.ps1` and is blocked by execution policy. Calling `copilot.cmd --help` works.
 - `copilot.cmd -p "Let's make a react todo list" --allow-all-tools` could not run here because this shell reported no authentication information.
+
+## Follow-up: 2026-06-11
+
+### New Evidence
+
+- `hooks/hooks.copilot.json` and `hooks/hooks.json` now resolve the bootstrap script through `COPILOT_PLUGIN_ROOT`, `TUNGNT_AI_SKILLS_PLUGIN_ROOT`, or the current user's standard Copilot installed-plugin directory.
+- `npm.cmd run test:copilot-bootstrap` passes and confirms the hook emits `additionalContext` from both plugin-root cwd and temporary workspace cwd.
+- `npm.cmd run test:installer` passes with 59 installer tests.
+
+### Additional Findings
+
+The fix does not require changing `hooks/session-start.ps1` because that script already derives its package root from `$PSScriptRoot` after it is invoked by an absolute/plugin-root-aware path.
+
+### Updated Hypotheses
+
+The original plugin-root environment variable hypothesis remains compatible with the fix. If Copilot provides `COPILOT_PLUGIN_ROOT`, the hook uses it. If it does not, the hook falls back to a current-user home-relative installed-plugin path without hardcoding a customer machine path.
+
+### Backlog Changes
+
+- Closed: local hook command cwd reproduction.
+- Closed: manifest command root-resolution fix.
+- Open: capture a real logged-in Copilot acceptance transcript if the current shell still lacks non-interactive authentication.
+
+### Updated Conclusion
+
+**Confidence:** High
+
+The root cause was a workspace-relative hook command. The fixed manifests invoke the bootstrap script through a plugin-root-aware path, and local tests prove the command no longer depends on the caller's cwd.
+
+### Runtime Acceptance Blocker
+
+The non-interactive acceptance command could not be completed in this shell because Copilot reported:
+
+```text
+Error: No authentication information found.
+```
+
+Run the same acceptance command from an authenticated Copilot shell or capture an interactive session transcript with the prompt `Let's make a react todo list`.
