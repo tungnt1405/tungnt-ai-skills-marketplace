@@ -56,7 +56,8 @@ export function validateSource(packageRoot, target) {
 }
 
 export function validateInstall(destination, target) {
-  const missing = target.requiredFiles.filter((file) => !fs.existsSync(path.join(destination, file)));
+  const requiredFiles = target.installedRequiredFiles || target.requiredFiles;
+  const missing = requiredFiles.filter((file) => !fs.existsSync(path.join(destination, file)));
   if (missing.length > 0) {
     throw new Error(`${target.displayName} install is missing required file(s): ${missing.join(', ')}`);
   }
@@ -68,6 +69,7 @@ export function copyPackage(packageRoot, destination, target = {}) {
     copyEntry(path.join(packageRoot, entry), path.join(destination, entry), entry);
   }
   copySelectedHookManifest(packageRoot, destination, target);
+  copySelectedRootHookManifest(packageRoot, destination, target);
 }
 
 export function copyExtraPackages(packageRoot, target = {}, env = process.env) {
@@ -85,6 +87,16 @@ function copySelectedHookManifest(packageRoot, destination, target = {}) {
   }
   const source = path.join(packageRoot, target.hookManifestFile);
   const destinationFile = path.join(destination, 'hooks', 'hooks.json');
+  fs.mkdirSync(path.dirname(destinationFile), { recursive: true });
+  fs.copyFileSync(source, destinationFile);
+}
+
+function copySelectedRootHookManifest(packageRoot, destination, target = {}) {
+  if (!target.rootHookManifestFile) {
+    return;
+  }
+  const source = path.join(packageRoot, target.rootHookManifestFile);
+  const destinationFile = path.join(destination, 'hooks.json');
   fs.mkdirSync(path.dirname(destinationFile), { recursive: true });
   fs.copyFileSync(source, destinationFile);
 }

@@ -9,11 +9,26 @@ const REQUIRED_SKILL_FILES = [
 
 const ANTIGRAVITY_PLUGIN_ENTRIES = [
   'plugin.json',
+  'hooks',
   'skills',
 ];
 
 const ANTIGRAVITY_PLUGIN_REQUIRED_FILES = [
   'plugin.json',
+  'hooks/antigravity-pre-invocation',
+  'hooks/antigravity-pre-invocation.cmd',
+  'hooks/antigravity-pre-invocation.ps1',
+  'hooks/hooks.antigravity.windows.json',
+  'hooks/hooks.antigravity.unix.json',
+  ...REQUIRED_SKILL_FILES,
+];
+
+const ANTIGRAVITY_PLUGIN_INSTALLED_REQUIRED_FILES = [
+  'plugin.json',
+  'hooks.json',
+  'hooks/antigravity-pre-invocation',
+  'hooks/antigravity-pre-invocation.cmd',
+  'hooks/antigravity-pre-invocation.ps1',
   ...REQUIRED_SKILL_FILES,
 ];
 
@@ -39,6 +54,10 @@ const CLAUDE_LOCAL_MARKETPLACE_ENTRIES = [
 const CLAUDE_HOOK_MANIFEST_FILE = process.platform === 'win32'
   ? 'hooks/hooks.windows.json'
   : 'hooks/hooks.unix.json';
+
+const ANTIGRAVITY_HOOK_MANIFEST_FILE = process.platform === 'win32'
+  ? 'hooks/hooks.antigravity.windows.json'
+  : 'hooks/hooks.antigravity.unix.json';
 
 function homeDir(env = process.env) {
   return env.HOME || env.USERPROFILE || os.homedir();
@@ -89,6 +108,7 @@ export const TARGETS = [
         '.claude-plugin/plugin.json',
         'hooks/session-start',
         'hooks/session-start.cmd',
+        'hooks/session-start.ps1',
         'hooks/hooks.windows.json',
         'hooks/hooks.unix.json',
       ],
@@ -174,7 +194,14 @@ export const TARGETS = [
     displayName: 'GitHub Copilot CLI',
     defaultTarget: (env = process.env) => joinHome(env, '.copilot'),
     expectedParent: (env = process.env) => joinHome(env),
-    requiredFiles: [],
+    requiredFiles: [
+      'plugin.json',
+      ...REQUIRED_SKILL_FILES,
+      'hooks/session-start',
+      'hooks/session-start.cmd',
+      'hooks/session-start.ps1',
+      'hooks/hooks.copilot.json',
+    ],
     nativeCommands: [
       ['copilot', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
       ['copilot', 'plugin', 'install', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
@@ -245,6 +272,8 @@ export const TARGETS = [
       },
     ],
     requiredFiles: ANTIGRAVITY_PLUGIN_REQUIRED_FILES,
+    installedRequiredFiles: ANTIGRAVITY_PLUGIN_INSTALLED_REQUIRED_FILES,
+    rootHookManifestFile: ANTIGRAVITY_HOOK_MANIFEST_FILE,
     postInstallNotes: 'Restart Antigravity CLI or reload plugins after installation.',
   },
   {
@@ -267,6 +296,8 @@ export const TARGETS = [
     ],
     includeInAll: false,
     requiredFiles: ANTIGRAVITY_PLUGIN_REQUIRED_FILES,
+    installedRequiredFiles: ANTIGRAVITY_PLUGIN_INSTALLED_REQUIRED_FILES,
+    rootHookManifestFile: ANTIGRAVITY_HOOK_MANIFEST_FILE,
     postInstallNotes: 'Restart Antigravity or reload plugins after installation.',
   },
   {
@@ -288,6 +319,8 @@ export const TARGETS = [
       },
     ],
     requiredFiles: ANTIGRAVITY_PLUGIN_REQUIRED_FILES,
+    installedRequiredFiles: ANTIGRAVITY_PLUGIN_INSTALLED_REQUIRED_FILES,
+    rootHookManifestFile: ANTIGRAVITY_HOOK_MANIFEST_FILE,
     postInstallNotes: 'Restart Antigravity IDE or reload plugins after installation.',
   },
   {
