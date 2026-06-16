@@ -61,6 +61,13 @@ Domain skills add specialized judgment inside an already selected process workfl
 - `ui-ux-pro-max`
   Purpose: design intelligence for UI/UX work. Use during UI design, review, or implementation to query design databases and generate design-system evidence. This is a domain skill, not a process skill.
 
+### Manual Utility Skills
+
+Manual utility skills run only when the user explicitly invokes them. They do not select a process workflow and must not auto-trigger on vague, complex, or underspecified requests.
+
+- `prompt-leverage`
+  Purpose: manually upgrade, clarify, template, or apply a raw prompt. Use only on explicit `skill:prompt-leverage` or direct prompt-improvement requests. If the user requests `apply`, restart normal workflow selection after producing the upgraded prompt.
+
 Treat the workflow skills at the root of `skills/` as the main collection for this fork. Pick the matching skill instead of assuming everything follows one legacy grouping.
 
 ## Repository Layout
@@ -106,6 +113,7 @@ Examples:
 
 - Planning or decomposition work: check the root workflow skills in `skills/`
 - Brainstorming or structured ideation: check the root workflow skills in `skills/`
+- Prompt upgrade request: use `prompt-leverage` only if the user explicitly asks for prompt leverage, prompt improvement, prompt clarification, prompt templating, or `skill:prompt-leverage`
 
 If no skill clearly applies, continue normally.
 

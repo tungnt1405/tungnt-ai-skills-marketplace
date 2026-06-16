@@ -139,6 +139,36 @@ assertIncludes(uiUx, 'Use only after using-tungnt-ai-skills has selected a proce
 assertIncludes(uiUx, 'supporting domain lens inside brainstorming, planning, execution, or review', 'ui-ux-pro-max generic domain trigger');
 assertIncludes(uiUx, 'must not replace `brainstorming`, `writing-plans`, or execution/review skills', 'ui-ux-pro-max process guard');
 
+const promptLeverage = read('skills/prompt-leverage/SKILL.md');
+assert.equal(frontmatterName(promptLeverage), 'prompt-leverage', 'prompt-leverage frontmatter name');
+assertIncludes(promptLeverage, 'Manual Activation Only', 'prompt-leverage manual guard');
+assertIncludes(promptLeverage, 'Use this skill only when the user explicitly invokes it with `skill:prompt-leverage`', 'prompt-leverage explicit trigger');
+assertIncludes(promptLeverage, '`skill:prompt-leverage prompt: <text>`', 'prompt-leverage prompt contract');
+assertIncludes(promptLeverage, '`skill:prompt-leverage apply prompt: <text>`', 'prompt-leverage apply contract');
+assertIncludes(promptLeverage, '`skill:prompt-leverage template prompt: <text>`', 'prompt-leverage template contract');
+assertIncludes(promptLeverage, 'If the user uses `prompt:` without `apply`, return the upgraded prompt and stop', 'prompt-leverage no implicit execution');
+assertIncludes(promptLeverage, 'restart normal workflow selection from `using-tungnt-ai-skills`', 'prompt-leverage apply workflow');
+assertIncludes(promptLeverage, '## Hook Spec Behavior', 'prompt-leverage hook spec behavior');
+assertIncludes(promptLeverage, 'Activation pattern', 'prompt-leverage hook activation pattern');
+assertIncludes(promptLeverage, 'Non-trigger pattern', 'prompt-leverage hook non-trigger pattern');
+assertIncludes(promptLeverage, 'vague or underspecified prompts', 'prompt-leverage vague prompt hook');
+assertIncludes(promptLeverage, 'Missing objective', 'prompt-leverage missing objective signal');
+assertIncludes(promptLeverage, 'Missing context', 'prompt-leverage missing context signal');
+assertIncludes(promptLeverage, 'Missing output contract', 'prompt-leverage missing output contract signal');
+assertIncludes(promptLeverage, 'Missing verification', 'prompt-leverage missing verification signal');
+assertIncludes(promptLeverage, 'Risk without guardrails', 'prompt-leverage risk signal');
+assertIncludes(promptLeverage, 'ask for confirmation before execution', 'prompt-leverage hook confirmation gate');
+assert.equal(exists('skills/prompt-leverage/references/framework.md'), true, 'prompt-leverage framework reference must exist');
+assert.equal(exists('skills/prompt-leverage/scripts/augment_prompt.py'), true, 'prompt-leverage augment script must exist');
+assertIncludes(bootstrap, '### Manual Utility Skills', 'bootstrap manual utility taxonomy');
+assertIncludes(bootstrap, '- `prompt-leverage`', 'bootstrap prompt-leverage manual utility');
+assertIncludes(bootstrap, 'must not auto-trigger on vague, complex, or underspecified requests', 'bootstrap prompt-leverage no auto-trigger');
+assert.equal(
+  bootstrap.includes('| prompt, prompt-leverage, upgrade prompt'),
+  false,
+  'prompt-leverage must not be added to domain lens routing',
+);
+
 const requestReview = read('skills/requesting-code-review/SKILL.md');
 assertIncludes(requestReview, 'Blind Hunter', 'requesting-code-review lenses');
 assertIncludes(requestReview, 'Edge Case Hunter', 'requesting-code-review lenses');
