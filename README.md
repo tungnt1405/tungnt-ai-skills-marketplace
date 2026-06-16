@@ -7,6 +7,7 @@
 - `using-tungnt-ai-skills` bootstrap rules for this fork
 - workflow skills under `skills/` for investigation, quick fixes, brainstorming, planning, implementation, review, and branch finish work
 - domain skills for API design, security hardening, and UI/UX evidence inside the normal workflow
+- manual utility skills such as `prompt-leverage` for explicit prompt upgrade, clarification, templating, or apply flows
 - `writing-skills` guidance for creating, editing, and pressure-testing skills
 - optional YAML plan status tracking under `docs/tungnt-ai-skills/status/`
 - plugin metadata for Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and Google Antigravity
@@ -63,10 +64,15 @@ Domain skills are supporting references, not workflow selectors:
 
 Domain skills must be used inside the selected process workflow. They do not replace `brainstorming`, `writing-plans`, execution, review, investigation, or `writing-skills` gates.
 
+Manual utility skills do not auto-trigger:
+
+- `prompt-leverage` runs only when the user explicitly invokes `skill:prompt-leverage` or asks to improve, upgrade, clarify, template, or apply a raw prompt. `skill:prompt-leverage prompt: <text>` upgrades only; `skill:prompt-leverage apply prompt: <text>` upgrades first, then restarts the normal workflow selection.
+
 Skill calls use the real names from each `SKILL.md` file, not a plugin-prefixed namespace.
 
 Recent workflow additions:
 
+- `prompt-leverage` provides a manual prompt preprocessor for explicit prompt-upgrade requests without changing the normal workflow gates.
 - `ui-ux-pro-max` provides UI/UX design intelligence as a domain skill; use it inside the normal workflow without replacing `brainstorming`, `writing-plans`, or execution gates.
 - `brainstorming` can emit an optional Spec Kernel with goal, users, acceptance criteria, constraints, and out-of-scope items for handoff to `writing-plans`.
 - `executing-plans` and `subagent-driven-development` can maintain lightweight YAML status files at `docs/tungnt-ai-skills/status/<plan-name>-status.yaml`.
