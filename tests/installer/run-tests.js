@@ -354,7 +354,7 @@ test('copilot hook manifest uses documented sessionStart command shape', () => {
   const hooks = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.copilot.json'), 'utf8'));
   const entry = hooks.hooks.sessionStart[0];
 
-  assert.equal(hooks.version, 1);
+  assert.equal(Object.hasOwn(hooks, 'version'), false);
   assert.equal(Array.isArray(hooks.hooks.sessionStart), true);
   assert.equal(hooks.hooks.sessionStart.length, 1);
   assert.equal(entry.type, 'command');
@@ -372,7 +372,7 @@ test('copilot default hook discovery file is native sessionStart shape', () => {
   const hooks = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.json'), 'utf8'));
   const entry = hooks.hooks.sessionStart[0];
 
-  assert.equal(hooks.version, 1);
+  assert.equal(Object.hasOwn(hooks, 'version'), false);
   assert.equal(Array.isArray(hooks.hooks.sessionStart), true);
   assert.equal(hooks.hooks.sessionStart.length, 1);
   assert.equal(entry.type, 'command');
