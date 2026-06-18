@@ -347,11 +347,11 @@ test('copilot plugin declares native bootstrap hook manifest', () => {
   const plugin = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'plugin.json'), 'utf8'));
 
   assert.equal(plugin.skills, './skills/');
-  assert.equal(plugin.hooks, 'hooks/hooks.copilot.json');
+  assert.equal(plugin.hooks, 'hooks/hooks.json');
 });
 
 test('copilot hook manifest uses documented sessionStart command shape', () => {
-  const hooks = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.copilot.json'), 'utf8'));
+  const hooks = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.json'), 'utf8'));
   const entry = hooks.hooks.sessionStart[0];
 
   assert.equal(Object.hasOwn(hooks, 'version'), false);
@@ -395,7 +395,7 @@ test('copilot source validation requires bootstrap hook files', () => {
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.cmd')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.ps1')), true);
-  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.copilot.json')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.json')), true);
 });
 
 test('antigravity hook manifest uses documented PreInvocation injectSteps shape', () => {

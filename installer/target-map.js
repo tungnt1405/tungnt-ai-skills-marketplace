@@ -200,7 +200,6 @@ export const TARGETS = [
       'hooks/session-start',
       'hooks/session-start.cmd',
       'hooks/session-start.ps1',
-      'hooks/hooks.copilot.json',
     ],
     nativeCommands: [
       ['copilot', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
