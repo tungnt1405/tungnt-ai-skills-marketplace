@@ -37,7 +37,7 @@ function diagnostic(result) {
   ].join('\n');
 }
 
-const manifestPath = path.join(PACKAGE_ROOT, 'hooks', 'hooks.copilot.json');
+const manifestPath = path.join(PACKAGE_ROOT, 'hooks', 'hooks.json');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const [entry] = manifest.hooks.sessionStart;
 const command = process.platform === 'win32' ? entry.powershell : entry.bash;

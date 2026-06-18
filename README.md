@@ -497,10 +497,10 @@ with the marketplace entry:
 The Copilot plugin uses the root `plugin.json` manifest. That manifest exposes bundled skills through `skills/` and points Copilot at the Copilot-native hook manifest:
 
 ```text
-hooks/hooks.copilot.json
+hooks/hooks.json
 ```
 
-Copilot discovers `hooks/hooks.json` by default in the installed plugin. The source `hooks/hooks.json` therefore uses Copilot's `sessionStart` hook shape to run `hooks/session-start`, which injects `skills/using-tungnt-ai-skills/SKILL.md` as session context. `hooks/hooks.copilot.json` is kept as the named Copilot manifest mirror.
+Copilot discovers `hooks/hooks.json` by default in the installed plugin. The source `hooks/hooks.json` therefore uses Copilot's `sessionStart` hook shape to run `hooks/session-start`, which injects `skills/using-tungnt-ai-skills/SKILL.md` as session context.
 
 The Copilot hook command must resolve the installed plugin root, not the user's active workspace. The manifests first use a Copilot-provided `COPILOT_PLUGIN_ROOT` when available, then a test override `TUNGNT_AI_SKILLS_PLUGIN_ROOT`, then the standard installed plugin path under the current user's home directory. Do not hardcode a machine-specific path such as `C:\Users\<name>`.
 
@@ -615,7 +615,7 @@ Harness-specific metadata in this repo:
 
 - Claude Code: `.claude-plugin/plugin.json`
 - Codex: `.codex-plugin/plugin.json`, `.agents/plugins/marketplace.json`
-- GitHub Copilot CLI: `plugin.json`, `hooks/hooks.copilot.json`
+- GitHub Copilot CLI: `plugin.json`, `hooks/hooks.json`
 - Gemini CLI: `gemini-extension.json`
 - Google Antigravity: `.agents/plugins/tungnt-ai-skills-marketplace/plugin.json`, `plugin.json`
 - OpenCode: `.opencode/plugins/`
