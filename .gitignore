@@ -2,3 +2,5 @@
 node_modules/
 __pycache__/
 *.pyc
+docs/tungnt-ai-skills/investigations
+docs/tungnt-ai-skills/status
