@@ -976,7 +976,7 @@ test('update --agent claude clears local marketplace cache before copying fresh 
   const out = capture();
   const code = runCli(['update', '--agent', 'claude'], env, out.io);
   assert.equal(code, 0, out.stderr());
-  assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${cacheDir}`), true);
+  assert.equal(out.stdout().includes(`Skipped active folder: ${cacheDir}`), true);
   assert.equal(fs.existsSync(path.join(cacheDir, 'stale.txt')), false);
   assert.equal(fs.existsSync(path.join(cacheDir, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(cacheDir, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
@@ -993,7 +993,7 @@ test('update --agent agy clears stale plugin folder before copying fresh skills'
   const out = capture();
   const code = runCli(['update', '--agent', 'agy'], env, out.io);
   assert.equal(code, 0, out.stderr());
-  assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${destination}`), true);
+  assert.equal(out.stdout().includes(`Skipped active folder: ${destination}`), true);
   assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
   assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
@@ -1010,7 +1010,7 @@ test('update --agent antigravity clears stale plugin folder before copying fresh
   const out = capture();
   const code = runCli(['update', '--agent', 'antigravity'], env, out.io);
   assert.equal(code, 0, out.stderr());
-  assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${destination}`), true);
+  assert.equal(out.stdout().includes(`Skipped active folder: ${destination}`), true);
   assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
   assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
@@ -1027,7 +1027,7 @@ test('update --agent antigravity-ide clears stale plugin folder before copying f
   const out = capture();
   const code = runCli(['update', '--agent', 'antigravity-ide'], env, out.io);
   assert.equal(code, 0, out.stderr());
-  assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${destination}`), true);
+  assert.equal(out.stdout().includes(`Skipped active folder: ${destination}`), true);
   assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
   assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
