@@ -82,6 +82,15 @@ export function copyExtraPackages(packageRoot, target = {}, env = process.env) {
   }
 }
 
+export function copySettingTemplate(packageRoot, destination) {
+  const templatePath = path.join(packageRoot, 'setting.template.json');
+  const destinationPath = path.join(destination, 'setting.json');
+  if (fs.existsSync(templatePath) && !fs.existsSync(destinationPath)) {
+    fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
+    fs.copyFileSync(templatePath, destinationPath);
+  }
+}
+
 function copySelectedHookManifest(packageRoot, destination, target = {}) {
   if (!target.hookManifestFile) {
     return;

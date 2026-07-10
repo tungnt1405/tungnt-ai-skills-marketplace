@@ -10,6 +10,7 @@ import {
 } from '../../installer/target-map.js';
 import {
   copyPackage,
+  copySettingTemplate,
   ensureInsideExpectedParent,
   getPackageRoot,
   listPlannedEntries,
@@ -214,6 +215,30 @@ test('copyPackage excludes Python bytecode cache files', () => {
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'example', 'scripts', 'tool.py')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'example', 'scripts', '__pycache__')), false);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'example', 'scripts', '__pycache__', 'tool.cpython-312.pyc')), false);
+});
+
+test('copySettingTemplate copies setting.template.json when setting.json does not exist', () => {
+  const fixture = tempDir();
+  const destination = path.join(tempDir(), 'plugin');
+  fs.writeFileSync(path.join(fixture, 'setting.template.json'), '{"test": true}');
+
+  copySettingTemplate(fixture, destination);
+
+  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
+  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), '{"test": true}');
+});
+
+test('copySettingTemplate does not overwrite existing setting.json', () => {
+  const fixture = tempDir();
+  const destination = path.join(tempDir(), 'plugin');
+  fs.writeFileSync(path.join(fixture, 'setting.template.json'), '{"test": true}');
+  
+  fs.mkdirSync(destination, { recursive: true });
+  fs.writeFileSync(path.join(destination, 'setting.json'), '{"existing": true}');
+
+  copySettingTemplate(fixture, destination);
+
+  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), '{"existing": true}');
 });
 
 test('removeExistingInstall refuses paths outside expected parent', () => {
