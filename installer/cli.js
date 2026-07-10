@@ -7,13 +7,16 @@ import {
   supportedTargetIds,
 } from './target-map.js';
 import {
+  backupSettingJson,
   copyExtraPackages,
   copyPackage,
+  copySettingTemplate,
   getPackageRoot,
   listPlannedExtraCopies,
   listPlannedEntries,
   removeExistingInstall,
   removeManagedPackageEntries,
+  restoreSettingJson,
   validateInstall,
   validateSource,
 } from './package-copy.js';
@@ -234,6 +237,7 @@ function install(args, env, io) {
       }
       copyPackage(packageRoot, destination, target);
       copyExtraPackages(packageRoot, target, env);
+      copySettingTemplate(packageRoot, destination);
       if (target.marketplaceFile) {
         writeMarketplaceEntry(target.marketplaceFile(env), target.marketplaceEntry, target.marketplaceRoot);
       }
@@ -335,13 +339,17 @@ function update(args, env, io) {
       }
       cleanUpdateCaches(target, env, io);
       if (target.nativeCommands && target.fallbackInstall) {
+        backupSettingJson(destination);
         runFallbackInstall(packageRoot, target.fallbackInstall, env, installOptions);
+        restoreSettingJson(destination);
+        copySettingTemplate(packageRoot, destination);
         io.out('Status: updated\n');
         printNextSteps(target, io);
         continue;
       }
 
       const expectedParent = target.expectedParent(env);
+      backupSettingJson(destination);
       if (target.installMode === 'merge') {
         removeManagedPackageEntries(packageRoot, destination, expectedParent, target);
       } else if (fs.existsSync(destination)) {
@@ -349,6 +357,8 @@ function update(args, env, io) {
       }
       copyPackage(packageRoot, destination, target);
       copyExtraPackages(packageRoot, target, env);
+      restoreSettingJson(destination);
+      copySettingTemplate(packageRoot, destination);
       if (target.marketplaceFile) {
         writeMarketplaceEntry(target.marketplaceFile(env), target.marketplaceEntry, target.marketplaceRoot);
       }
@@ -542,6 +552,7 @@ function installPackageFallback(packageRoot, fallback, env, options) {
     removeExistingInstall(destination, expectedParent);
   }
   copyPackage(packageRoot, destination, fallback);
+  copySettingTemplate(packageRoot, destination);
   if (fallback.marketplaceFile) {
     writeMarketplaceEntry(fallback.marketplaceFile(env), fallback.marketplaceEntry, fallback.marketplaceRoot);
   }

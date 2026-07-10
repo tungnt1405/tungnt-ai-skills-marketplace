@@ -161,7 +161,14 @@ export function ensureInsideExpectedParent(destination, expectedParent) {
 export function removeExistingInstall(destination, expectedParent) {
   ensureInsideExpectedParent(destination, expectedParent);
   if (fs.existsSync(destination)) {
-    fs.rmSync(destination, { recursive: true, force: true });
+    for (const entry of fs.readdirSync(destination)) {
+      if (entry !== '.tmp') {
+        fs.rmSync(path.join(destination, entry), { recursive: true, force: true });
+      }
+    }
+    if (!fs.existsSync(path.join(destination, '.tmp'))) {
+      fs.rmSync(destination, { recursive: true, force: true });
+    }
   }
 }
 
@@ -182,5 +189,30 @@ function removeManagedSkills(sourceSkillsDir, destinationSkillsDir) {
   }
   for (const skillName of fs.readdirSync(sourceSkillsDir)) {
     fs.rmSync(path.join(destinationSkillsDir, skillName), { recursive: true, force: true });
+  }
+}
+
+export function backupSettingJson(destination) {
+  const tmpDir = path.join(destination, '.tmp');
+  if (fs.existsSync(tmpDir)) {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+  const settingPath = path.join(destination, 'setting.json');
+  if (!fs.existsSync(settingPath)) {
+    return false;
+  }
+  fs.mkdirSync(tmpDir, { recursive: true });
+  fs.renameSync(settingPath, path.join(tmpDir, 'setting.json'));
+  return true;
+}
+
+export function restoreSettingJson(destination) {
+  const tmpDir = path.join(destination, '.tmp');
+  const tmpSettingPath = path.join(tmpDir, 'setting.json');
+  if (fs.existsSync(tmpSettingPath)) {
+    fs.renameSync(tmpSettingPath, path.join(destination, 'setting.json'));
+  }
+  if (fs.existsSync(tmpDir)) {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 }
