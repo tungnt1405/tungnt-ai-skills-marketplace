@@ -1,0 +1,29 @@
+{
+  "policy": {
+    "autoCommit": false,
+    "autoTest": false,
+    "dangerousCommands": {
+      "blocked": [
+        "rm -rf /",
+        "rm -rf *",
+        "mkfs",
+        "dd",
+        "chmod -R 777 /",
+        "chown -R"
+      ],
+      "askConfirmation": true
+    },
+    "sensitiveFiles": {
+      "blocked": [
+        "**/.env",
+        "**/*.pem",
+        "**/.ssh/id_*",
+        "**/secrets.json"
+      ],
+      "askConfirmation": true
+    },
+    "installAndUpdate": {
+      "askUser": true
+    }
+  }
+}
