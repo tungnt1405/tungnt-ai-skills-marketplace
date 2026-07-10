@@ -217,7 +217,29 @@ test('copyPackage excludes Python bytecode cache files', () => {
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'example', 'scripts', '__pycache__', 'tool.cpython-312.pyc')), false);
 });
 
+test('copySettingTemplate copies setting.template.json when setting.json does not exist', () => {
+  const fixture = tempDir();
+  const destination = path.join(tempDir(), 'plugin');
+  fs.writeFileSync(path.join(fixture, 'setting.template.json'), '{"test": true}');
 
+  copySettingTemplate(fixture, destination);
+
+  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
+  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), '{"test": true}');
+});
+
+test('copySettingTemplate does not overwrite existing setting.json', () => {
+  const fixture = tempDir();
+  const destination = path.join(tempDir(), 'plugin');
+  fs.writeFileSync(path.join(fixture, 'setting.template.json'), '{"test": true}');
+  
+  fs.mkdirSync(destination, { recursive: true });
+  fs.writeFileSync(path.join(destination, 'setting.json'), '{"existing": true}');
+
+  copySettingTemplate(fixture, destination);
+
+  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), '{"existing": true}');
+});
 
 test('removeExistingInstall refuses paths outside expected parent', () => {
   const root = tempDir();
@@ -1038,10 +1060,11 @@ test('install creates setting.json from template on fresh install', () => {
     assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), templateContent);
   } finally {
     const tmpDir = path.join(destination, '.tmp');
-    if (fs.existsSync(tmpDir)) {
+    const wasLeftover = fs.existsSync(tmpDir);
+    if (wasLeftover) {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
-    assert.equal(fs.existsSync(tmpDir), false);
+    assert.equal(wasLeftover, false);
   }
 });
 
@@ -1064,10 +1087,11 @@ test('install without --force on pre-existing destination preserves existing set
     assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), customSetting);
   } finally {
     const tmpDir = path.join(destination, '.tmp');
-    if (fs.existsSync(tmpDir)) {
+    const wasLeftover = fs.existsSync(tmpDir);
+    if (wasLeftover) {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
-    assert.equal(fs.existsSync(tmpDir), false);
+    assert.equal(wasLeftover, false);
   }
 });
 
@@ -1089,10 +1113,11 @@ test('install --force update preserves existing setting.json', () => {
     assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), customSetting);
   } finally {
     const tmpDir = path.join(destination, '.tmp');
-    if (fs.existsSync(tmpDir)) {
+    const wasLeftover = fs.existsSync(tmpDir);
+    if (wasLeftover) {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
-    assert.equal(fs.existsSync(tmpDir), false);
+    assert.equal(wasLeftover, false);
   }
 });
 
@@ -1118,10 +1143,11 @@ test('install --force creates setting.json if missing during update', () => {
     assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), templateContent);
   } finally {
     const tmpDir = path.join(destination, '.tmp');
-    if (fs.existsSync(tmpDir)) {
+    const wasLeftover = fs.existsSync(tmpDir);
+    if (wasLeftover) {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
-    assert.equal(fs.existsSync(tmpDir), false);
+    assert.equal(wasLeftover, false);
   }
 });
 
@@ -1147,10 +1173,11 @@ test('update merge-mode preserves existing setting.json', () => {
   } finally {
     target.installMode = originalMode;
     const tmpDir = path.join(destination, '.tmp');
-    if (fs.existsSync(tmpDir)) {
+    const wasLeftover = fs.existsSync(tmpDir);
+    if (wasLeftover) {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
-    assert.equal(fs.existsSync(tmpDir), false);
+    assert.equal(wasLeftover, false);
   }
 });
 
