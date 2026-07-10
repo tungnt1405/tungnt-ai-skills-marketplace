@@ -1042,6 +1042,81 @@ test('update --agent codex --dry-run prints cache cleanup path', () => {
   assert.equal(fs.existsSync(path.join(home, '.codex')), false);
 });
 
+test('install creates setting.json from template on fresh install', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('agy');
+  const destination = target.defaultTarget(env);
+  const out = capture();
+  const code = runCli(['install', '--agent', 'agy'], env, out.io);
+  
+  assert.equal(code, 0, out.stderr());
+  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
+  
+  const templatePath = path.join(PACKAGE_ROOT, 'setting.template.json');
+  const templateContent = fs.readFileSync(templatePath, 'utf8');
+  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), templateContent);
+  assert.equal(fs.existsSync(path.join(destination, '.tmp')), false);
+});
+
+test('install --force update preserves existing setting.json', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('agy');
+  const destination = target.defaultTarget(env);
+  
+  fs.mkdirSync(destination, { recursive: true });
+  const customSetting = '{"custom": "setting"}';
+  fs.writeFileSync(path.join(destination, 'setting.json'), customSetting);
+  
+  const out = capture();
+  const code = runCli(['install', '--agent', 'agy', '--force'], env, out.io);
+  
+  assert.equal(code, 0, out.stderr());
+  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), customSetting);
+  assert.equal(fs.existsSync(path.join(destination, '.tmp')), false);
+});
+
+test('install --force creates setting.json if missing during update', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('agy');
+  const destination = target.defaultTarget(env);
+  
+  fs.mkdirSync(destination, { recursive: true });
+  fs.writeFileSync(path.join(destination, 'stale.txt'), 'stale');
+  
+  const out = capture();
+  const code = runCli(['install', '--agent', 'agy', '--force'], env, out.io);
+  
+  assert.equal(code, 0, out.stderr());
+  assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
+  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
+  
+  const templatePath = path.join(PACKAGE_ROOT, 'setting.template.json');
+  const templateContent = fs.readFileSync(templatePath, 'utf8');
+  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), templateContent);
+  assert.equal(fs.existsSync(path.join(destination, '.tmp')), false);
+});
+
+test('update merge-mode preserves existing setting.json', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('agy');
+  const destination = target.defaultTarget(env);
+  
+  fs.mkdirSync(destination, { recursive: true });
+  const customSetting = '{"custom": "merge"}';
+  fs.writeFileSync(path.join(destination, 'setting.json'), customSetting);
+  
+  const out = capture();
+  const code = runCli(['update', '--agent', 'agy'], env, out.io);
+  
+  assert.equal(code, 0, out.stderr());
+  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), customSetting);
+  assert.equal(fs.existsSync(path.join(destination, '.tmp')), false);
+});
+
 async function run() {
   let failed = 0;
   for (const { name, fn } of tests) {
