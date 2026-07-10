@@ -337,19 +337,16 @@ function update(args, env, io) {
       if (target.nativeCommands && !target.fallbackInstall) {
         throw new Error(`${target.displayName} does not declare an installer refresh fallback. Use update --agent ${target.id} --native.`);
       }
+      backupSettingJson(destination);
       cleanUpdateCaches(target, env, io);
       if (target.nativeCommands && target.fallbackInstall) {
-        backupSettingJson(destination);
         runFallbackInstall(packageRoot, target.fallbackInstall, env, installOptions);
-        restoreSettingJson(destination);
-        copySettingTemplate(packageRoot, destination);
         io.out('Status: updated\n');
         printNextSteps(target, io);
         continue;
       }
 
       const expectedParent = target.expectedParent(env);
-      backupSettingJson(destination);
       if (target.installMode === 'merge') {
         removeManagedPackageEntries(packageRoot, destination, expectedParent, target);
       } else if (fs.existsSync(destination)) {
@@ -545,6 +542,7 @@ function installPackageFallback(packageRoot, fallback, env, options) {
   const destination = fallback.defaultTarget(env);
   const expectedParent = fallback.expectedParent(env);
   validateSource(packageRoot, fallback);
+  backupSettingJson(destination);
   if (fs.existsSync(destination)) {
     if (!options.force) {
       throw new Error(`Destination already exists: ${destination}. Re-run with --force to replace it.`);
@@ -552,6 +550,7 @@ function installPackageFallback(packageRoot, fallback, env, options) {
     removeExistingInstall(destination, expectedParent);
   }
   copyPackage(packageRoot, destination, fallback);
+  restoreSettingJson(destination);
   copySettingTemplate(packageRoot, destination);
   if (fallback.marketplaceFile) {
     writeMarketplaceEntry(fallback.marketplaceFile(env), fallback.marketplaceEntry, fallback.marketplaceRoot);
