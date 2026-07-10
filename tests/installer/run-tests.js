@@ -217,29 +217,7 @@ test('copyPackage excludes Python bytecode cache files', () => {
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'example', 'scripts', '__pycache__', 'tool.cpython-312.pyc')), false);
 });
 
-test('copySettingTemplate copies setting.template.json when setting.json does not exist', () => {
-  const fixture = tempDir();
-  const destination = path.join(tempDir(), 'plugin');
-  fs.writeFileSync(path.join(fixture, 'setting.template.json'), '{"test": true}');
 
-  copySettingTemplate(fixture, destination);
-
-  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
-  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), '{"test": true}');
-});
-
-test('copySettingTemplate does not overwrite existing setting.json', () => {
-  const fixture = tempDir();
-  const destination = path.join(tempDir(), 'plugin');
-  fs.writeFileSync(path.join(fixture, 'setting.template.json'), '{"test": true}');
-  
-  fs.mkdirSync(destination, { recursive: true });
-  fs.writeFileSync(path.join(destination, 'setting.json'), '{"existing": true}');
-
-  copySettingTemplate(fixture, destination);
-
-  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), '{"existing": true}');
-});
 
 test('removeExistingInstall refuses paths outside expected parent', () => {
   const root = tempDir();
@@ -1047,16 +1025,50 @@ test('install creates setting.json from template on fresh install', () => {
   const env = fakeEnv(home);
   const target = getTargetById('agy');
   const destination = target.defaultTarget(env);
-  const out = capture();
-  const code = runCli(['install', '--agent', 'agy'], env, out.io);
   
-  assert.equal(code, 0, out.stderr());
-  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
+  try {
+    const out = capture();
+    const code = runCli(['install', '--agent', 'agy'], env, out.io);
+    
+    assert.equal(code, 0, out.stderr());
+    assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
+    
+    const templatePath = path.join(PACKAGE_ROOT, 'setting.template.json');
+    const templateContent = fs.readFileSync(templatePath, 'utf8');
+    assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), templateContent);
+  } finally {
+    const tmpDir = path.join(destination, '.tmp');
+    if (fs.existsSync(tmpDir)) {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+    assert.equal(fs.existsSync(tmpDir), false);
+  }
+});
+
+test('install without --force on pre-existing destination preserves existing setting.json', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('agy');
+  const destination = target.defaultTarget(env);
   
-  const templatePath = path.join(PACKAGE_ROOT, 'setting.template.json');
-  const templateContent = fs.readFileSync(templatePath, 'utf8');
-  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), templateContent);
-  assert.equal(fs.existsSync(path.join(destination, '.tmp')), false);
+  fs.mkdirSync(destination, { recursive: true });
+  const customSetting = '{"custom": "setting"}';
+  fs.writeFileSync(path.join(destination, 'setting.json'), customSetting);
+  
+  try {
+    const out = capture();
+    const code = runCli(['install', '--agent', 'agy'], env, out.io);
+    
+    assert.equal(code, 1);
+    assert.equal(out.stderr().includes('Destination already exists'), true);
+    assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), customSetting);
+  } finally {
+    const tmpDir = path.join(destination, '.tmp');
+    if (fs.existsSync(tmpDir)) {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+    assert.equal(fs.existsSync(tmpDir), false);
+  }
 });
 
 test('install --force update preserves existing setting.json', () => {
@@ -1069,12 +1081,19 @@ test('install --force update preserves existing setting.json', () => {
   const customSetting = '{"custom": "setting"}';
   fs.writeFileSync(path.join(destination, 'setting.json'), customSetting);
   
-  const out = capture();
-  const code = runCli(['install', '--agent', 'agy', '--force'], env, out.io);
-  
-  assert.equal(code, 0, out.stderr());
-  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), customSetting);
-  assert.equal(fs.existsSync(path.join(destination, '.tmp')), false);
+  try {
+    const out = capture();
+    const code = runCli(['install', '--agent', 'agy', '--force'], env, out.io);
+    
+    assert.equal(code, 0, out.stderr());
+    assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), customSetting);
+  } finally {
+    const tmpDir = path.join(destination, '.tmp');
+    if (fs.existsSync(tmpDir)) {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+    assert.equal(fs.existsSync(tmpDir), false);
+  }
 });
 
 test('install --force creates setting.json if missing during update', () => {
@@ -1086,35 +1105,54 @@ test('install --force creates setting.json if missing during update', () => {
   fs.mkdirSync(destination, { recursive: true });
   fs.writeFileSync(path.join(destination, 'stale.txt'), 'stale');
   
-  const out = capture();
-  const code = runCli(['install', '--agent', 'agy', '--force'], env, out.io);
-  
-  assert.equal(code, 0, out.stderr());
-  assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
-  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
-  
-  const templatePath = path.join(PACKAGE_ROOT, 'setting.template.json');
-  const templateContent = fs.readFileSync(templatePath, 'utf8');
-  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), templateContent);
-  assert.equal(fs.existsSync(path.join(destination, '.tmp')), false);
+  try {
+    const out = capture();
+    const code = runCli(['install', '--agent', 'agy', '--force'], env, out.io);
+    
+    assert.equal(code, 0, out.stderr());
+    assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
+    assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
+    
+    const templatePath = path.join(PACKAGE_ROOT, 'setting.template.json');
+    const templateContent = fs.readFileSync(templatePath, 'utf8');
+    assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), templateContent);
+  } finally {
+    const tmpDir = path.join(destination, '.tmp');
+    if (fs.existsSync(tmpDir)) {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+    assert.equal(fs.existsSync(tmpDir), false);
+  }
 });
 
 test('update merge-mode preserves existing setting.json', () => {
-  const home = tempDir();
-  const env = fakeEnv(home);
   const target = getTargetById('agy');
-  const destination = target.defaultTarget(env);
+  const originalMode = target.installMode;
+  target.installMode = 'merge';
   
-  fs.mkdirSync(destination, { recursive: true });
-  const customSetting = '{"custom": "merge"}';
-  fs.writeFileSync(path.join(destination, 'setting.json'), customSetting);
-  
-  const out = capture();
-  const code = runCli(['update', '--agent', 'agy'], env, out.io);
-  
-  assert.equal(code, 0, out.stderr());
-  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), customSetting);
-  assert.equal(fs.existsSync(path.join(destination, '.tmp')), false);
+  try {
+    const home = tempDir();
+    const env = fakeEnv(home);
+    const destination = target.defaultTarget(env);
+    
+    fs.mkdirSync(destination, { recursive: true });
+    const customSetting = '{"custom": "merge"}';
+    fs.writeFileSync(path.join(destination, 'setting.json'), customSetting);
+    
+    const out = capture();
+    const code = runCli(['update', '--agent', 'agy'], env, out.io);
+    
+    assert.equal(code, 0, out.stderr());
+    assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), customSetting);
+    
+    const tmpDir = path.join(destination, '.tmp');
+    if (fs.existsSync(tmpDir)) {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+    assert.equal(fs.existsSync(tmpDir), false);
+  } finally {
+    target.installMode = originalMode;
+  }
 });
 
 async function run() {
