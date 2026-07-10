@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Ưu tiên lấy cấu hình từ project (PWD/tais/setting.json)
+# Nếu không có, dùng setting.json mặc định của plugin
+PROJECT_SETTING="tais/setting.json"
+GLOBAL_SETTING="${PLUGIN_ROOT}/setting.json"
+
+if [ -f "$PROJECT_SETTING" ]; then
+    SETTING_FILE="$PROJECT_SETTING"
+    MISSING_SETTING_WARNING=""
+elif [ -f "$GLOBAL_SETTING" ]; then
+    SETTING_FILE="$GLOBAL_SETTING"
+    MISSING_SETTING_WARNING=""
+else
+    SETTING_FILE=""
+    MISSING_SETTING_WARNING="
+<important-reminder>IN YOUR FIRST REPLY AFTER SEEING THIS MESSAGE YOU MUST TELL THE USER: ⚠️ Lần đầu cài đặt/Update: Hệ thống chưa có file cấu hình settings. Bạn hãy dùng skill \`configuring-settings\` để hỏi người dùng muốn cài đặt cấu hình Chung (Global) hay Cục bộ (Local) nhé. Mặc định nên gợi ý cài Global.</important-reminder>"
+fi
+
+if [ -z "$SETTING_FILE" ] || [ ! -f "$SETTING_FILE" ]; then
+    AUTO_COMMIT="false"
+    AUTO_TEST="false"
+    BLOCKED_CMDS="rm -rf /, rm -rf *, mkfs, dd, chmod -R 777 /, chown -R"
+    BLOCKED_FILES="**/.env, **/*.pem, **/.ssh/id_*, **/secrets.json"
+    ASK_CONFIRM="true"
+else
+    if command -v jq >/dev/null 2>&1 && jq -e . "$SETTING_FILE" >/dev/null 2>&1; then
+        AUTO_COMMIT=$(jq -r '.policy.autoCommit // false' "$SETTING_FILE")
+        AUTO_TEST=$(jq -r '.policy.autoTest // false' "$SETTING_FILE")
+        BLOCKED_CMDS=$(jq -r 'if .policy.dangerousCommands.blocked then (.policy.dangerousCommands.blocked | join(", ")) else "rm -rf /, rm -rf *, mkfs, dd, chmod -R 777 /, chown -R" end' "$SETTING_FILE")
+        BLOCKED_FILES=$(jq -r 'if .policy.sensitiveFiles.blocked then (.policy.sensitiveFiles.blocked | join(", ")) else "**/.env, **/*.pem, **/.ssh/id_*, **/secrets.json" end' "$SETTING_FILE")
+        ASK_CONFIRM=$(jq -r '.policy.dangerousCommands.askConfirmation // true' "$SETTING_FILE")
+    else
+        AUTO_COMMIT="false"
+        AUTO_TEST="false"
+        BLOCKED_CMDS="rm -rf /, rm -rf *, mkfs, dd, chmod -R 777 /, chown -R"
+        BLOCKED_FILES="**/.env, **/*.pem, **/.ssh/id_*, **/secrets.json"
+        ASK_CONFIRM="true"
+    fi
+fi
+
+if [ "$AUTO_COMMIT" = "false" ] || [ "$AUTO_COMMIT" = "null" ]; then
+    AUTO_COMMIT_MSG="- Auto-Commit is DISABLED: DO NOT automatically commit code. You must ask the user or wait for their explicit instruction."
+else
+    AUTO_COMMIT_MSG="- Auto-Commit is ENABLED: You may automatically commit code."
+fi
+
+if [ "$AUTO_TEST" = "false" ] || [ "$AUTO_TEST" = "null" ]; then
+    AUTO_TEST_MSG="- Auto-Test is DISABLED: DO NOT automatically run tests at the end of a task unless requested."
+else
+    AUTO_TEST_MSG="- Auto-Test is ENABLED: You may automatically run tests at the end of a task."
+fi
+
+cat <<EOF
+@@PRIVACY_PROMPT@@
+<SECURITY_POLICY>
+This workspace enforces the following strict security and privacy policies:
+- Plugin Root: $PLUGIN_ROOT
+$AUTO_COMMIT_MSG
+$AUTO_TEST_MSG
+- BLOCKED Commands: $BLOCKED_CMDS -> DO NOT EXECUTE under any circumstances.
+- SENSITIVE Files: $BLOCKED_FILES -> DO NOT READ OR MODIFY.
+- Ask Confirmation: $ASK_CONFIRM -> If you need to run potentially destructive commands not in the blocked list or update packages, you MUST ask the user for confirmation (via the ask_question tool or standard chat) before proceeding.
+- ENV Override: If TAIS_SKIP_PROMPT=1 is set, you may skip confirmations.
+</SECURITY_POLICY>
+$MISSING_SETTING_WARNING
+EOF

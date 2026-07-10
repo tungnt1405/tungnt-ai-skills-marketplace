@@ -35,6 +35,13 @@ Below is the full content of your bootstrap skill (using-tungnt-ai-skills). Read
 ${bootstrap_content}
 </EXTREMELY_IMPORTANT>"
 
+if [ -f "${PLUGIN_ROOT}/hooks/framework-skills-hook" ]; then
+    privacy_prompt_content=$(bash "${PLUGIN_ROOT}/hooks/framework-skills-hook" 2>&1 || echo "Error generating privacy prompt")
+    session_context="${session_context}
+
+${privacy_prompt_content}"
+fi
+
 session_context_escaped="$(escape_for_json "$session_context")"
 
 printf '{\n  "injectSteps": [\n    {\n      "ephemeralMessage": "%s"\n    }\n  ]\n}\n' "$session_context_escaped"
