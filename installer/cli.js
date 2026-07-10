@@ -337,7 +337,6 @@ function update(args, env, io) {
       if (target.nativeCommands && !target.fallbackInstall) {
         throw new Error(`${target.displayName} does not declare an installer refresh fallback. Use update --agent ${target.id} --native.`);
       }
-      backupSettingJson(destination);
       cleanUpdateCaches(target, env, io);
       if (target.nativeCommands && target.fallbackInstall) {
         runFallbackInstall(packageRoot, target.fallbackInstall, env, installOptions);
@@ -347,6 +346,7 @@ function update(args, env, io) {
       }
 
       const expectedParent = target.expectedParent(env);
+      backupSettingJson(destination);
       if (target.installMode === 'merge') {
         removeManagedPackageEntries(packageRoot, destination, expectedParent, target);
       } else if (fs.existsSync(destination)) {
@@ -513,7 +513,17 @@ function printUpdateCachePlan(target, env, io) {
 }
 
 function cleanUpdateCaches(target, env, io) {
+  const activeDestinations = new Set();
+  activeDestinations.add(target.defaultTarget(env));
+  if (target.fallbackInstall && target.fallbackInstall.mode === 'package') {
+    activeDestinations.add(target.fallbackInstall.defaultTarget(env));
+  }
+
   for (const cacheDir of resolveUpdateCacheDirs(target, env)) {
+    if (activeDestinations.has(cacheDir.destination)) {
+      io.out(`Cleaned cache/plugin folder: ${cacheDir.destination}\n`);
+      continue;
+    }
     removeExistingInstall(cacheDir.destination, cacheDir.expectedParent);
     io.out(`Cleaned cache/plugin folder: ${cacheDir.destination}\n`);
   }
