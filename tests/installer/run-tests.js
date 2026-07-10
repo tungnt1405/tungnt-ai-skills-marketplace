@@ -1130,11 +1130,11 @@ test('update merge-mode preserves existing setting.json', () => {
   const originalMode = target.installMode;
   target.installMode = 'merge';
   
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const destination = target.defaultTarget(env);
+  
   try {
-    const home = tempDir();
-    const env = fakeEnv(home);
-    const destination = target.defaultTarget(env);
-    
     fs.mkdirSync(destination, { recursive: true });
     const customSetting = '{"custom": "merge"}';
     fs.writeFileSync(path.join(destination, 'setting.json'), customSetting);
@@ -1144,14 +1144,13 @@ test('update merge-mode preserves existing setting.json', () => {
     
     assert.equal(code, 0, out.stderr());
     assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), customSetting);
-    
+  } finally {
+    target.installMode = originalMode;
     const tmpDir = path.join(destination, '.tmp');
     if (fs.existsSync(tmpDir)) {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
     assert.equal(fs.existsSync(tmpDir), false);
-  } finally {
-    target.installMode = originalMode;
   }
 });
 
