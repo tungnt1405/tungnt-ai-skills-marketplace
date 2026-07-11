@@ -179,6 +179,7 @@ test('planned package entries include core files', () => {
   assert.deepEqual(entries, [
     'skills',
     'hooks',
+    'setting.json',
     'gemini-extension.json',
     'GEMINI.md',
     'CLAUDE.md',
@@ -195,6 +196,7 @@ test('copyPackage copies shared required files', () => {
   validateSource(PACKAGE_ROOT, target);
   copyPackage(PACKAGE_ROOT, destination);
   validateInstall(destination, target);
+  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
 });
 
@@ -271,6 +273,7 @@ test('install --agent codex --dry-run selects only Codex', () => {
   assert.equal(out.stdout().includes('Command: codex plugin marketplace add tungnt1405/tungnt-ai-skills-marketplace'), false);
   assert.equal(out.stdout().includes('Command: codex plugin add tungnt-ai-skills@tungnt-ai-skills-marketplace'), false);
   assert.equal(out.stdout().includes(`Manual target: ${path.join(home, '.codex', 'plugins', 'tungnt-ai-skills-marketplace')}`), true);
+  assert.equal(out.stdout().includes('Manual entries: .codex-plugin, assets, skills, setting.json'), true);
   assert.equal(out.stdout().includes(`Manual marketplace file: ${path.join(home, '.agents', 'plugins', 'marketplace.json')}`), true);
   assert.equal(out.stdout().includes('Next steps:'), true);
   assert.equal(out.stdout().includes('Codex CLI: Open a terminal and run codex.'), true);
@@ -391,6 +394,7 @@ test('copilot source validation requires bootstrap hook files', () => {
 
   validateSource(PACKAGE_ROOT, target);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'plugin.json')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.cmd')), true);
@@ -422,6 +426,7 @@ test('antigravity source validation requires PreInvocation bootstrap hook files'
 
     validateSource(PACKAGE_ROOT, target);
     assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'plugin.json')), true);
+    assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'setting.json')), true);
     assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
     assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'antigravity-pre-invocation')), true);
     assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'antigravity-pre-invocation.cmd')), true);
@@ -445,6 +450,7 @@ test('install --agent codex imports local marketplace by default', () => {
   assert.equal(out.stdout().includes('Codex CLI: Add the plugin from the plugins screen.'), true);
   assert.equal(out.stdout().includes('Codex app: Add the plugin.'), true);
   assert.equal(fs.existsSync(path.join(destination, '.codex-plugin', 'plugin.json')), true);
+  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
   assert.deepEqual(JSON.parse(fs.readFileSync(marketplaceFile, 'utf8')), {
     name: 'tungnt-ai-skills-marketplace',
@@ -709,7 +715,7 @@ test('install --agent claude --dry-run selects Claude manual marketplace setup',
   assert.equal(out.stdout().includes('[codex]'), false);
   assert.equal(out.stdout().includes('Mode: manual marketplace setup'), true);
   assert.equal(out.stdout().includes(`Manual target: ${path.join(home, '.claude', 'plugins', 'cache', 'tungnt-ai-skills-marketplace')}`), true);
-  assert.equal(out.stdout().includes('Manual entries: .claude-plugin, hooks, skills'), true);
+  assert.equal(out.stdout().includes('Manual entries: .claude-plugin, hooks, skills, setting.json'), true);
   assert.equal(out.stdout().includes('Claude Code app: Open Claude Code.'), true);
   assert.equal(out.stdout().includes('Claude Code app: Open the Plugins tab.'), true);
   assert.equal(out.stdout().includes('Claude Code app: Search for tungnt-ai-skills.'), true);
@@ -740,6 +746,7 @@ test('install --agent claude imports local marketplace by default', () => {
   assert.equal(out.stdout().includes('Status: marketplace configured'), true);
   assert.equal(fs.existsSync(path.join(destination, '.claude-plugin', 'marketplace.json')), true);
   assert.equal(fs.existsSync(path.join(destination, '.claude-plugin', 'plugin.json')), true);
+  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
 });
 
@@ -775,7 +782,7 @@ test('install --agent agy --dry-run uses Antigravity CLI plugin layout', () => {
   const code = runCli(['install', '--agent', 'agy', '--dry-run'], fakeEnv(home), out.io);
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes(path.join(home, '.gemini', 'antigravity-cli', 'plugins', 'tungnt-ai-skills')), true);
-  assert.equal(out.stdout().includes('Planned entries: plugin.json, hooks, skills'), true);
+  assert.equal(out.stdout().includes('Planned entries: plugin.json, hooks, skills, setting.json'), true);
   assert.equal(out.stdout().includes(`Additional target: ${path.join(home, '.gemini')}`), true);
   assert.equal(out.stdout().includes('Additional entries: AGENTS.md, CLAUDE.md, GEMINI.md, gemini-extension.json'), true);
 });
@@ -786,7 +793,7 @@ test('install --agent antigravity-ide --dry-run uses Antigravity IDE plugin layo
   const code = runCli(['install', '--agent', 'antigravity-ide', '--dry-run'], fakeEnv(home), out.io);
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes(path.join(home, '.gemini', 'config', 'plugins', 'tungnt-ai-skills')), true);
-  assert.equal(out.stdout().includes('Planned entries: plugin.json, hooks, skills'), true);
+  assert.equal(out.stdout().includes('Planned entries: plugin.json, hooks, skills, setting.json'), true);
   assert.equal(out.stdout().includes(`Additional target: ${path.join(home, '.gemini')}`), true);
   assert.equal(out.stdout().includes('Additional entries: AGENTS.md, CLAUDE.md, GEMINI.md, gemini-extension.json'), true);
 });
@@ -797,7 +804,7 @@ test('install --agent antigravity --dry-run uses shared Antigravity IDE plugin l
   const code = runCli(['install', '--agent', 'antigravity', '--dry-run'], fakeEnv(home), out.io);
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes(path.join(home, '.gemini', 'config', 'plugins', 'tungnt-ai-skills')), true);
-  assert.equal(out.stdout().includes('Planned entries: plugin.json, hooks, skills'), true);
+  assert.equal(out.stdout().includes('Planned entries: plugin.json, hooks, skills, setting.json'), true);
   assert.equal(out.stdout().includes(`Additional target: ${path.join(home, '.gemini')}`), true);
   assert.equal(out.stdout().includes('Additional entries: AGENTS.md, CLAUDE.md, GEMINI.md, gemini-extension.json'), true);
 });
@@ -850,6 +857,7 @@ test('install --force replaces existing package destination', () => {
   const code = runCli(['install', '--agent', 'gemini', '--force'], env, out.io);
   assert.equal(code, 0, out.stderr());
   assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
+  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
 });
 
@@ -862,6 +870,7 @@ test('agy installs plugin folder with marker file and skills', () => {
   const code = runCli(['install', '--agent', 'agy'], env, out.io);
   assert.equal(code, 0, out.stderr());
   assert.equal(fs.existsSync(path.join(destination, 'plugin.json')), true);
+  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'hooks.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'hooks', 'antigravity-pre-invocation')), true);
   assert.equal(fs.existsSync(path.join(destination, 'hooks', 'antigravity-pre-invocation.cmd')), true);
@@ -907,6 +916,7 @@ test('update --agent codex clears installed plugin cache before refreshing fallb
   assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${cacheDir}`), true);
   assert.equal(fs.existsSync(cacheDir), false);
   assert.equal(fs.existsSync(path.join(fallbackDir, 'stale.txt')), false);
+  assert.equal(fs.existsSync(path.join(fallbackDir, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(fallbackDir, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
 });
 
@@ -943,6 +953,7 @@ test('update --agent claude clears local marketplace cache before copying fresh 
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${cacheDir}`), true);
   assert.equal(fs.existsSync(path.join(cacheDir, 'stale.txt')), false);
+  assert.equal(fs.existsSync(path.join(cacheDir, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(cacheDir, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
 });
 
@@ -959,6 +970,7 @@ test('update --agent agy clears stale plugin folder before copying fresh skills'
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${destination}`), true);
   assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
+  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
 });
 
@@ -975,6 +987,7 @@ test('update --agent antigravity clears stale plugin folder before copying fresh
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${destination}`), true);
   assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
+  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
 });
 
@@ -991,6 +1004,7 @@ test('update --agent antigravity-ide clears stale plugin folder before copying f
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${destination}`), true);
   assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
+  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
 });
 

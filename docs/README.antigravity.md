@@ -4,6 +4,7 @@ This repository includes Antigravity plugin metadata at the repository root for 
 
 ```text
 plugin.json
+setting.json
 hooks.json
 hooks/
 skills/
@@ -18,6 +19,8 @@ It also keeps workspace metadata at:
 Antigravity discovers workspace plugins from `.agents/plugins/<plugin-name>/` or `_agents/plugins/<plugin-name>/`. The plugin must include `plugin.json`; optional components include `skills/`, `rules/`, `mcp_config.json`, and `hooks.json`.
 
 For global installs, the installer writes an Antigravity-native `hooks.json` at the plugin root. That hook uses `PreInvocation` to inject the `using-tungnt-ai-skills` bootstrap on the first model invocation in each session.
+
+The installer also writes the default safe `setting.json` policy at the plugin root so the bootstrap can resolve explicit settings immediately.
 
 The canonical skills stay in the repository root `skills/` directory; there is no duplicated Antigravity-specific skills tree.
 

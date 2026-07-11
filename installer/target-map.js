@@ -7,14 +7,18 @@ const REQUIRED_SKILL_FILES = [
   'skills/using-tungnt-ai-skills/SKILL.md',
 ];
 
+const REQUIRED_SETTINGS_FILE = 'setting.json';
+
 const ANTIGRAVITY_PLUGIN_ENTRIES = [
   'plugin.json',
   'hooks',
   'skills',
+  REQUIRED_SETTINGS_FILE,
 ];
 
 const ANTIGRAVITY_PLUGIN_REQUIRED_FILES = [
   'plugin.json',
+  REQUIRED_SETTINGS_FILE,
   'hooks/antigravity-pre-invocation',
   'hooks/antigravity-pre-invocation.cmd',
   'hooks/antigravity-pre-invocation.ps1',
@@ -25,6 +29,7 @@ const ANTIGRAVITY_PLUGIN_REQUIRED_FILES = [
 
 const ANTIGRAVITY_PLUGIN_INSTALLED_REQUIRED_FILES = [
   'plugin.json',
+  REQUIRED_SETTINGS_FILE,
   'hooks.json',
   'hooks/antigravity-pre-invocation',
   'hooks/antigravity-pre-invocation.cmd',
@@ -43,12 +48,14 @@ const CODEX_LOCAL_MARKETPLACE_ENTRIES = [
   '.codex-plugin',
   'assets',
   'skills',
+  REQUIRED_SETTINGS_FILE,
 ];
 
 const CLAUDE_LOCAL_MARKETPLACE_ENTRIES = [
   '.claude-plugin',
   'hooks',
   'skills',
+  REQUIRED_SETTINGS_FILE,
 ];
 
 const CLAUDE_HOOK_MANIFEST_FILE = process.platform === 'win32'
@@ -73,7 +80,7 @@ export const TARGETS = [
     displayName: 'Claude Code',
     defaultTarget: (env = process.env) => joinHome(env, '.claude', 'plugins', 'cache'),
     expectedParent: (env = process.env) => joinHome(env, '.claude', 'plugins'),
-    requiredFiles: [...REQUIRED_SKILL_FILES, '.claude-plugin/marketplace.json', '.claude-plugin/plugin.json'],
+    requiredFiles: [...REQUIRED_SKILL_FILES, REQUIRED_SETTINGS_FILE, '.claude-plugin/marketplace.json', '.claude-plugin/plugin.json'],
     nativeCommands: [
       ['claude', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
       ['claude', 'plugin', 'install', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
@@ -104,6 +111,7 @@ export const TARGETS = [
       includedEntries: CLAUDE_LOCAL_MARKETPLACE_ENTRIES,
       requiredFiles: [
         ...REQUIRED_SKILL_FILES,
+        REQUIRED_SETTINGS_FILE,
         '.claude-plugin/marketplace.json',
         '.claude-plugin/plugin.json',
         'hooks/session-start',
@@ -135,7 +143,7 @@ export const TARGETS = [
     displayName: 'Codex',
     defaultTarget: (env = process.env) => joinHome(env, '.codex'),
     expectedParent: (env = process.env) => joinHome(env),
-    requiredFiles: ['.agents/plugins/marketplace.json', '.codex-plugin/plugin.json', ...REQUIRED_SKILL_FILES],
+    requiredFiles: ['.agents/plugins/marketplace.json', '.codex-plugin/plugin.json', REQUIRED_SETTINGS_FILE, ...REQUIRED_SKILL_FILES],
     nativeCommands: [
       ['codex', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
       ['codex', 'plugin', 'add', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
@@ -151,7 +159,7 @@ export const TARGETS = [
       defaultTarget: (env = process.env) => joinHome(env, '.codex', 'plugins', 'tungnt-ai-skills-marketplace'),
       expectedParent: (env = process.env) => joinHome(env, '.codex', 'plugins'),
       includedEntries: CODEX_LOCAL_MARKETPLACE_ENTRIES,
-      requiredFiles: ['.codex-plugin/plugin.json', ...REQUIRED_SKILL_FILES],
+      requiredFiles: ['.codex-plugin/plugin.json', REQUIRED_SETTINGS_FILE, ...REQUIRED_SKILL_FILES],
       marketplaceFile: (env = process.env) => joinHome(env, '.agents', 'plugins', 'marketplace.json'),
       marketplaceRoot: {
         name: 'tungnt-ai-skills-marketplace',
@@ -196,6 +204,7 @@ export const TARGETS = [
     expectedParent: (env = process.env) => joinHome(env),
     requiredFiles: [
       'plugin.json',
+      REQUIRED_SETTINGS_FILE,
       ...REQUIRED_SKILL_FILES,
       'hooks/session-start',
       'hooks/session-start.cmd',
@@ -249,7 +258,7 @@ export const TARGETS = [
     displayName: 'Gemini CLI',
     defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'extensions', PLUGIN_NAME),
     expectedParent: (env = process.env) => joinHome(env, '.gemini', 'extensions'),
-    requiredFiles: [...REQUIRED_SKILL_FILES, 'GEMINI.md', 'gemini-extension.json'],
+    requiredFiles: [...REQUIRED_SKILL_FILES, REQUIRED_SETTINGS_FILE, 'GEMINI.md', 'gemini-extension.json'],
     postInstallNotes: 'Restart Gemini CLI or reload extensions after installation.',
   },
   {
