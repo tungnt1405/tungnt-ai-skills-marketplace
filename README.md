@@ -222,6 +222,7 @@ That package includes:
 .claude-plugin/plugin.json
 skills/
 hooks/
+setting.json
 ```
 
 Bootstrap logic lives in `hooks/session-start`. Installer-managed Claude installs select the hook manifest by OS:
@@ -343,6 +344,7 @@ The plugin folder copied to `~/.codex/plugins/tungnt-ai-skills-marketplace` must
 .codex-plugin/plugin.json
 assets/
 skills/
+setting.json
 ```
 
 The root `.agents/plugins/marketplace.json` in this repository is the repo marketplace used when this repository is added directly:
@@ -443,7 +445,7 @@ Install Antigravity CLI:
 
 ```bash
 mkdir -p ~/.gemini/antigravity-cli/plugins/tungnt-ai-skills
-cp -R plugin.json hooks skills ~/.gemini/antigravity-cli/plugins/tungnt-ai-skills/
+cp -R plugin.json setting.json hooks skills ~/.gemini/antigravity-cli/plugins/tungnt-ai-skills/
 cp hooks/hooks.antigravity.unix.json ~/.gemini/antigravity-cli/plugins/tungnt-ai-skills/hooks.json
 # On Windows, copy hooks/hooks.antigravity.windows.json instead.
 ```
@@ -452,7 +454,7 @@ Install Antigravity IDE:
 
 ```bash
 mkdir -p ~/.gemini/config/plugins/tungnt-ai-skills
-cp -R plugin.json hooks skills ~/.gemini/config/plugins/tungnt-ai-skills/
+cp -R plugin.json setting.json hooks skills ~/.gemini/config/plugins/tungnt-ai-skills/
 cp hooks/hooks.antigravity.unix.json ~/.gemini/config/plugins/tungnt-ai-skills/hooks.json
 # On Windows, copy hooks/hooks.antigravity.windows.json instead.
 ```
@@ -465,7 +467,7 @@ cp AGENTS.md CLAUDE.md GEMINI.md gemini-extension.json ~/.gemini/
 
 Restart Antigravity CLI or Antigravity IDE after copying files, then open `/plugins` and verify `tungnt-ai-skills`.
 
-The root `plugin.json`, generated root `hooks.json`, `hooks/`, and `skills/` directory are the Antigravity plugin payload. The Antigravity hook uses `PreInvocation` to inject `using-tungnt-ai-skills` once at session start. The root `skills/` directory remains the single source of truth; no Antigravity-specific skills are duplicated.
+The root `plugin.json`, `setting.json`, generated root `hooks.json`, `hooks/`, and `skills/` directory are the Antigravity plugin payload. The Antigravity hook uses `PreInvocation` to inject `using-tungnt-ai-skills` once at session start. The root `skills/` directory remains the single source of truth; no Antigravity-specific skills are duplicated.
 
 Detailed Antigravity notes:
 

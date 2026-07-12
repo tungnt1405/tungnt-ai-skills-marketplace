@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 export const INCLUDED_ENTRIES = [
   'skills',
   'hooks',
+  'setting.json',
   'gemini-extension.json',
   'GEMINI.md',
   'CLAUDE.md',

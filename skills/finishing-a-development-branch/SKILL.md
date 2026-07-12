@@ -36,6 +36,10 @@ If any Definition-of-Done item fails, stop and fix it before continuing.
 
 ### Step 2: Verify Tests
 
+**Check Auto-Test Policy:**
+If your `<SECURITY_POLICY>` states that **Auto-Test is DISABLED**, skip this step entirely and proceed to Step 3 without running any tests.
+If it is ENABLED, proceed with the verification:
+
 **Before presenting options, verify tests pass:**
 
 ```bash
@@ -83,6 +87,11 @@ git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
 Or ask: "This branch split from main - is that correct?"
 
 ### Step 5: Present Options
+
+**Check Auto-Commit Policy:**
+If your `<SECURITY_POLICY>` states that **Auto-Commit is DISABLED**, do not present any options or perform any merges. Simply report: "Auto-Commit is disabled by policy. Keeping branch as-is. Worktree preserved." and STOP executing this skill.
+
+If Auto-Commit is ENABLED, proceed to present the options:
 
 **Normal repo and named-branch worktree — present exactly these 4 options:**
 

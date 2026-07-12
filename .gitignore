@@ -4,3 +4,8 @@ __pycache__/
 *.pyc
 docs/tungnt-ai-skills/investigations
 docs/tungnt-ai-skills/status
+
+.claude/
+plans/
+.repomixignore
+skills-lock.json

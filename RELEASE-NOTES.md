@@ -23,6 +23,12 @@ This fork currently uses the root `skills/` workflow collection for workflow and
 
 ## Latest Changes
 
+### 2026-07-12 Installer Settings Packaging
+
+- Added default safe `setting.json` packaging for installer-managed targets.
+- Ensured Claude fallback, Codex fallback, Gemini CLI, and Antigravity plugin folders validate `setting.json` presence during install/update.
+- Bumped package and plugin metadata to `1.4.10`.
+
 ### 2026-06-08 Workflow Expansion
 
 - Added `investigation` for evidence-graded debugging, incident tracing, and unfamiliar code exploration before fixes.
