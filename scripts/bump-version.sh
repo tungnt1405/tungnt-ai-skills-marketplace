@@ -21,34 +21,69 @@ fi
 
 # --- helpers ---
 
+node_json() {
+  node - "$@"
+}
+
 # Read a dotted field path from a JSON file.
 # Handles both simple ("version") and nested ("plugins.0.version") paths.
 read_json_field() {
   local file="$1" field="$2"
-  # Convert dot-path to jq path: "plugins.0.version" -> .plugins[0].version
-  local jq_path
-  jq_path=$(echo "$field" | sed -E 's/\.([0-9]+)/[\1]/g' | sed 's/^/./' | sed 's/\.\././g')
-  jq -r "$jq_path" "$file"
+  node_json "$file" "$field" <<'NODE'
+const fs = require('node:fs');
+const [file, field] = process.argv.slice(2);
+let value = JSON.parse(fs.readFileSync(file, 'utf8'));
+for (const key of field.split('.')) {
+  value = value?.[/^\d+$/.test(key) ? Number(key) : key];
+}
+if (value === undefined) process.exit(1);
+process.stdout.write(String(value));
+NODE
 }
 
-# Write a dotted field path in a JSON file, preserving formatting.
+# Write a dotted field path in a JSON file, preserving indentation width.
 write_json_field() {
   local file="$1" field="$2" value="$3"
-  local jq_path
-  jq_path=$(echo "$field" | sed -E 's/\.([0-9]+)/[\1]/g' | sed 's/^/./' | sed 's/\.\././g')
   local tmp="${file}.tmp"
-  jq "$jq_path = \"$value\"" "$file" > "$tmp" && mv "$tmp" "$file"
+  node_json "$file" "$field" "$value" <<'NODE' > "$tmp"
+const fs = require('node:fs');
+const [file, field, nextValue] = process.argv.slice(2);
+const source = fs.readFileSync(file, 'utf8');
+const indent = source.match(/\n(\s+)\"/)?.[1].length ?? 2;
+const data = JSON.parse(source);
+const parts = field.split('.');
+let target = data;
+for (const key of parts.slice(0, -1)) {
+  target = target[/^\d+$/.test(key) ? Number(key) : key];
+}
+const last = parts.at(-1);
+target[/^\d+$/.test(last) ? Number(last) : last] = nextValue;
+process.stdout.write(`${JSON.stringify(data, null, indent)}\n`);
+NODE
+  mv "$tmp" "$file"
 }
 
 # Read the list of declared files from config.
 # Outputs lines of "path<TAB>field"
 declared_files() {
-  jq -r '.files[] | "\(.path)\t\(.field)"' "$CONFIG"
+  node_json "$CONFIG" <<'NODE'
+const fs = require('node:fs');
+const config = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+for (const file of config.files) {
+  console.log(`${file.path}\t${file.field}`);
+}
+NODE
 }
 
 # Read the audit exclude patterns from config.
 audit_excludes() {
-  jq -r '.audit.exclude[]' "$CONFIG" 2>/dev/null
+  node_json "$CONFIG" <<'NODE'
+const fs = require('node:fs');
+const config = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+for (const pattern of config.audit?.exclude ?? []) {
+  console.log(pattern);
+}
+NODE
 }
 
 # --- commands ---
@@ -74,6 +109,11 @@ cmd_check() {
   done < <(declared_files)
 
   echo ""
+
+  if [[ "${#versions[@]}" -eq 0 ]]; then
+    echo "error: no declared version files found" >&2
+    return 1
+  fi
 
   # Check if all versions match
   local unique
@@ -101,7 +141,10 @@ cmd_audit() {
   current_version=$(
     while IFS=$'\t' read -r path field; do
       local fullpath="$REPO_ROOT/$path"
-      [[ -f "$fullpath" ]] && read_json_field "$fullpath" "$field"
+      if [[ -f "$fullpath" ]]; then
+        read_json_field "$fullpath" "$field"
+        echo
+      fi
     done < <(declared_files) | sort | uniq -c | sort -rn | head -1 | awk '{print $2}'
   )
 
