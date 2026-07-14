@@ -71,6 +71,19 @@ function makeFakeExecutable(directory, name) {
   return filePath;
 }
 
+function makeFakeLoggingExecutable(directory, name) {
+  const executableName = process.platform === 'win32' ? `${name}.cmd` : name;
+  const filePath = path.join(directory, executableName);
+  const content = process.platform === 'win32'
+    ? '@echo off\r\necho %*>>"%TEST_COMMAND_LOG%"\r\nexit /b 0\r\n'
+    : '#!/bin/sh\necho "$*" >> "$TEST_COMMAND_LOG"\nexit 0\n';
+  fs.writeFileSync(filePath, content);
+  if (process.platform !== 'win32') {
+    fs.chmodSync(filePath, 0o755);
+  }
+  return filePath;
+}
+
 function makeFakeMarketplaceAlreadyRegisteredExecutable(directory, name) {
   const executableName = process.platform === 'win32' ? `${name}.cmd` : name;
   const filePath = path.join(directory, executableName);
@@ -598,12 +611,12 @@ test('install --agent claude --native continues when plugin is already enabled',
   assert.equal(log.includes('plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
 });
 
-test('update --agent claude --native continues when plugin is already enabled', () => {
+test('update --agent claude --native runs update commands without enable', () => {
   const home = tempDir();
   const bin = path.join(home, 'bin');
   const commandLog = path.join(home, 'commands.log');
   fs.mkdirSync(bin, { recursive: true });
-  makeFakeClaudeAlreadyEnabledExecutable(bin);
+  makeFakeLoggingExecutable(bin, 'claude');
   const out = capture();
   const code = runCli(
     ['update', '--agent', 'claude', '--native'],
@@ -612,10 +625,9 @@ test('update --agent claude --native continues when plugin is already enabled', 
   );
   const log = fs.readFileSync(commandLog, 'utf8');
   assert.equal(code, 0, out.stderr());
-  assert.equal(out.stdout().includes('Plugin already enabled; continuing.'), true);
   assert.equal(log.includes('plugin marketplace update tungnt-ai-skills-marketplace'), true);
   assert.equal(log.includes('plugin update tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
-  assert.equal(log.includes('plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+  assert.equal(log.includes('plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace'), false);
 });
 
 test('update --agent copilot --native --dry-run prints Copilot update commands', () => {
@@ -647,7 +659,7 @@ test('update --agent claude --native --dry-run prints Claude update commands', (
   assert.equal(out.stdout().includes('Mode: native update commands'), true);
   assert.equal(out.stdout().includes('Command: claude plugin marketplace update tungnt-ai-skills-marketplace'), true);
   assert.equal(out.stdout().includes('Command: claude plugin update tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
-  assert.equal(out.stdout().includes('Command: claude plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace'), true);
+  assert.equal(out.stdout().includes('Command: claude plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace'), false);
 });
 
 test('update --agent codex --native --dry-run prints Codex reinstall commands', () => {
