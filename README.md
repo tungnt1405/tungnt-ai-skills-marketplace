@@ -134,7 +134,7 @@ npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungn
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills update --agent claude --native
 ```
 
-Claude Code and GitHub Copilot CLI both expose native `plugin update` commands, so they use the same update shape. Codex currently exposes marketplace snapshot refresh through `codex plugin marketplace upgrade`; it does not expose a separate `codex plugin update` command in the current CLI. To make Codex native update actually refresh the installed plugin cache, the installer upgrades the marketplace snapshot, removes the installed plugin, then adds it again from the refreshed snapshot.
+Claude Code and GitHub Copilot CLI both expose native `plugin update` commands, so they use the same update shape. For Claude Code, `update --native` runs marketplace update plus plugin update only; `enable` stays on install path. Codex currently exposes marketplace snapshot refresh through `codex plugin marketplace upgrade`; it does not expose a separate `codex plugin update` command in the current CLI. To make Codex native update actually refresh the installed plugin cache, the installer upgrades the marketplace snapshot, removes the installed plugin, then adds it again from the refreshed snapshot.
 
 Older commands that used `install --native --force` still work for native update targets:
 
@@ -261,7 +261,6 @@ To update an already installed Claude plugin, run:
 ```bash
 claude plugin marketplace update tungnt-ai-skills-marketplace
 claude plugin update tungnt-ai-skills@tungnt-ai-skills-marketplace
-claude plugin enable tungnt-ai-skills@tungnt-ai-skills-marketplace
 ```
 
 If the NPM installer works, `--native` runs those Claude CLI commands for you. If `npm exec` or `npx` is unavailable, run the commands directly.
@@ -587,7 +586,7 @@ npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungn
 
 Update behavior depends on the target:
 
-- Claude Code: `update --native` runs marketplace update, plugin update, then plugin enable.
+- Claude Code: `update --native` runs marketplace update, then plugin update. Enable stays on install path only.
 - GitHub Copilot CLI: `update --native` runs marketplace update, then plugin update.
 - Codex: `update --native` refreshes the configured marketplace snapshot, removes the installed plugin, then adds it again from the refreshed snapshot because current Codex CLI does not expose a plugin update command.
 - File-copy targets such as Gemini and Antigravity: `update` refreshes the installed files the same way `install --force` did before.

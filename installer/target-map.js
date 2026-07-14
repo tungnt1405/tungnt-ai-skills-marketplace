@@ -89,7 +89,6 @@ export const TARGETS = [
     updateCommands: [
       ['claude', 'plugin', 'marketplace', 'update', 'tungnt-ai-skills-marketplace'],
       ['claude', 'plugin', 'update', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
-      // ['claude', 'plugin', 'enable', 'tungnt-ai-skills@tungnt-ai-skills-marketplace'],
     ],
     ignorableNativeFailures: [
       {
