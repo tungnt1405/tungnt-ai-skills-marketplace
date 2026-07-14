@@ -7,13 +7,16 @@ import {
   supportedTargetIds,
 } from './target-map.js';
 import {
+  backupSettingJson,
   copyExtraPackages,
   copyPackage,
+  copySettingTemplate,
   getPackageRoot,
   listPlannedExtraCopies,
   listPlannedEntries,
   removeExistingInstall,
   removeManagedPackageEntries,
+  restoreSettingJson,
   validateInstall,
   validateSource,
 } from './package-copy.js';
@@ -222,18 +225,25 @@ function install(args, env, io) {
         }
         continue;
       }
-      if (target.installMode === 'merge') {
-        if (options.force) {
-          removeManagedPackageEntries(packageRoot, destination, expectedParent, target);
+      const expectedParent = target.expectedParent(env);
+      backupSettingJson(destination);
+      try {
+        if (target.installMode === 'merge') {
+          if (options.force) {
+            removeManagedPackageEntries(packageRoot, destination, expectedParent, target);
+          }
+        } else if (fs.existsSync(destination)) {
+          if (!options.force) {
+            throw new Error(`Destination already exists: ${destination}. Re-run with --force to replace it.`);
+          }
+          removeExistingInstall(destination, expectedParent);
         }
-      } else if (fs.existsSync(destination)) {
-        if (!options.force) {
-          throw new Error(`Destination already exists: ${destination}. Re-run with --force to replace it.`);
-        }
-        removeExistingInstall(destination, expectedParent);
+        copyPackage(packageRoot, destination, target);
+        copyExtraPackages(packageRoot, target, env);
+      } finally {
+        restoreSettingJson(destination);
       }
-      copyPackage(packageRoot, destination, target);
-      copyExtraPackages(packageRoot, target, env);
+      copySettingTemplate(packageRoot, destination);
       if (target.marketplaceFile) {
         writeMarketplaceEntry(target.marketplaceFile(env), target.marketplaceEntry, target.marketplaceRoot);
       }
@@ -342,13 +352,19 @@ function update(args, env, io) {
       }
 
       const expectedParent = target.expectedParent(env);
-      if (target.installMode === 'merge') {
-        removeManagedPackageEntries(packageRoot, destination, expectedParent, target);
-      } else if (fs.existsSync(destination)) {
-        removeExistingInstall(destination, expectedParent);
+      backupSettingJson(destination);
+      try {
+        if (target.installMode === 'merge') {
+          removeManagedPackageEntries(packageRoot, destination, expectedParent, target);
+        } else if (fs.existsSync(destination)) {
+          removeExistingInstall(destination, expectedParent);
+        }
+        copyPackage(packageRoot, destination, target);
+        copyExtraPackages(packageRoot, target, env);
+      } finally {
+        restoreSettingJson(destination);
       }
-      copyPackage(packageRoot, destination, target);
-      copyExtraPackages(packageRoot, target, env);
+      copySettingTemplate(packageRoot, destination);
       if (target.marketplaceFile) {
         writeMarketplaceEntry(target.marketplaceFile(env), target.marketplaceEntry, target.marketplaceRoot);
       }
@@ -506,7 +522,17 @@ function printUpdateCachePlan(target, env, io) {
 }
 
 function cleanUpdateCaches(target, env, io) {
+  const activeDestinations = new Set();
+  activeDestinations.add(target.defaultTarget(env));
+  if (target.fallbackInstall && target.fallbackInstall.mode === 'package') {
+    activeDestinations.add(target.fallbackInstall.defaultTarget(env));
+  }
+
   for (const cacheDir of resolveUpdateCacheDirs(target, env)) {
+    if (activeDestinations.has(cacheDir.destination)) {
+      io.out(`Skipped active folder: ${cacheDir.destination}\n`);
+      continue;
+    }
     removeExistingInstall(cacheDir.destination, cacheDir.expectedParent);
     io.out(`Cleaned cache/plugin folder: ${cacheDir.destination}\n`);
   }
@@ -535,13 +561,19 @@ function installPackageFallback(packageRoot, fallback, env, options) {
   const destination = fallback.defaultTarget(env);
   const expectedParent = fallback.expectedParent(env);
   validateSource(packageRoot, fallback);
-  if (fs.existsSync(destination)) {
-    if (!options.force) {
-      throw new Error(`Destination already exists: ${destination}. Re-run with --force to replace it.`);
+  backupSettingJson(destination);
+  try {
+    if (fs.existsSync(destination)) {
+      if (!options.force) {
+        throw new Error(`Destination already exists: ${destination}. Re-run with --force to replace it.`);
+      }
+      removeExistingInstall(destination, expectedParent);
     }
-    removeExistingInstall(destination, expectedParent);
+    copyPackage(packageRoot, destination, fallback);
+  } finally {
+    restoreSettingJson(destination);
   }
-  copyPackage(packageRoot, destination, fallback);
+  copySettingTemplate(packageRoot, destination);
   if (fallback.marketplaceFile) {
     writeMarketplaceEntry(fallback.marketplaceFile(env), fallback.marketplaceEntry, fallback.marketplaceRoot);
   }

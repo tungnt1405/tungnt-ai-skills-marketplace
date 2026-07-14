@@ -10,6 +10,7 @@ import {
 } from '../../installer/target-map.js';
 import {
   copyPackage,
+  copySettingTemplate,
   ensureInsideExpectedParent,
   getPackageRoot,
   listPlannedEntries,
@@ -43,6 +44,10 @@ function capture() {
     stdout: () => stdout,
     stderr: () => stderr,
   };
+}
+
+function assertNoTmpLeftover(destination) {
+  assert.equal(fs.existsSync(path.join(destination, '.tmp')), false);
 }
 
 function fakeEnv(home) {
@@ -214,6 +219,30 @@ test('copyPackage excludes Python bytecode cache files', () => {
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'example', 'scripts', 'tool.py')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'example', 'scripts', '__pycache__')), false);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'example', 'scripts', '__pycache__', 'tool.cpython-312.pyc')), false);
+});
+
+test('copySettingTemplate copies setting.template.json when setting.json does not exist', () => {
+  const fixture = tempDir();
+  const destination = path.join(tempDir(), 'plugin');
+  fs.writeFileSync(path.join(fixture, 'setting.template.json'), '{"test": true}');
+
+  copySettingTemplate(fixture, destination);
+
+  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
+  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), '{"test": true}');
+});
+
+test('copySettingTemplate does not overwrite existing setting.json', () => {
+  const fixture = tempDir();
+  const destination = path.join(tempDir(), 'plugin');
+  fs.writeFileSync(path.join(fixture, 'setting.template.json'), '{"test": true}');
+
+  fs.mkdirSync(destination, { recursive: true });
+  fs.writeFileSync(path.join(destination, 'setting.json'), '{"existing": true}');
+
+  copySettingTemplate(fixture, destination);
+
+  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), '{"existing": true}');
 });
 
 test('removeExistingInstall refuses paths outside expected parent', () => {
@@ -951,7 +980,7 @@ test('update --agent claude clears local marketplace cache before copying fresh 
   const out = capture();
   const code = runCli(['update', '--agent', 'claude'], env, out.io);
   assert.equal(code, 0, out.stderr());
-  assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${cacheDir}`), true);
+  assert.equal(out.stdout().includes(`Skipped active folder: ${cacheDir}`), true);
   assert.equal(fs.existsSync(path.join(cacheDir, 'stale.txt')), false);
   assert.equal(fs.existsSync(path.join(cacheDir, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(cacheDir, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
@@ -968,7 +997,7 @@ test('update --agent agy clears stale plugin folder before copying fresh skills'
   const out = capture();
   const code = runCli(['update', '--agent', 'agy'], env, out.io);
   assert.equal(code, 0, out.stderr());
-  assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${destination}`), true);
+  assert.equal(out.stdout().includes(`Skipped active folder: ${destination}`), true);
   assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
   assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
@@ -985,7 +1014,7 @@ test('update --agent antigravity clears stale plugin folder before copying fresh
   const out = capture();
   const code = runCli(['update', '--agent', 'antigravity'], env, out.io);
   assert.equal(code, 0, out.stderr());
-  assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${destination}`), true);
+  assert.equal(out.stdout().includes(`Skipped active folder: ${destination}`), true);
   assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
   assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
@@ -1002,7 +1031,7 @@ test('update --agent antigravity-ide clears stale plugin folder before copying f
   const out = capture();
   const code = runCli(['update', '--agent', 'antigravity-ide'], env, out.io);
   assert.equal(code, 0, out.stderr());
-  assert.equal(out.stdout().includes(`Cleaned cache/plugin folder: ${destination}`), true);
+  assert.equal(out.stdout().includes(`Skipped active folder: ${destination}`), true);
   assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
   assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
@@ -1015,6 +1044,108 @@ test('update --agent codex --dry-run prints cache cleanup path', () => {
   assert.equal(code, 0, out.stderr());
   assert.equal(out.stdout().includes(`Clean cache/plugin folder: ${path.join(home, '.codex', 'plugins', 'cache', 'tungnt-ai-skills-marketplace')}`), true);
   assert.equal(fs.existsSync(path.join(home, '.codex')), false);
+});
+
+test('install creates setting.json from template on fresh install', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('agy');
+  const destination = target.defaultTarget(env);
+
+  const out = capture();
+  const code = runCli(['install', '--agent', 'agy'], env, out.io);
+
+  assert.equal(code, 0, out.stderr());
+  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
+
+  const templatePath = path.join(PACKAGE_ROOT, 'setting.template.json');
+  const templateContent = fs.readFileSync(templatePath, 'utf8');
+  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), templateContent);
+  assertNoTmpLeftover(destination);
+});
+
+test('install without --force on pre-existing destination preserves existing setting.json', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('agy');
+  const destination = target.defaultTarget(env);
+
+  fs.mkdirSync(destination, { recursive: true });
+  const customSetting = '{"custom": "setting"}';
+  fs.writeFileSync(path.join(destination, 'setting.json'), customSetting);
+
+  const out = capture();
+  const code = runCli(['install', '--agent', 'agy'], env, out.io);
+
+  assert.equal(code, 1);
+  assert.equal(out.stderr().includes('Destination already exists'), true);
+  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), customSetting);
+  assertNoTmpLeftover(destination);
+});
+
+test('install --force update preserves existing setting.json', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('agy');
+  const destination = target.defaultTarget(env);
+
+  fs.mkdirSync(destination, { recursive: true });
+  const customSetting = '{"custom": "setting"}';
+  fs.writeFileSync(path.join(destination, 'setting.json'), customSetting);
+
+  const out = capture();
+  const code = runCli(['install', '--agent', 'agy', '--force'], env, out.io);
+
+  assert.equal(code, 0, out.stderr());
+  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), customSetting);
+  assertNoTmpLeftover(destination);
+});
+
+test('install --force creates setting.json if missing during update', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('agy');
+  const destination = target.defaultTarget(env);
+
+  fs.mkdirSync(destination, { recursive: true });
+  fs.writeFileSync(path.join(destination, 'stale.txt'), 'stale');
+
+  const out = capture();
+  const code = runCli(['install', '--agent', 'agy', '--force'], env, out.io);
+
+  assert.equal(code, 0, out.stderr());
+  assert.equal(fs.existsSync(path.join(destination, 'stale.txt')), false);
+  assert.equal(fs.existsSync(path.join(destination, 'setting.json')), true);
+
+  const templatePath = path.join(PACKAGE_ROOT, 'setting.template.json');
+  const templateContent = fs.readFileSync(templatePath, 'utf8');
+  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), templateContent);
+  assertNoTmpLeftover(destination);
+});
+
+test('update merge-mode preserves existing setting.json', () => {
+  const target = getTargetById('agy');
+  const originalMode = target.installMode;
+  target.installMode = 'merge';
+
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const destination = target.defaultTarget(env);
+
+  try {
+    fs.mkdirSync(destination, { recursive: true });
+    const customSetting = '{"custom": "merge"}';
+    fs.writeFileSync(path.join(destination, 'setting.json'), customSetting);
+
+    const out = capture();
+    const code = runCli(['update', '--agent', 'agy'], env, out.io);
+
+    assert.equal(code, 0, out.stderr());
+    assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), customSetting);
+    assertNoTmpLeftover(destination);
+  } finally {
+    target.installMode = originalMode;
+  }
 });
 
 async function run() {
