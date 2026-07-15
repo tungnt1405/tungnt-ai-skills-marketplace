@@ -211,7 +211,7 @@ const forbiddenRepoTokens = [
 
 for (const file of walk(root)) {
   const relative = path.relative(root, file);
-  if (relative.startsWith('.git')) {
+  if (relative.startsWith('.git') || relative.startsWith('.claude')) {
     continue;
   }
   const content = fs.readFileSync(file, 'utf8');
@@ -239,5 +239,41 @@ for (const dir of scannedDirs) {
     assert.equal(absolutePathPattern.test(content), false, `${path.relative(root, file)} contains an absolute local path`);
   }
 }
+
+// Phase 1: Template registry and settings scan
+assert.equal(exists('docs/tungnt-ai-skills/templates/README.md'), true, 'shared template registry must exist');
+assertIncludes(brainstorming, '## Settings Scan', 'brainstorming settings scan section');
+assertIncludes(bootstrap, 'plans/templates/', 'bootstrap template root reference');
+assertIncludes(bootstrap, 'docs/tungnt-ai-skills/templates/', 'bootstrap docs template root reference');
+
+// Phase 2: Plan shape and validation
+const writingPlans = read('skills/writing-plans/SKILL.md');
+assertIncludes(writingPlans, '## Plan Shape', 'writing-plans plan shape section');
+assertIncludes(writingPlans, 'Single-file plan', 'writing-plans single-file signal');
+assertIncludes(writingPlans, 'Phased plan', 'writing-plans phased signal');
+assertIncludes(writingPlans, '3 or more workflow skills', 'writing-plans concrete split signal');
+assertIncludes(writingPlans, '3 or more implementation phases', 'writing-plans concrete split signal');
+assertIncludes(writingPlans, 'Phase frontmatter is authoritative', 'writing-plans frontmatter authority');
+assertIncludes(writingPlans, '## Validation', 'writing-plans validation section');
+assertIncludes(writingPlans, 'only when the user explicitly invokes', 'writing-plans explicit-only validation');
+
+// Phase 3: Execution skills phase support
+assertIncludes(executingPlans, '## Phased Plan Support', 'executing-plans phased plan support');
+assertIncludes(executingPlans, 'Phase frontmatter is the source of truth', 'executing-plans frontmatter authority');
+assertIncludes(sdd, '## Phased Plan Support', 'subagent-driven-development phased plan support');
+assertIncludes(sdd, 'Phase frontmatter is authoritative', 'subagent-driven-development frontmatter authority');
+
+// Phase 4: Investigation debug diagnosis
+assertIncludes(investigation, '## Debug Diagnosis', 'investigation debug diagnosis section');
+assertIncludes(investigation, 'Exact symptom', 'investigation debug diagnosis field');
+assertIncludes(investigation, 'Root cause', 'investigation debug diagnosis field');
+assertIncludes(investigation, 'Blast radius', 'investigation debug diagnosis field');
+assertIncludes(investigation, 'Verification steps', 'investigation debug diagnosis field');
+assertIncludes(investigation, 'do not implement', 'investigation diagnosis-only boundary');
+
+// Phase 5: Quick-dev systematic routing
+assertIncludes(quickDev, 'exceeds quick-dev scope', 'quick-dev escalation message');
+assertIncludes(quickDev, 'escalation is mandatory', 'quick-dev mandatory escalation');
+assertIncludes(quickDev, 'Restate intent and verify scope', 'quick-dev scope verification step');
 
 console.log('skill content tests passed');

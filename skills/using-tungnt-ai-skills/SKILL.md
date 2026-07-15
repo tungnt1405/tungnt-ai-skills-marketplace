@@ -23,6 +23,25 @@ These skills guide workflow, but user instructions still win:
 
 If a local project instruction conflicts with a skill, follow the project instruction.
 
+## Project Settings Compliance
+
+Before taking actions, read `setting.json` at the project root and respect its `policy` values. The template is `setting.template.json`.
+
+| Key | Effect |
+| --- | --- |
+| `policy.autoCommit` | When `false`: do not auto-commit — leave changes for the user. |
+| `policy.autoTest` | When `false`: do not auto-run tests unless the user asks. |
+| `policy.dangerousCommands.blocked` | Never execute commands in this list. |
+| `policy.dangerousCommands.askConfirmation` | When `true`: ask the user before running any destructive command. |
+| `policy.sensitiveFiles.blocked` | Do not read or write files matching these patterns. |
+| `policy.sensitiveFiles.askConfirmation` | When `true`: ask the user before touching sensitive files. |
+| `policy.installAndUpdate.askUser` | When `true`: ask the user before installing or updating dependencies. |
+
+**Rules:**
+- Read `setting.json` once at the start of work.
+- Never mutate `setting.json` unless the user explicitly asks.
+- Pass relevant policy values to subagents when dispatching them (they skip bootstrap).
+
 ## What This Fork Contains
 
 This fork is a curated workflow skillset with its own structure and naming.
@@ -82,6 +101,10 @@ Use the actual folder layout in this repo when choosing files or giving instruct
   Current docs root for plans, specs, investigations, and status files.
 - `tests/`
   Regression and integration tests for the forked skill behavior.
+- `plans/templates/`
+  Plan templates referenced by root workflow skills.
+- `docs/tungnt-ai-skills/templates/`
+  Shared design and workflow templates for root skills.
 
 Do not invent `skills/using-superpowers/` paths in this repo. Use `skills/using-tungnt-ai-skills/` instead.
 

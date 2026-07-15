@@ -22,6 +22,30 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 If the spec covers multiple independent subsystems, it should have been broken into sub-project specs during brainstorming. If it wasn't, suggest breaking this into separate plans — one per subsystem. Each plan should produce working, testable software on its own.
 
+## Plan Shape
+
+Choose single-file or phased output based on concrete signals:
+
+**Single-file plan** — use for small, low-risk work:
+- Touches fewer than 3 workflow skills.
+- Fewer than 3 implementation phases.
+- No subagent separation needed.
+- One engineer can complete the work in a single session.
+
+**Phased plan** — use when any of these apply:
+- Work spans 3 or more workflow skills.
+- Work has 3 or more implementation phases.
+- Work needs subagent separation for parallel or independent execution.
+- Work crosses multiple subsystems that benefit from independent progress tracking.
+
+For phased plans:
+1. Create `plan.md` with the phase mapping table, dependencies, and success criteria.
+2. Create all `phase-*.md` files immediately — do not defer phase file creation to execution time.
+3. Each phase file must have frontmatter: `phase`, `title`, `status: pending`, `priority`, `effort`, `dependencies`.
+4. Phase frontmatter is authoritative for phased progress. Optional YAML status files are runtime tracking only.
+
+For single-file plans, keep the existing plan format unchanged. No separate status YAML is required.
+
 ## File Structure
 
 Before defining tasks, map out which files will be created or modified and what each one is responsible for. This is where decomposition decisions get locked in.
@@ -56,6 +80,8 @@ This structure informs the task decomposition. Each task should produce self-con
 **Architecture:** [2-3 sentences about approach]
 
 **Tech Stack:** [Key technologies/libraries]
+
+**Plan shape:** single-file | phased (N phases)
 
 ---
 ```
@@ -130,6 +156,10 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 **3. Type consistency:** Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug.
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
+
+## Validation
+
+Validation runs only when the user explicitly invokes the validate skill or subcommand. Do not add automatic validation gates to the writing-plans workflow. The plan is ready for execution handoff after self-review passes.
 
 ## Execution Handoff
 

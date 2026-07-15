@@ -13,6 +13,10 @@ Load plan, review critically, execute all tasks, report when complete.
 
 **Note:** Tell your human partner that tungnt-ai-skills works much better with access to subagents. The quality of its work will be significantly higher if run on a platform with subagent support (such as Claude Code or Codex). If subagents are available, use `subagent-driven-development` instead of this skill.
 
+## Settings Compliance
+
+Before starting execution, read `setting.json` at the project root. Respect `policy.autoCommit`: when `false`, do not auto-commit — leave changes for the user. Respect `policy.autoTest`: when `false`, do not auto-run tests unless the user asks.
+
 ## Lightweight Status Tracking
 
 Status tracking is optional but recommended for multi-task plans. Use `docs/tungnt-ai-skills/status/<plan-name>-status.yaml`, where `<plan-name>` is the plan filename without `.md`.
@@ -33,6 +37,23 @@ tasks:
 When starting a task, set that task to `in-progress`. When it is verified and complete, set `status: complete` and `completed_at: YYYY-MM-DD`. When all tasks are complete, set `overall_status: complete`.
 
 Preserve user edits and comments in the status file. If the status file cannot be updated cleanly, continue execution and report the tracking failure.
+
+## Phased Plan Support
+
+When the plan contains a `plan.md` with a phase mapping table and separate `phase-*.md` files, execute phases in dependency order:
+
+1. Read `plan.md` to find the phase mapping table and dependency graph.
+2. For each phase (in dependency order):
+   a. Read the `phase-*.md` file.
+   b. Check frontmatter `status` — skip phases already marked `complete`.
+   c. Extract implementation steps as tasks.
+   d. Execute tasks using the normal per-task flow (Steps 2-3 below).
+   e. Update phase frontmatter `status` to `complete` when all tasks pass.
+3. After all phases complete, proceed to Step 3 (Complete Development).
+
+Phase frontmatter is the source of truth for phased progress. The optional YAML status file tracks runtime state but does not override phase frontmatter.
+
+For single-plan files (no phase mapping table), use the existing flow unchanged. No separate status YAML is required for single-plan work.
 
 ## The Process
 

@@ -73,6 +73,7 @@ The slug is a ticket ID when one exists. Otherwise derive a short lowercase keba
    - For symptom cases, identify whether the cause is local or requires a broader model.
 
 7. **Finalize.**
+   - Fill the Debug Diagnosis table with evidence-graded symptom, expected behavior, root cause, blast radius, reproduction, verification, and debug artifacts.
    - Rewrite the Hand-off Brief.
    - State the Final Conclusion with High, Medium, or Low confidence.
    - Provide fix direction only at mechanism level.
@@ -175,6 +176,18 @@ The slug is a ticket ID when one exists. Otherwise derive a short lowercase keba
 | Condition | <state that produces behavior> |
 | Related files | <same code path> |
 
+## Debug Diagnosis
+
+| Field | Detail |
+| --- | --- |
+| Exact symptom | <observable behavior and how it was detected> |
+| Expected behavior | <what should happen under the same conditions> |
+| Root cause | <confirmed or hypothesized cause with evidence grade> |
+| Blast radius | <other features, users, or data affected> |
+| Reproduction | <minimal steps to trigger the symptom> |
+| Verification steps | <commands or checks that confirm the fix works> |
+| Debug artifacts | <relevant logs, screenshots, diagnostic output, or snapshots> |
+
 ## Conclusion
 
 **Confidence:** High / Medium / Low
@@ -185,7 +198,7 @@ The slug is a ticket ID when one exists. Otherwise derive a short lowercase keba
 
 ### Fix direction
 
-<Mechanism-level fix direction.>
+<Mechanism-level fix direction. Cite root cause from Debug Diagnosis. Stay at diagnosis level — do not implement.>
 
 ### Diagnostic
 

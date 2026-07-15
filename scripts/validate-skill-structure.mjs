@@ -148,4 +148,27 @@ for (const required of [
   );
 }
 
+// Plan shape and phased output validation
+const writingPlans = read('skills/writing-plans/SKILL.md');
+assert.equal(
+  writingPlans.includes('## Plan Shape'),
+  true,
+  'writing-plans must have a Plan Shape section',
+);
+assert.equal(
+  writingPlans.includes('Phase frontmatter is authoritative'),
+  true,
+  'writing-plans must declare phase frontmatter authority',
+);
+assert.equal(
+  writingPlans.includes('## Validation'),
+  true,
+  'writing-plans must have a Validation section',
+);
+assert.equal(
+  writingPlans.includes('only when the user explicitly invokes'),
+  true,
+  'writing-plans validation must be explicit-only',
+);
+
 console.log('skill structure validation passed');

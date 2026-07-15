@@ -13,6 +13,15 @@ Execute plan by dispatching fresh subagent per task, with two-stage review after
 
 **Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are: BLOCKED status you cannot resolve, ambiguity that genuinely prevents progress, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
 
+## Settings Compliance
+
+Before dispatching the first implementer, read `setting.json` at the project root. Subagents skip bootstrap, so the controller must pass relevant policy in each implementer prompt:
+
+- **`policy.autoCommit`**: When `false`, tell the implementer to skip committing — leave changes uncommitted.
+- **`policy.autoTest`**: When `false`, tell the implementer to skip running tests unless explicitly asked.
+- **`policy.dangerousCommands.blocked`**: Pass the blocked command list so the implementer avoids them.
+- **`policy.sensitiveFiles.blocked`**: Pass the blocked file patterns so the implementer avoids them.
+
 ## Status Tracking
 
 Use status tracking for plans with multiple tasks by maintaining `docs/tungnt-ai-skills/status/<plan-name>-status.yaml` alongside TodoWrite.
@@ -22,6 +31,20 @@ Use status tracking for plans with multiple tasks by maintaining `docs/tungnt-ai
 - Mark each task `complete` with `completed_at: YYYY-MM-DD` only after spec compliance and code quality review both pass.
 - Set `overall_status: complete` after the final code reviewer passes.
 - If the file is missing during a resumed session, recreate it from the plan and mark already-completed tasks based on commits, checked plan boxes, and review records.
+
+## Phased Plan Support
+
+When the plan uses phased output (`plan.md` + `phase-*.md` files), execute phases sequentially in dependency order:
+
+1. Read `plan.md` to extract the phase mapping table and dependency graph.
+2. For each phase (respecting dependencies):
+   a. Read the `phase-*.md` file and check frontmatter `status`.
+   b. Skip phases already marked `complete`.
+   c. Extract implementation steps as tasks and execute using the normal per-task flow.
+   d. Update phase frontmatter `status` to `complete` when all tasks and reviews pass.
+3. After all phases complete, proceed to final code review and finishing.
+
+Phase frontmatter is authoritative for phased progress. Optional YAML status files remain runtime tracking only. Single-plan files use the existing flow unchanged.
 
 ## When to Use
 

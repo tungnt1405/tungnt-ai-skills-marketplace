@@ -32,9 +32,15 @@ Abort quick-dev and switch to `brainstorming` then `writing-plans` when any red 
 - The user asks for a feature, workflow, or integration rather than a small tweak.
 - Tests are unclear and cannot be made clear with a small focused check.
 
+When escalating, state explicitly:
+
+> "This work exceeds quick-dev scope because [specific reason]. Switching to brainstorming."
+
+Do not ask whether to escalate — if the gate fails, escalation is mandatory.
+
 ## Process
 
-1. **Restate intent.** State the exact change, expected files, and verification command in 2-4 bullets.
+1. **Restate intent and verify scope.** State the exact change, expected files, and verification command in 2-4 bullets. If the restatement reveals ambiguity or scope exceeding the gate, escalate immediately.
 2. **Check workspace.** Run `git status --short`. If unrelated dirty files overlap the target files, work with them carefully or ask before proceeding.
 3. **Inspect first.** Read the relevant files and existing tests before editing.
 4. **Make the smallest change.** Follow existing style and avoid new abstractions unless the local pattern already requires one.
