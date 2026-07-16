@@ -10,14 +10,40 @@ Testing skills that involve subagents, workflows, and complex interactions requi
 
 ```
 tests/
+├── skill-content/
+│   └── run-tests.js                       # Skill content assertions (zero-dep)
 ├── claude-code/
 │   ├── test-helpers.sh                    # Shared test utilities
 │   ├── test-subagent-driven-development-integration.sh
 │   ├── analyze-token-usage.py             # Token analysis tool
 │   └── run-skill-tests.sh                 # Test runner (if exists)
+scripts/
+├── validate-skill-structure.mjs           # Structure invariant checker (zero-dep)
 ```
 
 ## Running Tests
+
+### Unit Tests (Skill Content & Structure)
+
+Zero-dependency tests that verify skill file content and structure invariants:
+
+```bash
+# Skill content assertions — checks sections, keywords, forbidden tokens
+node tests/skill-content/run-tests.js
+
+# Structure validation — checks frontmatter, plan shape, file layout
+node scripts/validate-skill-structure.mjs
+```
+
+Các test này kiểm tra:
+- Template registry tồn tại (`docs/tungnt-ai-skills/templates/README.md`)
+- Settings Scan trong brainstorming
+- Plan Shape và Validation trong writing-plans
+- Phased Plan Support trong executing-plans và subagent-driven-development
+- Debug Diagnosis trong investigation
+- Escalation và scope verification trong quick-dev
+- Forbidden token scan (không có internal plugin names trong repo)
+- Frontmatter và plan structure invariants
 
 ### Integration Tests
 

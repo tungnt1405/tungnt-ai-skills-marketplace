@@ -86,6 +86,10 @@ Manual utility skills run only when the user explicitly invokes them. They do no
 
 - `prompt-leverage`
   Purpose: manually upgrade, clarify, template, or apply a raw prompt. Use only on explicit `skill:prompt-leverage` or direct prompt-improvement requests. If the user requests `apply`, restart normal workflow selection after producing the upgraded prompt.
+- `ba-spec`
+  Purpose: manually generate BA feature specifications from business input, Figma links/screenshots, documents, tickets, meeting notes, or change requests in the conversation language unless the user explicitly asks otherwise. Use only when the user explicitly invokes `ba-spec`; it must not auto-run during install, session bootstrap, or generic BA/spec requests, and it must not implement production code.
+- `figma-to-code`
+  Purpose: manually convert one selected Figma frame/component/instance into frontend code. Use only when the user explicitly invokes `figma-to-code`, asks to implement UI code from Figma, or when active `ba-spec` work needs Figma implementation guidance; it must not auto-run for BA-only specs or Figma evidence logs.
 
 Treat the workflow skills at the root of `skills/` as the main collection for this fork. Pick the matching skill instead of assuming everything follows one legacy grouping.
 

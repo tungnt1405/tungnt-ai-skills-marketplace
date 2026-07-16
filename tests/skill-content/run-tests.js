@@ -162,7 +162,24 @@ assert.equal(exists('skills/prompt-leverage/references/framework.md'), true, 'pr
 assert.equal(exists('skills/prompt-leverage/scripts/augment_prompt.py'), true, 'prompt-leverage augment script must exist');
 assertIncludes(bootstrap, '### Manual Utility Skills', 'bootstrap manual utility taxonomy');
 assertIncludes(bootstrap, '- `prompt-leverage`', 'bootstrap prompt-leverage manual utility');
+assertIncludes(bootstrap, '- `ba-spec`', 'bootstrap ba-spec manual utility');
+assertIncludes(bootstrap, '- `figma-to-code`', 'bootstrap figma-to-code manual utility');
 assertIncludes(bootstrap, 'must not auto-trigger on vague, complex, or underspecified requests', 'bootstrap prompt-leverage no auto-trigger');
+assertIncludes(bootstrap, 'must not auto-run during install, session bootstrap, or generic BA/spec requests', 'bootstrap ba-spec no auto-trigger');
+assertIncludes(bootstrap, 'manually generate BA feature specifications', 'bootstrap ba-spec purpose');
+assertIncludes(bootstrap, 'active `ba-spec` work needs Figma implementation guidance', 'bootstrap figma-to-code ba-spec routing');
+assertIncludes(bootstrap, 'must not auto-run for BA-only specs or Figma evidence logs', 'bootstrap figma-to-code no auto-trigger');
+assert.equal(exists('skills/figma-to-code/SKILL.md'), true, 'figma-to-code skill must exist');
+const figmaToCode = read('skills/figma-to-code/SKILL.md');
+assert.equal(frontmatterName(figmaToCode), 'figma-to-code', 'figma-to-code frontmatter name');
+assertIncludes(figmaToCode, 'Use this skill only when:', 'figma-to-code explicit trigger scope');
+assertIncludes(figmaToCode, 'ba-spec` is already active', 'figma-to-code ba-spec support');
+assertIncludes(figmaToCode, 'BA-only spec generation', 'figma-to-code ba-only guard');
+assert.equal(
+  bootstrap.includes('| ba-spec |'),
+  false,
+  'ba-spec must not be added to domain lens routing',
+);
 assert.equal(
   bootstrap.includes('| prompt, prompt-leverage, upgrade prompt'),
   false,

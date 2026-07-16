@@ -71,3 +71,25 @@ Quản lý quyền truy cập các file mật khẩu/cấu hình:
 
 - **Safety Fallback**: Nếu `tais/setting.json` bị lỗi cú pháp hoặc thiếu công cụ parser (như `jq`), framework sẽ tự động kích hoạt trạng thái **Default-deny** — ngầm định `autoCommit`, `autoTest` = `false` và tải danh sách cấm tiêu chuẩn để bảo vệ an toàn tối đa.
 - **Environment Override**: Để bypass qua các hộp thoại chờ xác nhận từ AI trong môi trường Headless, bạn có thể truyền biến môi trường `TAIS_SKIP_PROMPT=1`.
+
+## Skill tuân thủ setting.json
+
+Các skill workflow sau đọc `setting.json` và tuân thủ policy:
+
+| Skill | Hành vi |
+| --- | --- |
+| `using-tungnt-ai-skills` (bootstrap) | Định nghĩa bảng mapping đầy đủ các policy key. Mọi skill kế thừa từ đây. |
+| `brainstorming` | Đọc `setting.json` trước Discovery questions để shape câu hỏi và defaults. |
+| `executing-plans` | Đọc `policy.autoCommit` và `policy.autoTest` trước khi bắt đầu thực thi. |
+| `subagent-driven-development` | Đọc `setting.json` trước khi dispatch implementer. Truyền policy vào prompt subagent. |
+
+### Luồng tuân thủ cho subagent
+
+Subagent không đọc bootstrap nên controller (SDD/executing-plans) phải:
+1. Đọc `setting.json` một lần khi bắt đầu.
+2. Truyền các giá trị policy quan trọng vào prompt của mỗi implementer subagent.
+3. Implementer kiểm tra `policy.autoCommit` trước khi commit (step 4 trong implementer-prompt).
+
+### Test coverage
+
+Regression tests tại `tests/skill-content/run-tests.js` kiểm tra sự tồn tại của Settings Scan và Settings Compliance sections trong các skill.
