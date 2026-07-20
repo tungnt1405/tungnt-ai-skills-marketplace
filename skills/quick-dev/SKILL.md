@@ -17,6 +17,12 @@ Use this skill only when all of these are true:
 - There is no new architecture, workflow, data model, public API, migration, or broad behavior change.
 - The risk of unintended consequences is low and easy to verify.
 
+## Micro-Brainstorm Preflight
+
+When the request is not fully explicit, ask one concise confirmation covering exact change, expected files, and verification. If the user answer expands scope or reveals a behavior/design choice, stop quick-dev and switch to `brainstorming`.
+
+**Skip preflight only when BOTH conditions are met:** the user specified exact file and line/function AND the edit does not change runtime behavior (pure refactor, rename, or style fix).
+
 ## Relationship To Brainstorming
 
 When the `quick-dev` scope gate passes, `quick-dev` is the selected process skill instead of `brainstorming`. If the gate fails or is uncertain, `brainstorming` remains mandatory for creative work, new functionality, or behavior changes.

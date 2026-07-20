@@ -396,7 +396,7 @@ test('copilot plugin declares native bootstrap hook manifest', () => {
 });
 
 test('copilot hook manifest uses documented sessionStart command shape', () => {
-  const hooks = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.json'), 'utf8'));
+  const hooks = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.copilot.json'), 'utf8'));
   const entry = hooks.hooks.sessionStart[0];
 
   assert.equal(Object.hasOwn(hooks, 'version'), false);
@@ -414,7 +414,7 @@ test('copilot hook manifest uses documented sessionStart command shape', () => {
 });
 
 test('copilot default hook discovery file is native sessionStart shape', () => {
-  const hooks = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.json'), 'utf8'));
+  const hooks = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.copilot.json'), 'utf8'));
   const entry = hooks.hooks.sessionStart[0];
 
   assert.equal(Object.hasOwn(hooks, 'version'), false);

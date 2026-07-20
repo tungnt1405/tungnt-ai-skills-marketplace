@@ -15,7 +15,7 @@ Load plan, review critically, execute all tasks, report when complete.
 
 ## Settings Compliance
 
-Before starting execution, read `setting.json` at the project root. Respect `policy.autoCommit`: when `false`, do not auto-commit — leave changes for the user. Respect `policy.autoTest`: when `false`, do not auto-run tests unless the user asks.
+Before starting execution, read `tais/setting.json` in the current workspace (fallback: `setting.json` at plugin root). Respect `policy.autoCommit`: when `false`, do not auto-commit — leave changes for the user. Respect `policy.autoTest`: when `false`, do not auto-run tests unless the user asks.
 
 ## Lightweight Status Tracking
 

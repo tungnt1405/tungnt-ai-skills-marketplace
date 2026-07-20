@@ -25,7 +25,7 @@ If a local project instruction conflicts with a skill, follow the project instru
 
 ## Project Settings Compliance
 
-Before taking actions, read `setting.json` at the project root and respect its `policy` values. The template is `setting.template.json`.
+Before taking actions, read `tais/setting.json` at the project root (fallback: `setting.json` at plugin root) and respect its `policy` values. The template is `setting.template.json`.
 
 | Key | Effect |
 | --- | --- |
@@ -38,6 +38,10 @@ Before taking actions, read `setting.json` at the project root and respect its `
 | `policy.installAndUpdate.askUser` | When `true`: ask the user before installing or updating dependencies. |
 
 **Rules:**
+- Resolve settings in this order:
+  1. `tais/setting.json` in current workspace
+  2. plugin `setting.json`
+  3. safe defaults if missing/invalid
 - Read `setting.json` once at the start of work.
 - Never mutate `setting.json` unless the user explicitly asks.
 - Pass relevant policy values to subagents when dispatching them (they skip bootstrap).

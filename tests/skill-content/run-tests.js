@@ -293,4 +293,15 @@ assertIncludes(quickDev, 'exceeds quick-dev scope', 'quick-dev escalation messag
 assertIncludes(quickDev, 'escalation is mandatory', 'quick-dev mandatory escalation');
 assertIncludes(quickDev, 'Restate intent and verify scope', 'quick-dev scope verification step');
 
+// Phase 2: Settings precedence
+assertIncludes(bootstrap, 'tais/setting.json', 'bootstrap tais setting reference');
+assertIncludes(bootstrap, 'safe defaults if missing/invalid', 'bootstrap safe defaults fallback');
+assertIncludes(executingPlans, 'tais/setting.json', 'executing-plans tais setting reference');
+assertIncludes(sdd, 'tais/setting.json', 'subagent-driven-development tais setting reference');
+assertIncludes(brainstorming, 'tais/setting.json', 'brainstorming tais setting reference');
+
+// Phase 3: Quick-dev micro-brainstorm preflight
+assertIncludes(quickDev, 'Micro-Brainstorm Preflight', 'quick-dev micro-brainstorm section');
+assertIncludes(quickDev, 'Skip preflight only when', 'quick-dev preflight skip condition');
+
 console.log('skill content tests passed');

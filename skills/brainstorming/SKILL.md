@@ -15,11 +15,11 @@ Do NOT invoke any implementation skill, write any code, scaffold any project, or
 
 ## Quick-Dev Exception
 
-When the `quick-dev` skill's scope gate passes, `quick-dev` is the selected process skill instead of `brainstorming`. If the quick-dev gate fails or is uncertain, this brainstorming hard gate applies normally.
+When the `quick-dev` skill's scope gate and micro-brainstorm preflight both pass, `quick-dev` is the selected process skill instead of `brainstorming`. If the quick-dev gate fails, the preflight reveals ambiguity, or the user's answer expands scope, this brainstorming hard gate applies normally.
 
 ## Settings Scan
 
-Before the Discovery questions phase, read `setting.json` at the project root (read-only — never mutate it). Check `policy.autoCommit`, `policy.autoTest`, `policy.dangerousCommands`, `policy.sensitiveFiles`, and `policy.installAndUpdate` to shape which questions you ask and what defaults you assume.
+Before the Discovery questions phase, read `tais/setting.json` in the current workspace (fallback: `setting.json` at plugin root) (read-only — never mutate it). Check `policy.autoCommit`, `policy.autoTest`, `policy.dangerousCommands`, `policy.sensitiveFiles`, and `policy.installAndUpdate` to shape which questions you ask and what defaults you assume.
 
 If the file is missing, continue with defaults.
 

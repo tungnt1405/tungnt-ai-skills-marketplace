@@ -15,7 +15,7 @@ Execute plan by dispatching fresh subagent per task, with two-stage review after
 
 ## Settings Compliance
 
-Before dispatching the first implementer, read `setting.json` at the project root. Subagents skip bootstrap, so the controller must pass relevant policy in each implementer prompt:
+Before dispatching the first implementer, read `tais/setting.json` in the current workspace (fallback: `setting.json` at plugin root). Subagents skip bootstrap, so the controller must pass relevant policy in each implementer prompt:
 
 - **`policy.autoCommit`**: When `false`, tell the implementer to skip committing — leave changes uncommitted.
 - **`policy.autoTest`**: When `false`, tell the implementer to skip running tests unless explicitly asked.
