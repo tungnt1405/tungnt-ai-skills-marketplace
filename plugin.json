@@ -1,6 +1,6 @@
 {
   "name": "tungnt-ai-skills",
-  "version": "1.6.8",
+  "version": "1.6.9",
   "description": "Planning, TDD, debugging, and delivery workflows for coding agents.",
   "author": {
     "name": "Tungnt1405",
@@ -24,5 +24,5 @@
   "skills": "./skills/",
   "category": "Coding",
   "settings": "setting.json",
-  "hooks": "hooks/hooks.json"
+  "hooks": "hooks/hooks-codex-claude.json"
 }

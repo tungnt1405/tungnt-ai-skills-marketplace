@@ -30,7 +30,7 @@ const ANTIGRAVITY_PLUGIN_REQUIRED_FILES = [
 const ANTIGRAVITY_PLUGIN_INSTALLED_REQUIRED_FILES = [
   'plugin.json',
   REQUIRED_SETTINGS_FILE,
-  'hooks.json',
+  'hooks/hooks-codex-claude.json',
   'hooks/antigravity-pre-invocation',
   'hooks/antigravity-pre-invocation.cmd',
   'hooks/antigravity-pre-invocation.ps1',
