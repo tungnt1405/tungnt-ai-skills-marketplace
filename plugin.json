@@ -1,6 +1,6 @@
 {
   "name": "tungnt-ai-skills",
-  "version": "1.5.8",
+  "version": "1.5.9",
   "description": "Planning, TDD, debugging, and delivery workflows for coding agents.",
   "author": {
     "name": "Tungnt1405",
@@ -21,6 +21,6 @@
     "antigravity"
   ],
   "skills": "./skills/",
-  "hooks": "hooks/hooks.json",
+  "category": "Coding",
   "settings": "setting.json"
 }
