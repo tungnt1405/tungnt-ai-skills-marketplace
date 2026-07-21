@@ -1,7 +1,7 @@
 {
   "name": "tungnt-ai-skills",
   "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, proven techniques, personal engineering experience, and curated skills inspired by Superpowers, BMad, OWASP, and related ecosystems.",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "author": {
     "name": "Tungnt1405",
     "email": "tungnt.autowork@gmail.com"
@@ -17,5 +17,5 @@
     "best-practices",
     "workflows"
   ],
-  "hooks": "./hooks/hooks-claude-code.json"
+  "hooks": "./hooks/hooks-codex-claude.json"
 }

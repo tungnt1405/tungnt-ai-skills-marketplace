@@ -1,6 +1,6 @@
 {
   "name": "tungnt-ai-skills",
   "description": "An agentic skills framework & software development methodology that works: planning, TDD, debugging, and collaboration workflows.",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "contextFileName": "GEMINI.md"
 }
