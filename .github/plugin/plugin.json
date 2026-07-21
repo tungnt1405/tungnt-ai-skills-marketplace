@@ -18,5 +18,5 @@
     "workflows"
   ],
   "skills": "skills/",
-  "hooks": "hooks/copilot-hooks.json"
+  "hooks": "hooks/hooks.json"
 }
