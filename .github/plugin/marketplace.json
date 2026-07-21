@@ -13,7 +13,7 @@
       "version": "1.4.17",
       "category": "Coding",
       "skills": "skills/",
-      "hooks": "hooks.json",
+      "hooks": "hooks/hooks.json",
       "author": {
         "name": "Tungnt1405",
         "email": "tungnt.autowork@gmail.com"
