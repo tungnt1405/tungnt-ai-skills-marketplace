@@ -7,21 +7,17 @@ description: "Bạn BẮT BUỘC phải sử dụng skill này trước bất k�
 
 Giúp biến ý tưởng thành thiết kế và đặc tả hoàn chỉnh thông qua đối thoại hợp tác tự nhiên.
 
-Bắt đầu bằng cách hiểu bối cảnh dự án hiện tại, sau đó đặt câu hỏi từng câu một để tinh chỉnh ý tưởng. Khi bạn hiểu những gì cần xây dựng, trình bày thiết kế và nhận phê duyệt người dùng.
+Bắt đầu bằng cách hiểu bối cảnh dự án hiện tại, sau đó đặt câu hỏi từng câu một để tinh chỉnh ý tưởng. Khi bạn hiểu những gì cần xây dựng, trình bày thiết kế và nhận phê duyệt người dùng. Ưu tiên sử dụng cách hỏi tuần tự/hỏi-đáp theo lượt để làm rõ vấn đề cần hỏi.
 
 <HARD-GATE>
 KHÔNG được gọi bất kỳ kỹ năng triển khai nào, viết bất kỳ code nào, dựng bất kỳ dự án nào hoặc thực hiện bất kỳ hành động triển khai nào cho đến khi bạn đã trình bày thiết kế và người dùng đã phê duyệt. Điều này áp dụng cho MỌI dự án bất kể độ đơn giản nhận thức.
 </HARD-GATE>
 
-## Ngoại Lệ Quick-Dev
-
-Khi cổng phạm vi và tiền kiểm tra vi-brainstorm của kỹ năng `quick-dev` đều vượt qua, `quick-dev` là kỹ năng quy trình đã thay thế thay vì `brainstorming`. Nếu cổng quick-dev thất bại, tiền kiểm tra tiết lộ sự mơ hồ, hoặc câu trả lời của người dùng mở rộng phạm vi, hard gate brainstorming này áp dụng bình thường.
-
 ## Quét Cài Đặt
 
-Trước giai đoạn câu hỏi Khám Phá, đọc `tais/setting.json` trong không gian làm việc hiện tại (dự phòng: `setting.json` tại gốc plugin) (chỉ đọc — không bao giờ thay đổi). Kiểm tra `policy.autoCommit`, `policy.autoTest`, `policy.dangerousCommands`, `policy.sensitiveFiles` và `policy.installAndUpdate` để định hình câu hỏi nào bạn đặt và giả định mặc định nào bạn chấp nhận.
+Trước giai đoạn câu hỏi Khám Phá, đọc `tais/setting.json` trong không gian làm việc hiện tại nếu có (dự phòng: `setting.json` tại gốc plugin) (chỉ đọc — không bao giờ thay đổi). Kiểm tra `policy.autoCommit`, `policy.autoTest`, `policy.dangerousCommands`, `policy.sensitiveFiles` và `policy.installAndUpdate` để định hình câu hỏi nào bạn đặt và giả định mặc định nào bạn chấp nhận.
 
-Nếu file bị thiếu, tiếp tục với mặc định.
+BẮT BUỘC ghi nhớ các policy khi thực hiện, LUÔN ƯU TIÊN theo `tais/setting.json` trong không gian làm việc hiện tại nếu có hoặc `setting.json` tại gốc plugin để lấy policy.
 
 ## Phản Mẫu: "Đơn Giản Quá Không Cần Thiết Kế"
 
@@ -36,7 +32,7 @@ BẠN PHẢI tạo nhiệm vụ cho mỗi mục này và hoàn thành theo thứ
 3. **Đặt câu hỏi làm rõ** — từng câu một, hiểu mục đích/ràng buộc/tiêu chí thành công
 4. **Đề xuất 2-3 cách tiếp cận** — với đánh đổi và khuyến nghị của bạn
 5. **Trình bày thiết kế** — theo phần được chia tỷ lệ theo độ phức tạp, nhận phê duyệt người dùng sau mỗi phần
-6. **Viết tài liệu thiết kế** — lưu vào `docs/tungnt-ai-skills/specs/YYYY-MM-DD-<topic>-design.md` và commit
+6. **Viết tài liệu thiết kế** — lưu vào `docs/tungnt-ai-skills/specs/YYYY-MM-DD-<topic>-design.md` và dựa vào `policy.autoCommit` để quyết định việc commit
 7. **Tự kiểm tra đặc tả** — kiểm tra nội tuyến nhanh cho placeholder, mâu thuẫn, mơ hồ, phạm vi (xem bên dưới)
 8. **Người dùng duyệt đặc tả đã viết** — yêu cầu người dùng duyệt file đặc tả trước khi tiếp tục
 9. **Chuyển sang triển khai** — gọi kỹ năng writing-plans để tạo kế hoạch triển khai
@@ -82,8 +78,8 @@ digraph brainstorming {
 - Kiểm tra trạng thái dự án hiện tại trước (file, tài liệu, commit gần đây)
 - Trước khi đặt câu hỏi chi tiết, đánh giá phạm vi: nếu yêu cầu mô tả nhiều hệ thống con độc lập (ví dụ "xây dựng nền tảng với chat, lưu trữ file, thanh toán và phân tích"), gắn cờ ngay lập tức. Đừng dành câu hỏi để tinh chỉnh chi tiết dự án cần được phân tách trước.
 - Nếu dự án quá lớn cho một đặc tả duy nhất, giúp người dùng phân tách thành dự án con: những phần độc lập nào, chúng liên hệ thế nào, thứ tự xây dựng nên ra sao? Sau đó thảo luận dự án con đầu tiên thông qua quy trình thiết kế bình thường. Mỗi dự án con có chu kỳ đặc tả → kế hoạch → triển khai riêng.
-- Với các dự án có phạm vi phù hợp, đặt câu hỏi từng câu một để tinh chỉnh ý tưởng
-- Ưa câu hỏi trắc nghiệm khi có thể, nhưng câu hỏi mở cũng được
+- Với các dự án có phạm vi phù hợp, đặt câu hỏi từng câu một để tinh chỉnh ý tưởng (ưu tiên dạng câu hỏi tuần tự/hỏi-đáp theo lượt với người dùng để làm rõ)
+- Ưa tiên câu hỏi trắc nghiệm khi có thể, nhưng câu hỏi mở cũng được
 - Chỉ một câu mỗi tin nhắn — nếu chủ đề cần khám phá thêm, chia thành nhiều câu hỏi
 - Tập trung vào hiểu: mục đích, ràng buộc, tiêu chí thành công
 
@@ -96,6 +92,34 @@ digraph brainstorming {
 **Trình bày thiết kế:**
 
 - Khi bạn tin rằng mình hiểu những gì cần xây dựng, trình bày thiết kế
+
+````marrkdown
+**Thiết kế một API mới hoặc sửa API:**
+
+- Dùng `skills/api-design` như công cụ kiểm tra để xác nhận thiết kế API mới có chính xác hay không.
+- Chờ `skills/api-design` phản hồi rồi thực hiện các bước tiếp theo theo đúng hướng dẫn từ kỹ năng này.
+- Nếu phát hiện lỗi hoặc lỗ hổng, hãy phân tích nguyên nhân, khắc phục rồi gọi lại `skills/api-design` để kiểm tra. Lặp lại tối đa 3 lần.
+- Nếu sau 3 lần vẫn chưa khắc phục được, bắt buộc dừng `brainstorming` và thông báo: "Đang gặp vấn đề thiết kế UI/UX: kèm danh sách vấn đề đang gặp để người dùng quyết định bước tiếp theo."
+
+- TUYỆT ĐỐI không được tiếp tục nếu đã thử đủ 3 lần mà vẫn chưa xử lý xong. Phải dừng thông để thông báo và chờ người dùng xác nhận.
+
+**Đọc thiết kế figma từ ảnh chụp:**
+
+- Dùng `skills/figma-to-code` như công cụ lấy ĐÚNG THEO thiết kế theo ảnh chụp figma hoặc đường dẫn figma từ style, front chữ và chỉ lấy các nội dung hiển thị không lấy nội dung ẩn.
+- Chờ `skills/figma-to-code` phản hồi rồi thực hiện các bước tiếp theo theo đúng hướng dẫn từ kỹ năng này.
+- Nếu phát hiện thiếu thông tin hoặc nội dung figma có vấn đề, hãy phân tích nguyên nhân, khắc phục rồi gọi lại `skills/figma-to-code` để kiểm tra. Lặp lại tối đa 3 lần.
+- Nếu sau 3 lần vẫn chưa khắc phục được, bắt buộc dừng `brainstorming` và thông báo: "Đang gặp vấn đề cắt giao diện figma: kèm danh sách vấn đề đang gặp để người dùng quyết định bước tiếp theo."
+
+**Thiết kế UI/UX:**
+
+- Dùng `skills/ux-ui-pro-max` như công cụ kiểm tra để xác nhận thiết kế UI/UX có tự nhiên và thân thiện hay không.
+- Chờ `skills/ux-ui-pro-max` phản hồi rồi thực hiện các bước tiếp theo theo đúng hướng dẫn từ kỹ năng này.
+- Nếu phát hiện trải nghiệm tệ, giao diện lỗi hoặc lỗ hổng trải nghiệm, giao diện, hãy phân tích nguyên nhân, khắc phục rồi gọi lại `skills/ux-ui-pro-max` để kiểm tra. Lặp lại tối đa 3 lần.
+- Nếu sau 3 lần vẫn chưa khắc phục được, bắt buộc dừng `brainstorming` và thông báo: "Đang gặp vấn đề thiết kế UI/UX: kèm danh sách vấn đề đang gặp để người dùng quyết định bước tiếp theo."
+
+- TUYỆT ĐỐI không được tiếp tục nếu đã thử đủ 3 lần mà vẫn chưa xử lý xong. Phải dừng thông để thông báo và chờ người dùng xác nhận.
+````
+
 - Chia tỷ lệ mỗi phần theo độ phức tạp: vài câu nếu đơn giản, lên đến 200-300 từ nếu có nhiều sắc thái
 - Hỏi sau mỗi phần liệu mọi thứ có ổn không
 - Bao gồm: kiến trúc, thành phần, luồng dữ liệu, xử lý lỗi, kiểm thử
@@ -139,12 +163,21 @@ Sử dụng Nhân Tử Đặc Tả khi nó cải thiện độ rõ ràng chuyể
 
 ## Sau Thiết Kế
 
+**Đánh giá bảo mật thiết kế:**
+
+- Dùng `skills/security-and-hardening` như công cụ kiểm tra để an toàn bảo mật trong thiết kế.
+- Chờ `skills/security-and-hardening` phản hồi rồi thực hiện các bước tiếp theo theo đúng hướng dẫn từ kỹ năng này.
+- Nếu phát hiện lỗi bảo mật, hãy phân tích nguyên nhân, khắc phục rồi gọi lại `skills/security-and-hardening` để kiểm tra. Lặp lại tối đa 3 lần.
+- Nếu sau 3 lần vẫn chưa khắc phục được, bắt buộc dừng `brainstorming` và thông báo: "Đang gặp vấn đề bảo mật: kèm danh sách vấn đề đang gặp để người dùng quyết định bước tiếp theo."
+
+- TUYỆT ĐỐI không được tiếp tục nếu đã thử đủ 3 lần mà vẫn chưa xử lý xong. Phải dừng thông để thông báo và chờ người dùng xác nhận.
+
 **Tài liệu:**
 
 - Ghi thiết kế đã xác nhận (đặc tả) vào `docs/tungnt-ai-skills/specs/YYYY-MM-DD-<topic>-design.md`
   - (Sở thích người dùng về vị trí đặc tả ghi đè mặc định này)
 - Sử dụng kỹ năng elements-of-style:writing-clearly-and-concisely nếu có
-- Commit tài liệu thiết kế vào git
+- Tuân thủ theo `policy.autoCommit` để xác định commit tài liệu thiết kế vào git nếu được approved
 
 **Tự Kiểm Tra Đặc Tả:**
 Sau khi viết tài liệu đặc tả, nhìn lại bằng con mắt mới:
@@ -159,7 +192,15 @@ Sửa bất kỳ vấn đề nào nội tuyến. Không cần kiểm tra lại �
 **Cổng Duyệt Người Dùng:**
 Sau khi vòng tự kiểm tra đặc tả vượt qua, yêu cầu người dùng duyệt đặc tả đã viết trước khi tiếp tục:
 
+Dựa vào `policy.autoCommit` dự án xác định câu trả lời:
+
+- Với ``policy.autoCommit = true`
+
 > "Đặc tả đã được viết và commit vào `<path>`. Vui lòng duyệt và cho tôi biết nếu bạn muốn thay đổi bất kỳ điều gì trước khi chúng ta bắt đầu viết kế hoạch triển khai."
+
+- Với `policy.autoCommit = false`
+
+> "Đặc tả đã được viết vào `<path>`. Vui lòng duyệt và cho tôi biết nếu bạn muốn thay đổi bất kỳ điều gì trước khi chúng ta bắt đầu viết kế hoạch triển khai."
 
 Chờ phản hồi người dùng. Nếu họ yêu cầu thay đổi, thực hiện và chạy lại vòng kiểm tra đặc tả. Chỉ tiếp tục khi người dùng phê duyệt.
 

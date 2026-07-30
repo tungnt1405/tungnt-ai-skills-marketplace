@@ -132,6 +132,18 @@ if [ -f go.mod ]; then go mod download; fi
 
 ## Bước 4: Xác Minh Cơ Sở Sạch
 
+### Quét Cài Đặt
+
+- Kiểm tra đã ghi nhớ policy để tuân thủ chưa, TUÂN THỦ nghiêm ngặt theo policy nếu như bị mất hoặc không thấy policy đọc `tais/setting.json` trong không gian làm việc hiện tại nếu có (dự phòng: `setting.json` tại gốc plugin) (chỉ đọc — không bao giờ thay đổi). Kiểm tra `policy.autoCommit`, `policy.autoTest`, `policy.dangerousCommands`, `policy.sensitiveFiles` và `policy.installAndUpdate` để định hình câu hỏi nào bạn đặt và giả định mặc định nào bạn chấp nhận.
+
+Nếu file bị thiếu, tiếp tục với mặc định. BẮT BUỘC và GHI NHỚ làm theo settings trong `tais/setting.json` (dự phòng: `setting.json` tại gốc plugin)
+
+BẮT BUỘC ghi nhớ các policy khi thực hiện, LUÔN ƯU TIÊN theo `tais/setting.json` trong không gian làm việc hiện tại nếu có hoặc `setting.json` tại gốc plugin để lấy policy.
+
+### Xác minh
+
+Kiểm tra `policy.autoTest` có bật thì thực hiện tiếp
+
 Chạy test để đảm bảo không gian làm việc bắt đầu sạch:
 
 ```bash
@@ -142,6 +154,8 @@ npm test / cargo test / pytest / go test ./...
 **Nếu test thất bại:** Báo cáo thất bại, hỏi có nên tiến hành hoặc điều tra không.
 
 **Nếu test pass:** Báo cáo sẵn sàng.
+
+Nếu không bật `policy.autoTest` thông báo "Tuân thủ quy định bỏ qua bước kiểm tra xác minh. Bạn chạy thủ công test để đảm bảo không gian làm việc sạch." và gửi danh danh lệnh test cho người dùng chạy.
 
 ### Báo Cáo
 
@@ -164,9 +178,9 @@ Sẵn sàng triển khai <tên-tính-năng>
 | Cả hai tồn tại | Sử dụng `.worktrees/` |
 | Không tồn tại | Kiểm tra file hướng dẫn, sau đó mặc định `.worktrees/` |
 | Đường dẫn toàn cục tồn tại | Sử dụng (tương thích ngược) |
-| Thư mục không bỏ qua | Thêm vào .gitignore + commit |
+| Thư mục không bỏ qua | Thêm vào .gitignore + commit (tuân thủ theo policy) |
 | Lỗi quyền khi tạo | Dự phòng sandbox, làm việc tại chỗ |
-| Test thất bại khi kiểm tra cơ sở | Báo thất bại + hỏi |
+| Test thất bại khi kiểm tra cơ sở | Báo thất bại + hỏi (tuân thủ theo policy) |
 | Không có package.json/Cargo.toml | Bỏ qua cài đặt phụ thuộc |
 
 ## Sai Lầm Phổ Biến
@@ -203,8 +217,8 @@ Sẵn sàng triển khai <tên-tính-năng>
 - Sử dụng `git worktree add` khi bạn có công cụ worktree gốc (ví dụ `EnterWorktree`). Đây là lỗi #1 — nếu bạn có, hãy dùng nó.
 - Bỏ qua Bước 1a bằng cách nhảy thẳng đến lệnh git Bước 1b
 - Tạo worktree không xác minh nó bị bỏ qua (cục bộ dự án)
-- Bỏ qua xác minh test cơ sở
-- Tiến hành với test thất bại không hỏi
+- Bỏ qua xác minh test cơ sở (chỉ chấp nhận khi policy của `setting.json` yêu cầu bỏ qua)
+- Tiến hành với test thất bại không hỏi (chỉ làm khi policy của `setting.json` yêu cầu)
 
 **Luôn:**
 - Chạy phát hiện Bước 0 trước
@@ -212,4 +226,4 @@ Sẵn sàng triển khai <tên-tính-năng>
 - Tuần tự thư mục: hiện có > toàn cục cũ > file hướng dẫn > mặc định
 - Xác minh thư mục bị bỏ qua cho cục bộ dự án
 - Tự động phát hiện và chạy thiết lập dự án
-- Xác minh cơ sở test sạch
+- Xác minh cơ sở test sạch (TUÂN THỦ policy của `setting.json`). Nếu không yêu cầu test thông báo người dùng ví dụ "Xác minh cơ sở test sạch chưa chạy lý do bạn đang cấu hình không chạy test. Vui lòng kiểm tra thủ công hoặc cài đặt thông qua /configuring-settings để bật test xác minh cơ sở".

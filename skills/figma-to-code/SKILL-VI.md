@@ -9,6 +9,14 @@ description: Dịch chính xác một khung Figma, thành phần, hoặc instanc
 
 Triển khai UI frontend từ Figma với độ trung thực hình ảnh 1:1 có thể lặp lại. Agent không được code trực tiếp từ dump MCP thô. Phải tạo ảnh chụp thiết kế xác định và IR chuẩn hóa, sau đó tạo code từ IR đó và xác nhận kết quả so với ảnh chụp Figma.
 
+## Chỉ Kích Hoạt Thủ Công Hoặc Do BA-SPEC GỌI TỚI
+
+Sử dụng kỹ năng này chỉ khi người dùng gọi rõ ràng `figma-to-code` hoặc (`brainstorming` hoặc `ba-spec`) gọi tới để hỗ trợ đọc figma.
+
+Không chạy tại thời điểm cài đặt. Không tự xử lý trong quá trình khởi tạo phiên.
+
+Chỉ sử dụng thủ công hoặc do (`brainstorming` hoặc `ba-spec`). Không phải kỹ năng quy trình. Đây là một kỹ năng lĩnh vực trong việc xử lý ảnh chụp figma hoặc thiết kế trong đường dẫn figma cụ thể tài liệu hệ thống.
+
 ## Khi Nào Sử Dụng
 
 Sử dụng kỹ năng này chỉ khi:
@@ -16,7 +24,7 @@ Sử dụng kỹ năng này chỉ khi:
 - Người dùng gọi rõ ràng `figma-to-code`.
 - Kết quả là code ứng dụng, không phải chỉnh sửa bên trong Figma.
 - Người dùng yêu cầu triển khai, tạo, chuyển đổi hoặc ghép một thiết kế/thành phần/màn hình/modal Figma.
-- `ba-spec` đã hoạt động, đầu vào liên quan đến Figma và chuyển giao nhà phát triển cần hướng dẫn triển khai UI từ nguồn Figma.
+- (`brainstorming` hoặc `ba-spec`) đã hoạt động, đầu vào liên quan đến Figma và chuyển giao nhà phát triển cần hướng dẫn triển khai UI từ nguồn Figma.
 - Độ trung thực hình ảnh, khoảng cách chính xác, kiểu chữ, màu sắc và tính nhất quán bố cục quan trọng.
 
 Không sử dụng kỹ năng này khi:
@@ -25,6 +33,11 @@ Không sử dụng kỹ năng này khi:
 - Người dùng muốn tạo hoặc sửa đổi node trong Figma.
 - Đầu vào chỉ là mô tả UI mơ hồ không có nguồn Figma.
 - Người dùng chỉ yêu cầu phê bình thiết kế hoặc thay đổi văn bản.
+- Không đọc được ảnh figma hoặc không lấy được thông tin từ link figma
+- Thiếu mcp hay công cụ hỗ trợ đọc từ figma
+
+Khi kỹ năng gặp vấn đề không sử dụng được sẽ thông báo ngay "Vấn đề gặp phải là gì cho người dùng", ví dụ: thiếu mcp hỗ trợ thông báo
+"Bạn hãy cài mcp `figma-mcp-go` để có thể sử dụng kỹ năng này hiệu quả." hoặc có cài mcp figma-mcp-go nhưng chưa kết nối "Kiểm tra lại kết nối với figma-mcp-go, đang không kết nối được với MCP." và các kỹ năng gọi tới tham thiếu cũng BẮT BUỘC yêu cầu dừng vì kỹ năng `figma-to-code` đang gặp sự cố tới thiếu công cụ hỗ trợ hay không đọc được thông tin gửi từ người dùng nên phải đợi người dùng kiểm tra và xác nhận.
 
 ## Quy Tắc Cứng
 

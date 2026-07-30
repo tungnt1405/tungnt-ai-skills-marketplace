@@ -9,6 +9,14 @@ description: Translates exactly one selected Figma frame, component, or instance
 
 Implement frontend UI from Figma with repeatable 1:1 visual fidelity. The agent must not code directly from a raw MCP dump. It must first create a deterministic design snapshot and normalized IR, then generate code from that IR and validate the result against a Figma screenshot.
 
+## Manual Activation Only Or Invoked By BA-SPEC
+
+Use this skill only when the user explicitly calls `figma-to-code` or (`brainstorming` or `ba-spec`) invokes it to assist in reading Figma.
+
+Do not run at install time. Do not auto-process during session bootstrap.
+
+Manual utility only or invoked by (`brainstorming` or `ba-spec`). Not a process skill. This is a domain skill for handling Figma snapshots or designs in specific Figma paths for system documentation.
+
 ## When to use
 
 Use this skill only when:
@@ -16,7 +24,7 @@ Use this skill only when:
 - The user explicitly invokes `figma-to-code`.
 - The deliverable is application code, not edits inside Figma.
 - The user asks to implement, generate, convert, or match a Figma design/component/screen/modal.
-- `ba-spec` is already active, the input is Figma-related, and developer handoff needs UI implementation guidance from a Figma source.
+- (`brainstorming` or `ba-spec`) is already active, the input is Figma-related, and developer handoff needs UI implementation guidance from a Figma source.
 - Visual fidelity, exact spacing, typography, colors, and layout consistency matter.
 
 Do not use this skill when:
@@ -25,6 +33,10 @@ Do not use this skill when:
 - The user wants to create or modify nodes in Figma itself.
 - The input is only a vague UI description with no Figma source.
 - The user asks only for design critique or copy changes.
+- Unable to read Figma images or unable to get information from Figma links.
+- Missing MCP or tools to support reading from Figma.
+
+When the skill encounters an issue making it unusable, immediately notify the user of what the problem is, for example: if missing MCP support, notify "Please install the `figma-mcp-go` MCP to use this skill effectively." or if figma-mcp-go MCP is installed but not connected, "Check your connection to figma-mcp-go, currently unable to connect to MCP." and any skills calling it MUST also be required to stop because the `figma-to-code` skill is experiencing issues due to missing supporting tools or inability to read information sent from the user, so it must wait for the user to check and confirm.
 
 ## Hard rules
 

@@ -1,42 +1,38 @@
 ---
 name: brainstorming
-description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation."
+description: "You MUST use this skill before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements, and design before implementation."
 ---
 
 # Brainstorming Ideas Into Designs
 
 Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
 
-Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.
+Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval. Prioritize using sequential questioning / turn-by-turn Q&A to clarify issues that need to be asked.
 
 <HARD-GATE>
 Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
 </HARD-GATE>
 
-## Quick-Dev Exception
-
-When the `quick-dev` skill's scope gate and micro-brainstorm preflight both pass, `quick-dev` is the selected process skill instead of `brainstorming`. If the quick-dev gate fails, the preflight reveals ambiguity, or the user's answer expands scope, this brainstorming hard gate applies normally.
-
 ## Settings Scan
 
-Before the Discovery questions phase, read `tais/setting.json` in the current workspace (fallback: `setting.json` at plugin root) (read-only — never mutate it). Check `policy.autoCommit`, `policy.autoTest`, `policy.dangerousCommands`, `policy.sensitiveFiles`, and `policy.installAndUpdate` to shape which questions you ask and what defaults you assume.
+Before the Discovery questions phase, read `tais/setting.json` in the current workspace if available (fallback: `setting.json` at plugin root) (read-only — never mutate it). Check `policy.autoCommit`, `policy.autoTest`, `policy.dangerousCommands`, `policy.sensitiveFiles`, and `policy.installAndUpdate` to shape which questions you ask and what default assumptions you accept.
 
-If the file is missing, continue with defaults.
+MUST remember the policies when executing, ALWAYS PRIORITIZE following `tais/setting.json` in the current workspace if available or `setting.json` at the plugin root to get policies.
 
 ## Anti-Pattern: "This Is Too Simple To Need A Design"
 
-Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
+Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but YOU MUST present it and get approval.
 
 ## Checklist
 
-You MUST create a task for each of these items and complete them in order:
+YOU MUST create a task for each of these items and complete them in order:
 
 1. **Explore project context** — check files, docs, recent commits
 2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design doc** — save to `docs/tungnt-ai-skills/specs/YYYY-MM-DD-<topic>-design.md` and commit
+6. **Write design doc** — save to `docs/tungnt-ai-skills/specs/YYYY-MM-DD-<topic>-design.md` and rely on `policy.autoCommit` to decide whether to commit
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
 9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
@@ -82,7 +78,7 @@ digraph brainstorming {
 - Check out the current project state first (files, docs, recent commits)
 - Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
 - If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
-- For appropriately-scoped projects, ask questions one at a time to refine the idea
+- For appropriately-scoped projects, ask questions one at a time to refine the idea (prioritize sequential questioning / turn-by-turn Q&A with the user to clarify)
 - Prefer multiple choice questions when possible, but open-ended is fine too
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
 - Focus on understanding: purpose, constraints, success criteria
@@ -96,10 +92,38 @@ digraph brainstorming {
 **Presenting the design:**
 
 - Once you believe you understand what you're building, present the design
-- Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
-- Ask after each section whether it looks right so far
-- Cover: architecture, components, data flow, error handling, testing
-- Be ready to go back and clarify if something doesn't make sense
+
+```markdown
+**Designing a new API or modifying an API:**
+
+- Use `skills/api-design` as a checking tool to verify whether the new API design is correct or not.
+- Wait for `skills/api-design` to respond, then perform the next steps according to the exact instructions from this skill.
+- If errors or vulnerabilities are detected, analyze the root cause, fix them, then call `skills/api-design` again to check. Repeat up to 3 times maximum.
+- If after 3 times it is still not resolved, mandatory stop `brainstorming` and notify: "Encountering UI/UX design issues: along with the list of issues being encountered for the user to decide the next step."
+
+- ABSOLUTELY must not continue if tried 3 times and still not resolved. Must stop to notify and wait for user confirmation.
+
+**Reading Figma design from screenshots:**
+
+- Use `skills/figma-to-code` as a tool to get EXACTLY ACCORDING TO design from Figma screenshots or Figma URL from style, font face, and only get displayed content, do not get hidden content.
+- Wait for `skills/figma-to-code` to respond, then perform the next steps according to the exact instructions from this skill.
+- If missing information or Figma content issues are detected, analyze the root cause, fix them, then call `skills/figma-to-code` again to check. Repeat up to 3 times maximum.
+- If after 3 times it is still not resolved, mandatory stop `brainstorming` and notify: "Encountering Figma slicing issues: along with the list of issues being encountered for the user to decide the next step."
+
+**UI/UX Design:**
+
+- Use `skills/ux-ui-pro-max` as a checking tool to verify whether the UI/UX design is natural and friendly or not.
+- Wait for `skills/ux-ui-pro-max` to respond, then perform the next steps according to the exact instructions from this skill.
+- If bad experience, interface errors, or experience/interface vulnerabilities are detected, analyze the root cause, fix them, then call `skills/ux-ui-pro-max` again to check. Repeat up to 3 times maximum.
+- If after 3 times it is still not resolved, mandatory stop `brainstorming` and notify: "Encountering UI/UX design issues: along with the list of issues being encountered for the user to decide the next step."
+
+- ABSOLUTELY must not continue if tried 3 times and still not resolved. Must stop to notify and wait for user confirmation.
+```
+
+- Scale each section to its complexity: a few sentences if simple, up to 200-300 words if nuanced
+- Ask after each section whether everything looks fine
+- Include: architecture, components, data flow, error handling, testing
+- Be ready to go back and clarify if something does not make sense
 
 **Design for isolation and clarity:**
 
@@ -135,16 +159,25 @@ At the end of the approved design, optionally include a compact Spec Kernel that
 - <explicit non-goal>
 ```
 
-Use the Spec Kernel when it improves handoff clarity. Do not replace the full design doc when the work is complex.
+Use the Spec Kernel when it improves handoff clarity. Do not replace the full design document when the work is complex.
 
 ## After the Design
+
+**Design security review:**
+
+- Use `skills/security-and-hardening` as a checking tool for security safety in design.
+- Wait for `skills/security-and-hardening` to respond, then perform the next steps according to the exact instructions from this skill.
+- If security vulnerabilities/errors are detected, analyze the root cause, fix them, then call `skills/security-and-hardening` again to check. Repeat up to 3 times maximum.
+- If after 3 times it is still not resolved, mandatory stop `brainstorming` and notify: "Encountering security issues: along with the list of issues being encountered for the user to decide the next step."
+
+- ABSOLUTELY must not continue if tried 3 times and still not resolved. Must stop to notify and wait for user confirmation.
 
 **Documentation:**
 
 - Write the validated design (spec) to `docs/tungnt-ai-skills/specs/YYYY-MM-DD-<topic>-design.md`
   - (User preferences for spec location override this default)
 - Use elements-of-style:writing-clearly-and-concisely skill if available
-- Commit the design document to git
+- Comply with `policy.autoCommit` to determine committing the design document to git if approved
 
 **Spec Self-Review:**
 After writing the spec document, look at it with fresh eyes:
@@ -159,9 +192,17 @@ Fix any issues inline. No need to re-review — just fix and move on.
 **User Review Gate:**
 After the spec review loop passes, ask the user to review the written spec before proceeding:
 
-> "Spec written and committed to `<path>`. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."
+Rely on the project's `policy.autoCommit` to determine the answer:
 
-Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
+- With `policy.autoCommit = true`
+
+> "Spec written and committed to `<path>`. Please review and let me know if you want to change anything before we start writing the implementation plan."
+
+- With `policy.autoCommit = false`
+
+> "Spec written to `<path>`. Please review and let me know if you want to change anything before we start writing the implementation plan."
+
+Wait for user response. If they request changes, make them and re-run the spec review loop. Only proceed when approved by the user.
 
 **Implementation:**
 
@@ -170,12 +211,12 @@ Wait for the user's response. If they request changes, make them and re-run the 
 
 ## Key Principles
 
-- **One question at a time** - Don't overwhelm with multiple questions
-- **Multiple choice preferred** - Easier to answer than open-ended when possible
-- **YAGNI ruthlessly** - Remove unnecessary features from all designs
-- **Explore alternatives** - Always propose 2-3 approaches before settling
-- **Incremental validation** - Present design, get approval before moving on
-- **Be flexible** - Go back and clarify when something doesn't make sense
+- **One question at a time** — Don't overwhelm with multiple questions
+- **Multiple choice preferred** — Easier to answer than open-ended questions when possible
+- **YAGNI ruthlessly** — Remove unnecessary features from all designs
+- **Explore alternatives** — Always propose 2-3 approaches before settling
+- **Incremental confirmation** — Present design, get approval before proceeding
+- **Be flexible** — Go back and clarify when something does not make sense
 
 ## Visual Companion
 
@@ -195,4 +236,3 @@ A question about a UI topic is not automatically a visual question. "What does p
 
 If they agree to the companion, read the detailed guide before proceeding:
 `skills/brainstorming/visual-companion.md`
-

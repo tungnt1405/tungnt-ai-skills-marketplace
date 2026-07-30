@@ -19,7 +19,13 @@ Sử dụng kỹ năng này chỉ khi người dùng gọi rõ ràng `ba-spec`.
 
 Không chạy tại thời điểm cài đặt. Không tự xử lý trong quá trình khởi tạo phiên.
 
-Chỉ sử dụng thủ công. Không phải kỹ năng quy trình. Không phải ống kính lĩnh vực.
+Chỉ sử dụng thủ công. Không phải kỹ năng quy trình. Đây là một kỹ năng lĩnh vực trong việc phát triển tài liệu hệ thống.
+
+## Đầu vào bắt buộc
+
+- Yêu cầu rõ ràng, cụ thể không thiếu ý thiếu thông tin. KHI THIẾU Ý, THIẾU THÔNG TIN cần dừng kỹ năng sử dụng đối đáp để hỏi người dùng làm rõ vấn đề trước rồi tiếp tục theo hướng dẫn kỹ năng này.
+- BẮT BUỘC gọi tới `skills/brainstorming` để lấy phân tích cơ sở trước khi làm theo hướng dẫn và đồng thời thông báo "Đang dùng brainstorming để xác định yêu cầu..."
+- Đợi phản hổi từ `brainstorming` trả ra rồi dựa vào phản hồi để tiếp tục đúng hướng dẫn của kỹ năng này.
 
 ## Quy Tắc Đầu Ra Bắt Buộc
 
@@ -38,7 +44,7 @@ Giữ ID và thẻ nguồn đọc được bằng máy bằng tiếng Anh:
 - Thẻ nguồn: `[PROVIDED]`, `[FIGMA]`, `[FILE]`, `[INFERRED]`, `[ASSUMPTION]`, `[OPEN_QUESTION]`.
 - Từ khóa Gherkin có thể giữ nguyên `Given / When / Then / And` trừ khi người dùng yêu cầu phong cách BDD bản địa hóa.
 
-Nếu người dùng yêu cầu rõ ràng đầu ra chỉ bằng tiếng Việt, tuân theo yêu cầu đó.
+Nếu người dùng yêu cầu rõ ràng đầu ra với một ngôn ngữ cụ thể, tuân theo yêu cầu đó.
 Nếu người dùng yêu cầu rõ ràng đầu ra song ngữ hoặc chỉ tiếng Anh, tuân theo yêu cầu đó.
 
 Chi tiết, đọc `references/output-language-rules.md`.
@@ -52,14 +58,14 @@ Sử dụng kỹ năng này khi người dùng yêu cầu:
 - Tạo tài liệu chuyển giao cho dev/QA.
 - Mô tả tính năng mới.
 - Mô tả nâng cấp tính năng hoặc yêu cầu thay đổi.
-- Sử dụng văn bản kinh doanh, liên kết Figma, ảnh chụp màn hình Figma, đặc tả cũ, ticket, PDF, bảng tính, biên bản họp, ghi chú API hoặc các file liên quan khác làm đầu vào.
+- Sử dụng văn bản kinh doanh, liên kết Figma (nếu có), ảnh chụp màn hình Figma(nếu có), đặc tả cũ, ticket, PDF, bảng tính, biên bản họp, ghi chú API hoặc các file liên quan khác làm đầu vào.
 - Tạo tài liệu cả Markdown và HTML.
 
 ## Giới Hạn BA-Riêng
 
 Nếu yêu cầu chỉ cho đầu ra BA/PO/spec, không gọi bất kỳ quy trình mã hóa UI nào. Giữ `ba-spec` giới hạn ở phân tích kinh doanh và kết quả chuyển giao.
 
-Nếu đầu vào liên quan đến Figma và chuyển giao nhà phát triển cần hướng dẫn triển khai UI, tham khảo `figma-to-code` như tham chiếu hỗ trợ cho chi tiết triển khai. Không biến điều đó thành mã hóa UI tự động cho yêu cầu BA-riêng.
+Nếu đầu vào liên quan đến Figma và chuyển giao nhà phát triển cần hướng dẫn triển khai UI, tham khảo `skills/figma-to-code` như tham chiếu hỗ trợ cho chi tiết triển khai. Không biến điều đó thành mã hóa UI tự động cho yêu cầu BA-riêng.
 
 ## Khi Không Sử Dụng
 
@@ -123,7 +129,7 @@ Khi người dùng yêu cầu kết quả, tạo một thư mục gói cuối c�
 Đường dẫn gói mặc định:
 
 ```text
-docs/tungnt-ai-skills/ba-spec-output/{{YYYYMMDD}}/{{feature-slug}}/
+docs/tungnt-ai-skills/ba-spec-output/{{YYYY-MM-DD-<feature-slug>}}/
 ```
 
 Không nhúng tên Epic và Story đầy đủ trong đường dẫn thư mục theo mặc định. Giữ Epic/Story trong các phần metadata bên trong `feature-spec.md` và `feature-spec.html`. Nếu người dùng yêu cầu rõ ràng nhóm theo Epic, sử dụng định dạng nhóm tùy chọn được ghi trong `references/output-packaging-rules.md`.

@@ -1,6 +1,6 @@
 ---
 name: api-design
-description: Chỉ sử dụng sau khi using-tungnt-ai-skills đã chọn quy trình làm việc, như một ống kính hỗ trợ bên trong brainstorming, lập kế hoạch, thực thi hoặc đánh giá
+description: Sử dụng khi kỹ năng brainstorming được kích hoạt và gọi tới kỹ năng, kỹ năng là một ống kính hỗ trợ cho brainstorming đánh giá, thiết kế, chỉnh sửa khi làm việc với API
 ---
 
 # Thiết Kế API
@@ -15,21 +15,38 @@ Sử dụng tiêu chuẩn API cục bộ nghiêm ngặt hơn trước.
 
 - Tạo hoặc thay đổi endpoint REST/HTTP hoặc hợp đồng dịch vụ công khai.
 - Định nghĩa schema request, response, error, phân trang, lọc, sắp xếp, hoặc tương tác với SDK.
-- Lập kế hoạch phiên bản hóa, ngừng hỗ trợ, tính幂等, thử lại, hoạt động chạy lâu dài hoặc tương thích.
+- Lập kế hoạch phiên bản hóa, ngừng hỗ trợ, tính idempotent, thử lại, hoạt động chạy lâu dài hoặc tương thích.
 - Đánh giá API để tìm thay đổi phá vỡ hoặc hành vi không nhất quán.
 
 Không sử dụng cho các trợ lý riêng trừ khi chúng vượt qua ranh giới nhóm, gói, quy trình hoặc triển khai.
 
 ## Kích Hoạt Theo Quy Trình Lĩnh Vực
 
-Đây là kỹ năng lĩnh vực cho thiết kế hợp đồng API. Nó cung cấp đánh giá thiết kế API bên trong quy trình làm việc đã chọn; nó không chọn hoặc thay thế `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development` hoặc các kỹ năng đánh giá.
+<HARD-GATE>
+CHỈ KÍCH HOẠT khi kỹ năng `brainstorming` gọi tới. KHÔNG kích hoạt tự động kỹ năng, không kích hoạt sau các kỹ năng khác ngoại trừ kỹ năng `brainstorming`.
+
+NẾU không phải `brainstorming` dừng lại và trả lại thông báo "Kỹ năng api-design không được kích hoạt do kỹ năng khác không phải `brainstorming` gọi tới."
+
+NẾU kỹ năng `brainstorming` gọi tới để yêu cầu hỗ trợ thì hãy thông báo `Đang dùng kỹ năng api-design để làm việc...`
+
+NẾU người dùng tự kích hoạt bằng cách gọi trực tiếp `/api-design` thì chỉ làm đúng nhiệm vụ mà kỹ năng lĩnh vực phụ trách và đưa gợi ý cho người dùng.
+
+```plaintext
+Gợi ý: Để tiếp tục, hãy dùng:
+
+/brainstorming Dựa trên phần phân tích từ kỹ năng /api-design ở trên, tiếp tục xây dựng spec và kế hoạch triển khai chi tiết để thực hiện.
+```
+
+TUYỆT ĐỐI KHÔNG CODE, KHÔNG SỬA FILE khi dùng kỹ năng `api-design`.
+</HARD-GATE>
+
+Đây là kỹ năng lĩnh vực cho thiết kế hợp đồng API. Nó cung cấp đánh giá thiết kế API bên trong quy trình làm việc đã chọn; nó không chọn hoặc thay thế `brainstorming` hoặc các kỹ năng đánh giá mà sẽ hỗ trợ `brainstorming` đưa ra nhận định cụ thể hơn trong việc đưa ra quyết định.
 
 Gọi kỹ năng này trong quy trình làm việc chỉ khi công việc liên quan đến thiết kế, tạo, cập nhật hoặc đánh giá hợp đồng REST/HTTP API:
 
-- Trong `brainstorming`, sử dụng khi người dùng yêu cầu tạo hoặc thay đổi API, endpoint, schema request, schema response, ngữ nghĩa lỗi, phân trang, lọc, sắp xếp, phiên bản hóa, tính幂等, hành vi thử lại hoặc hành vi tương thích.
-- Trong `writing-plans`, sử dụng khi spec đã phê duyệt bao gồm hành vi hợp đồng API cần trở thành nhiệm vụ TDD và test fail.
-- Trong quá trình thực thi, sử dụng như ràng buộc khi nhiệm vụ kế hoạch triển khai hoặc thay đổi hành vi hợp đồng API; nếu triển khai phát hiện lỗ hổng hợp đồng, dừng và sửa đổi spec hoặc kế hoạch thay vì tự tạo hành vi trong code.
-- Trong quá trình đánh giá, sử dụng như ống kính API khi diff thay đổi endpoint, schema, lỗi, phân trang, thử lại, tính幂等, phiên bản hóa, xác thực hoặc tương thích.
+- Trong `brainstorming`, sử dụng khi người dùng yêu cầu tạo hoặc thay đổi API, endpoint, schema request, schema response, ngữ nghĩa lỗi, phân trang, lọc, sắp xếp, phiên bản hóa, tính idempotent, hành vi thử lại hoặc hành vi tương thích.
+- Trong quá trình thực thi, sử dụng như ràng buộc khi nhiệm vụ kế hoạch triển khai hoặc thay đổi hành vi hợp đồng API; nếu triển khai phát hiện lỗ hổng hợp đồng, dừng lại và thông báo lại cho `brainstorming` để phân tích lỗ hổng và điều chỉnh lại.
+- Trong quá trình đánh giá, sử dụng như ống kính API khi diff thay đổi endpoint, schema, lỗi, phân trang, thử lại, tính idempotent, phiên bản hóa, xác thực hoặc tương thích.
 
 Không gọi kỹ năng này cho logic backend chung, trợ lý riêng, thay đổi chỉ liên quan đến cơ sở dữ liệu, công việc chỉ liên quan đến UI hoặc nhiệm vụ triển khai không hiển thị hoặc thay đổi hợp đồng API.
 
@@ -42,7 +59,7 @@ Không gọi kỹ năng này cho logic backend chung, trợ lý riêng, thay đ�
 | "Chỉ thêm API CRUD đơn giản nhanh chóng" | URL bằng động từ, thiết kế ưu tiên handler, không phân trang | Tài nguyên ưu tiên hợp đồng, ngữ nghĩa phương thức, quy tắc danh sách |
 | "Phát hành ngay, ghi lỗi sau" | Exception thô hoặc dạng lỗi hỗn hợp | Một dạng lỗi có cấu trúc và mã máy ổn định |
 | "Chúng ta có thể thay đổi trường này; chỉ ứng dụng của mình dùng" | Thay đổi phá vỡ trường/loại/bắt buộc | Tiến hóa cộng dồn và đánh giá tương thích |
-| "POST được; khách hàng có thể thử lại thủ công" | Tác dụng phụ trùng lặp khi thử lại | Yêu cầu tính幂等/khả năng lặp lại |
+| "POST được; khách hàng có thể thử lại thủ công" | Tác dụng phụ trùng lặp khi thử lại | Yêu cầu tính idempotent/khả năng lặp lại |
 | "API bên thứ ba đã xác thực việc này" | Dữ liệu bên ngoài không đáng tin vào logic | Xác thực biên cho tất cả đầu vào bên ngoài |
 
 ## Mẫu Cốt Lõi
@@ -108,8 +125,4 @@ Trước khi phát hành, trả lời:
 - Dạng thành công hoặc lỗi khác nhau giữa các endpoint. |
 - Đầu vào bên ngoài hoặc phản hồi bên thứ ba được sử dụng mà không xác thực. |
 | Trường bị xóa, trường được giải thích lại, giá trị enum bị thu hẹp hoặc dữ liệu bắt buộc mới. |
-| Không có tính幂等, phiên bản hóa, ngừng hỗ trợ hoặc kế hoạch di chuyển. |
-
-## Nguồn Tham Khảo
-
-Dựa trên Microsoft REST API Guidelines, đặc biệt là Azure REST API Guidelines hiện tại và Considerations for Service Design, cùng với kỹ năng `api-and-interface-design` của Addy Osmani.
+| Không có tính idempotent, phiên bản hóa, ngừng hỗ trợ hoặc kế hoạch di chuyển. |

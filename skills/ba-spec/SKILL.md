@@ -19,7 +19,13 @@ Use this skill only when the user explicitly invokes `ba-spec`.
 
 Do not run it at install time. Do not auto-process during session bootstrap.
 
-Manual utility only. Not a process skill. Not a domain lens.
+Manual utility only. Not a process skill. This is a domain skill for developing system documentation.
+
+## Mandatory Inputs
+
+- Clear, specific requirements without missing ideas or missing information. WHEN MISSING IDEAS OR MISSING INFORMATION, stop the skill and use dialogue to ask the user to clarify the issue first, then proceed according to the instructions of this skill.
+- REQUIRED to invoke `skills/brainstorming` to get baseline analysis before following the instructions, and simultaneously notify "Using brainstorming to define requirements..."
+- Wait for the response returned from `brainstorming`, then rely on that response to continue following the instructions of this skill.
 
 ## Non-negotiable output rule
 
@@ -123,7 +129,7 @@ When the user asks for deliverables, create one final package directory, not loo
 Default package path:
 
 ```text
-docs/tungnt-ai-skills/ba-spec-output/{{YYYYMMDD}}/{{feature-slug}}/
+docs/tungnt-ai-skills/ba-spec-output/{{YYYY-MM-DD-<feature-slug>}}/
 ```
 
 Do not embed full Epic and Story names in the folder path by default. Keep Epic/Story in the metadata sections inside `feature-spec.md` and `feature-spec.html`. If the user explicitly asks to group by Epic, use the optional grouped format documented in `references/output-packaging-rules.md`.

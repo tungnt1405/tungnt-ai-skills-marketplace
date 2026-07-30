@@ -1,13 +1,31 @@
 ---
 name: ui-ux-pro-max
-description: Chỉ sử dụng sau khi using-tungnt-ai-skills đã chọn quy trình làm việc, như một ống kính hỗ trợ bên trong brainstorming, lập kế hoạch, thực thi hoặc đánh giá
+description: Sử dụng khi kỹ năng brainstorming được kích hoạt và gọi tới kỹ năng, kỹ năng là một ống kính hỗ trợ cho brainstorming đánh giá, thiết kế, chỉnh sửa khi thiết kế UI/UX
 ---
 
 # ui-ux-pro-max
 
 Kỹ năng lĩnh vực cho trí thông minh thiết kế UI/UX. Đây không phải kỹ năng quy trình; nó cung cấp cơ sở dữ liệu có thể tìm kiếm và tạo hệ thống thiết kế để hướng dẫn quyết định UI trước khi triển khai.
 
-Sử dụng kỹ năng này như bằng chứng thiết kế trong quy trình làm việc dự án hiện tại. Nó không được thay thế `brainstorming`, `writing-plans` hoặc kỹ năng thực thi/đánh giá, và nó không được thay đổi thứ tự hoặc cổng của chúng.
+Sử dụng kỹ năng này như bằng chứng thiết kế trong quy trình làm việc dự án hiện tại. Nó là cơ sở đánh giá thiết kế UI/UX và cung cấp lại `brainstorming` thông tin thiết kế để `brainstorming` có đánh giá phân tích để làm tiếp.
+
+<HARD-GATE>
+CHỈ KÍCH HOẠT khi kỹ năng `brainstorming` gọi tới. KHÔNG kích hoạt tự động kỹ năng, KHÔNG kích hoạt sau các kỹ năng khác ngoại trừ kỹ năng `brainstorming`.
+
+NẾU không phải `brainstorming` dừng lại và trả lại thông báo "Kỹ năng ui-ux-pro-max không được kích hoạt do kỹ năng khác không phải `brainstorming` gọi tới."
+
+NẾU kỹ năng `brainstorming` gọi tới để yêu cầu hỗ trợ thì hãy thông báo `Đang dùng kỹ năng ui-ux-pro-max để làm việc...`
+
+NẾU người dùng tự kích hoạt bằng cách gọi trực tiếp `/ui-ux-pro-max` thì chỉ làm đúng nhiệm vụ mà kỹ năng lĩnh vực phụ trách và đưa gợi ý cho người dùng.
+
+```plaintext
+Gợi ý: Để tiếp tục, hãy dùng:
+
+/brainstorming Dựa trên phần phân tích từ kỹ năng ui-ux-pro-max ở trên, tiếp tục xây dựng spec và kế hoạch triển khai chi tiết để thực hiện.
+```
+
+TUYỆT ĐỐI KHÔNG CODE, KHÔNG SỬA FILE khi dùng kỹ năng `ui-ux-pro-max`.
+</HARD-GATE>
 
 ## Cách Sử Dụng
 

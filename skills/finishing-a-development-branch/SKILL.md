@@ -5,11 +5,19 @@ description: Use when implementation is complete, all tests pass, and you need t
 
 # Finishing a Development Branch
 
+## Settings Scan
+
+- Check if policies are remembered to comply with, STRICTLY COMPLY with policies if missing or policies are not found: read `tais/setting.json` in current workspace if available (fallback: `setting.json` at plugin root) (read-only — never modify). Check `policy.autoCommit`, `policy.autoTest`, `policy.dangerousCommands`, `policy.sensitiveFiles`, and `policy.installAndUpdate` to shape what questions you ask and what default assumptions you accept.
+
+If the file is missing, proceed with defaults. MANDATORY to remember and follow settings in `setting.json` (fallback: `setting.json` at plugin root).
+
+MANDATORY to remember policies when executing, ALWAYS PRIORITIZE following `tais/setting.json` in current workspace if available or `setting.json` at plugin root to get policies.
+
 ## Overview
 
 Guide completion of development work by presenting clear options and handling chosen workflow.
 
-**Core principle:** Validate Definition-of-Done -> Verify tests -> Detect environment -> Present options -> Execute choice -> Clean up.
+**Core principle:** Validate Definition-of-Done -> Verify tests (if `policy.autoTest` is enabled then run tests, if disabled then skip) -> Detect environment -> Present options -> Execute choice (if `policy.dangerousCommands`, `policy.sensitiveFiles`, and `policy.installAndUpdate` set restrictions then strictly comply by not running prohibited execution commands) -> Clean up.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
@@ -19,7 +27,7 @@ Guide completion of development work by presenting clear options and handling ch
 
 Before presenting merge, PR, keep, or discard options, verify the work is actually done:
 
-- All plan tasks are marked complete in the plan or status file.
+- All plan tasks are marked complete in the plan and change status in the plan.
 - All new and existing tests relevant to the change pass.
 - Modified code contains no temporary placeholders, debug output, or literal `TODO` / `FIXME` markers introduced by this change.
 - Acceptance criteria mapped to tests or explicit verification commands.
@@ -37,8 +45,8 @@ If any Definition-of-Done item fails, stop and fix it before continuing.
 ### Step 2: Verify Tests
 
 **Check Auto-Test Policy:**
-If your `<SECURITY_POLICY>` states that **Auto-Test is DISABLED**, skip this step entirely and proceed to Step 3 without running any tests.
-If it is ENABLED, proceed with the verification:
+If `policy.autoTest` is disabled, skip this step entirely and proceed to Step 3 without running any tests.
+If `policy.autoTest` is enabled, proceed with the verification:
 
 **Before presenting options, verify tests pass:**
 
@@ -89,9 +97,9 @@ Or ask: "This branch split from main - is that correct?"
 ### Step 5: Present Options
 
 **Check Auto-Commit Policy:**
-If your `<SECURITY_POLICY>` states that **Auto-Commit is DISABLED**, do not present any options or perform any merges. Simply report: "Auto-Commit is disabled by policy. Keeping branch as-is. Worktree preserved." and STOP executing this skill.
+If `policy.autoCommit` is disabled, do not automatically execute merge/push/discard. Still present the options, but only perform actions when the user explicitly selects.
 
-If Auto-Commit is ENABLED, proceed to present the options:
+If `policy.autoCommit` is enabled, proceed to present the options:
 
 **Normal repo and named-branch worktree — present exactly these 4 options:**
 

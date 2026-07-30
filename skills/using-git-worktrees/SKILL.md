@@ -132,6 +132,18 @@ if [ -f go.mod ]; then go mod download; fi
 
 ## Step 4: Verify Clean Baseline
 
+### Settings Scan
+
+- Check if policies are remembered to comply with, STRICTLY COMPLY with policies if missing or policies are not found: read `tais/setting.json` in current workspace if available (fallback: `setting.json` at plugin root) (read-only — never modify). Check `policy.autoCommit`, `policy.autoTest`, `policy.dangerousCommands`, `policy.sensitiveFiles`, and `policy.installAndUpdate` to shape what questions you ask and what default assumptions you accept.
+
+If the file is missing, proceed with defaults. MANDATORY to remember and follow settings in `tais/setting.json` (fallback: `setting.json` at plugin root).
+
+MANDATORY to remember policies when executing, ALWAYS PRIORITIZE following `tais/setting.json` in current workspace if available or `setting.json` at plugin root to get policies.
+
+### Verification
+
+Check if `policy.autoTest` is enabled then proceed
+
 Run tests to ensure workspace starts clean:
 
 ```bash
@@ -142,6 +154,8 @@ npm test / cargo test / pytest / go test ./...
 **If tests fail:** Report failures, ask whether to proceed or investigate.
 
 **If tests pass:** Report ready.
+
+If `policy.autoTest` is not enabled, notify "Complying with policy to skip verification step. Please manually run tests to ensure clean workspace." and send the list of test commands for the user to run.
 
 ### Report
 
@@ -164,9 +178,9 @@ Ready to implement <feature-name>
 | Both exist | Use `.worktrees/` |
 | Neither exists | Check instruction file, then default `.worktrees/` |
 | Global path exists | Use it (backward compat) |
-| Directory not ignored | Add to .gitignore + commit |
+| Directory not ignored | Add to .gitignore + commit (complying with policy) |
 | Permission error on create | Sandbox fallback, work in place |
-| Tests fail during baseline | Report failures + ask |
+| Tests fail during baseline | Report failures + ask (complying with policy) |
 | No package.json/Cargo.toml | Skip dependency install |
 
 ## Common Mistakes
@@ -194,7 +208,7 @@ Ready to implement <feature-name>
 ### Proceeding with failing tests
 
 - **Problem:** Can't distinguish new bugs from pre-existing issues
-- **Fix:** Report failures, get explicit permission to proceed
+- **Fix:** Report failures, get explicit permission to proceed (only accepted when `setting.json` policy requires)
 
 ## Red Flags
 
@@ -212,4 +226,4 @@ Ready to implement <feature-name>
 - Follow directory priority: existing > global legacy > instruction file > default
 - Verify directory is ignored for project-local
 - Auto-detect and run project setup
-- Verify clean test baseline
+- Verify clean test baseline (STRICTLY COMPLY WITH `setting.json` policy). If tests are not required, notify user for example "Clean test baseline verification was not run because you are configured not to run tests. Please test manually or configure via /configuring-settings to enable baseline test verification".

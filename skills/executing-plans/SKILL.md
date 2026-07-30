@@ -7,108 +7,97 @@ description: Use when you have a written implementation plan to execute in a sep
 
 ## Overview
 
-Load plan, review critically, execute all tasks, report when complete.
+Load the plan, critically review it, execute all tasks, report upon completion.
 
-**Announce at start:** "I'm using the executing-plans skill to implement this plan."
+**Announcement:** "I am using the executing-plans skill to implement this plan."
 
-**Note:** Tell your human partner that tungnt-ai-skills works much better with access to subagents. The quality of its work will be significantly higher if run on a platform with subagent support (such as Claude Code or Codex). If subagents are available, use `subagent-driven-development` instead of this skill.
+**Note:** Tell your partner that tungnt-ai-skills works much better when it has access to subagents. Work quality will be significantly higher if run on a platform supporting subagents (such as Claude Code or Codex). If subagents are available, use `subagent-driven-development` instead of this skill.
 
 ## Settings Compliance
 
-Before starting execution, read `tais/setting.json` in the current workspace (fallback: `setting.json` at plugin root). Respect `policy.autoCommit`: when `false`, do not auto-commit — leave changes for the user. Respect `policy.autoTest`: when `false`, do not auto-run tests unless the user asks.
+Before starting execution, check previously saved policies (if any); if not found or not remembered, MUST read `tais/setting.json` in the current workspace if available (fallback: `setting.json` at plugin root). Respect `policy.autoCommit`: when `false`, do not auto-commit — leave changes for the user. Respect `policy.autoTest`: when `false`, do not auto-run tests unless the user requests.
+
+MUST remember policies when executing, ALWAYS PRIORITIZE following `tais/setting.json` in the current workspace if available or `setting.json` at plugin root to get policies.
 
 ## Lightweight Status Tracking
 
-Status tracking is optional but recommended for multi-task plans. Use `docs/tungnt-ai-skills/status/<plan-name>-status.yaml`, where `<plan-name>` is the plan filename without `.md`.
+Recommended status tracking for multi-task plans. Change status directly at the top of file `docs/tungnt-ai-skills/plans/YYYY-MM-DD-<feature-name>.md` or `docs/tungnt-ai-skills/plans/YYYY-MM-DD-<feature-name>/*.md` files combined with TodoWrite.
 
-When starting a plan, create the status file if it does not exist:
+When starting a task, set that task to `in-progress`. When it is verified and completed, set `status: complete` and `completed_at: YYYY-MM-DD`. When all tasks complete, set `overall_status: complete`.
 
-```yaml
-plan_file: docs/tungnt-ai-skills/plans/example.md
-started_at: YYYY-MM-DD
-overall_status: in-progress
-tasks:
-  - id: 1
-    name: Task name from plan
-    status: pending
-    completed_at:
-```
-
-When starting a task, set that task to `in-progress`. When it is verified and complete, set `status: complete` and `completed_at: YYYY-MM-DD`. When all tasks are complete, set `overall_status: complete`.
-
-Preserve user edits and comments in the status file. If the status file cannot be updated cleanly, continue execution and report the tracking failure.
+Preserve user edits and comments in status files. If status file cannot be updated cleanly, continue execution and report tracking error.
 
 ## Phased Plan Support
 
-When the plan contains a `plan.md` with a phase mapping table and separate `phase-*.md` files, execute phases in dependency order:
+When the plan uses phased output (`docs/tungnt-ai-skills/plans/YYYY-MM-DD-<feature-name>/plan.md` + `docs/tungnt-ai-skills/plans/YYYY-MM-DD-<feature-name>/phase-*.md` files), execute phases in dependency order:
 
-1. Read `plan.md` to find the phase mapping table and dependency graph.
+1. Read `plan.md` to find phase mapping table and dependency graph.
 2. For each phase (in dependency order):
-   a. Read the `phase-*.md` file.
-   b. Check frontmatter `status` — skip phases already marked `complete`.
-   c. Extract implementation steps as tasks.
-   d. Execute tasks using the normal per-task flow (Steps 2-3 below).
+   a. Read `phase-*.md` file.
+   b. Check `status` in frontmatter — skip phases marked `complete`.
+   c. Extract implementation steps into tasks.
+   d. Execute tasks using normal per-task flow (Steps 2-3 below).
    e. Update phase frontmatter `status` to `complete` when all tasks pass.
-3. After all phases complete, proceed to Step 3 (Complete Development).
+3. After all phases complete, proceed to Step 3 (Finish Development).
 
-Phase frontmatter is the source of truth for phased progress. The optional YAML status file tracks runtime state but does not override phase frontmatter.
+Phase frontmatter is the source of truth for phase progress. Plan file or `phase-*` with optional status remains only runtime tracking.
 
-For single-plan files (no phase mapping table), use the existing flow unchanged. No separate status YAML is required for single-plan work.
+Single plan files use current unchanged flow.
 
 ## The Process
 
 ### Step 1: Load and Review Plan
 1. Read plan file
-2. Review critically - identify any questions or concerns about the plan
-3. If concerns: Raise them with your human partner before starting
-4. If no concerns: Create TodoWrite and proceed
-5. Create or resume the optional status file at `docs/tungnt-ai-skills/status/<plan-name>-status.yaml`
-6. Check for review continuation items before starting new work
+2. Critically review — identify questions or concerns about the plan
+3. If concerns exist: Raise with partner before starting
+4. If no concerns exist: Create TodoWrite and continue
+5. Change status of the `docs/tungnt-ai-skills/plans/YYYY-MM-DD-<feature-name>/plan.md` or `docs/tungnt-ai-skills/plans/YYYY-MM-DD-<feature-name>/*.md` file being executed
+6. Check review continuation item before starting new work
 
 ### Step 2: Execute Tasks
 
 For each task:
-1. Mark as in_progress
-2. Follow each step exactly (plan has bite-sized steps)
-3. Run verifications as specified
-4. Mark as completed
+1. Mark `in-progress` being worked on
+2. Follow each step precisely (plan has micro-steps)
+3. Run verification as specified
+4. Mark complete
 
-### Step 3: Complete Development
+### Step 3: Finish Development
 
-After all tasks complete and verified:
-- Announce: "I'm using the finishing-a-development-branch skill to complete this work."
-- **REQUIRED SUB-SKILL:** Use `finishing-a-development-branch`
-- Follow that skill to verify tests, present options, execute choice
+After all tasks complete and are verified:
+- Announcement: "I am using the finishing-a-development-branch skill to finish this work."
+- **MANDATORY SUB-SKILL:** Use `finishing-a-development-branch`
+- Follow that skill to verify checks, present options, execute choice
 
 ## When to Stop and Ask for Help
 
-**STOP executing immediately when:**
-- Hit a blocker (missing dependency, test fails, instruction unclear)
-- Plan has critical gaps preventing starting
-- You don't understand an instruction
+**STOP execution immediately when:**
+- Encountering a block (missing dependency, test failure, unclear instruction)
+- Plan has critical gaps preventing start
+- You don't understand instructions
 - Verification fails repeatedly
 
-**Ask for clarification rather than guessing.**
+**Ask for clarification instead of guessing.**
 
-## When to Revisit Earlier Steps
+## When to Revisit Previous Steps
 
 **Return to Review (Step 1) when:**
-- Partner updates the plan based on your feedback
-- Fundamental approach needs rethinking
+- Partner updates plan based on your feedback
+- Need to re-`brainstorm` fundamental approach
 
-**Don't force through blockers** - stop and ask.
+**Don't force past blocks** — stop and ask.
 
 ## Remember
-- Review plan critically first
-- Follow plan steps exactly
-- Don't skip verifications
-- Reference skills when plan says to
+- Critically review plan first
+- Follow plan steps precisely
+- Don't skip verification
+- Refer to skills when plan requests
 - Stop when blocked, don't guess
 - Never start implementation on main/master branch without explicit user consent
 
 ## Integration
 
-**Required workflow skills:**
-- **using-git-worktrees** - Ensures isolated workspace (creates one or verifies existing)
-- **writing-plans** - Creates the plan this skill executes
-- **finishing-a-development-branch** - Complete development after all tasks
+**Mandatory process skills:**
+- **using-git-worktrees** - Ensure isolated workspace (create or verify existing)
+- **writing-plans** - Create plan that this skill executes
+- **finishing-a-development-branch** - Finish development after all tasks

@@ -5,11 +5,19 @@ description: Sử dụng khi triển khai hoàn tất, tất cả test pass, và
 
 # Hoàn Thất Nhánh Phát Triển
 
+## Quét Cài Đặt
+
+- Kiểm tra đã ghi nhớ policy để tuân thủ chưa, TUÂN THỦ nghiêm ngặt theo policy nếu như bị mất hoặc không thấy policy: đọc `tais/setting.json` trong không gian làm việc hiện tại nếu có (dự phòng: `setting.json` tại gốc plugin) (chỉ đọc — không bao giờ thay đổi). Kiểm tra `policy.autoCommit`, `policy.autoTest`, `policy.dangerousCommands`, `policy.sensitiveFiles` và `policy.installAndUpdate` để định hình câu hỏi nào bạn đặt và giả định mặc định nào bạn chấp nhận.
+
+Nếu file bị thiếu, tiếp tục với mặc định. BẮT BUỘC và GHI NHỚ làm theo settings trong `setting.json` (dự phòng: `setting.json` tại gốc plugin)
+
+BẮT BUỘC ghi nhớ các policy khi thực hiện, LUÔN ƯU TIÊN theo `tais/setting.json` trong không gian làm việc hiện tại nếu có hoặc `setting.json` tại gốc plugin để lấy policy.
+
 ## Tổng Quan
 
 Hướng dẫn hoàn thành công việc phát triển bằng cách trình bày các tùy chọn rõ ràng và xử lý quy trình làm việc được chọn.
 
-**Nguyên tắc cốt lõi:** Xác minh Định Nghĩa Hoàn Thành -> Xác minh test -> Phát hiện môi trường -> Trình bày tùy chọn -> Thực thi lựa chọn -> Dọn dẹp.
+**Nguyên tắc cốt lõi:** Xác minh Định Nghĩa Hoàn Thành -> Xác minh test (nếu `policy.autoTest` bật thì chạy test, nếu tắt thì bỏ qua) -> Phát hiện môi trường -> Trình bày tùy chọn -> Thực thi lựa chọn ( `policy.dangerousCommands`, `policy.sensitiveFiles` và `policy.installAndUpdate` có đặt hạn chế thì tuân thủ nghiêm ngặt không chạy những lệnh thực thi bị cấm) -> Dọn dẹp.
 
 **Thông báo bắt đầu:** "Tôi đang sử dụng kỹ năng finishing-a-development-branch để hoàn thành công việc này."
 
@@ -19,7 +27,7 @@ Hướng dẫn hoàn thành công việc phát triển bằng cách trình bày 
 
 Trước khi trình bày các tùy chọn merge, PR, giữ hoặc loại bỏ, xác minh công việc thực sự đã xong:
 
-- Tất cả nhiệm vụ kế hoạch được đánh dấu hoàn thành trong kế hoạch hoặc file trạng thái.
+- Tất cả nhiệm vụ kế hoạch được đánh dấu hoàn thành trong kế hoạch và đỏi trạng thái trong kế hoạch.
 - Tất cả test mới và hiện có liên quan đến thay đổi pass.
 - Code đã sửa không chứa placeholder tạm thời, đầu ra gỡ lỗi hoặc đánh dấu `TODO` / `FIXME` đúng nghĩa do thay đổi này gây ra.
 - Tiêu chí chấp thuận được ánh xạ tới test hoặc lệnh xác minh rõ ràng.
@@ -37,8 +45,8 @@ Nếu bất kỳ mục Định Nghĩa Hoàn Thành nào thất bại, dừng l�
 ### Bước 2: Xác Minh Test
 
 **Kiểm Tra Chính Sách Auto-Test:**
-Nếu `<SECURITY_POLICY>` của bạn nêu rõ **Auto-Test bị VÔ HIỆU HÓA**, bỏ qua bước này hoàn toàn và tiến đến Bước 3 mà không chạy bất kỳ test nào.
-Nếu nó được BẬT, tiến hành xác minh:
+Nếu `policy.autoTest` bị tắt, bỏ qua bước này hoàn toàn và tiến đến Bước 3 mà không chạy bất kỳ test nào.
+Nếu `policy.autoTest` được bật, tiến hành xác minh:
 
 **Trước khi trình bày tùy chọn, xác minh test pass:**
 
@@ -89,9 +97,9 @@ Hoặc hỏi: "Nhánh này tách từ main - đúng không?"
 ### Bước 5: Trình Bày Tùy Chọn
 
 **Kiểm Tra Chính Sách Auto-Commit:**
-Nếu `<SECURITY_POLICY>` của bạn nêu rõ **Auto-Commit bị VÔ HIỆU HÓA**, không trình bày bất kỳ tùy chọn nào hoặc thực hiện bất kỳ merge nào. Chỉ báo cáo: "Auto-Commit bị vô hiệu hóa bởi chính sách. Giữ nhánh như hiện tại. Worktree được bảo toàn." và DỪNG thực thi kỹ năng này.
+Nếu `policy.autoCommit` bị tắt, không tự động thực thi merge/push/discard. Vẫn trình bày các tùy chọn, nhưng chỉ thực hiện hành động khi người dùng chọn rõ ràng.
 
-Nếu Auto-Commit được BẬT, tiến trình trình bày tùy chọn:
+Nếu `policy.autoCommit` được bật, tiến trình trình bày tùy chọn:
 
 **Repo bình thường và worktree nhánh có tên — trình bày chính xác 4 tùy chọn này:**
 

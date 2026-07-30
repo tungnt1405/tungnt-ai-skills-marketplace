@@ -5,13 +5,22 @@ description: Sử dụng khi điều tra lỗi, truy vết sự việc, khám ph
 
 # Điều Tra
 
+
 Điều tra trước khi sửa. Tái tạo những gì đang xảy ra từ bằng chứng, ghi lại độ tin cậy và dừng ở chẩn đoán trừ khi người dùng yêu cầu rõ ràng triển khai.
+
+## Quét Cài Đặt
+
+Trước giai đoạn câu hỏi điều tra, đọc `tais/setting.json` trong không gian làm việc hiện tại nếu có (dự phòng: `setting.json` tại gốc plugin) (chỉ đọc — không bao giờ thay đổi). Kiểm tra `policy.autoCommit`, `policy.autoTest`, `policy.dangerousCommands`, `policy.sensitiveFiles` và `policy.installAndUpdate` để định hình câu hỏi nào bạn đặt và giả định mặc định nào bạn chấp nhận.
+
+BẮT BUỘC ghi nhớ các policy khi thực hiện, LUÔN ƯU TIÊN theo `tais/setting.json` trong không gian làm việc hiện tại nếu có hoặc `setting.json` tại gốc plugin để lấy policy.
 
 ## Khi Nào Sử Dụng
 
 - Lỗi, sự việc, stack trace, log, lưu trữ chẩn đoán, test thất bại hoặc hành vi đáng ngờ cần chẩn đoán.
 - Khu vực code không quen thuộc và người dùng cần mô hình tâm lý tin cậy trước khi bắt đầu.
 - Hồ sơ điều tra trước đó cần tiếp tục.
+
+KHÔNG điều tra, đọc các file hạn chế và không sử dụng các lệnh cấm trong `policy.dangerousCommands`, `policy.sensitiveFiles`.
 
 ## Đầu Ra
 
@@ -22,8 +31,25 @@ Slug là ID ticket khi có. Nếu không, lấy tên ngắn kebab-case từ mô 
 ## Cấp Độ Bằng Chứng
 
 - **Xác Nhận (Confirmed).** Bằng chứng quan sát trực tiếp. Trích dẫn `path:line`, thời gian log, đầu ra lệnh hoặc commit hash.
+
+**Bản chất:** Dữ liệu khách quan, mang tính thực chứng và có khả năng tái lập (reproducibility) tuyệt đối. Đây là điểm neo không thể bác bỏ trong toàn bộ quá trình điều tra.
+
+   - **Tiêu chuẩn định lượng:** Bắt buộc truy xuất nguồn gốc thông qua các định danh bất biến. Phải cung cấp nguyên bản các thông số kỹ thuật như: `path:line` cụ thể trong mã nguồn, timestamp nguyên vẹn từ tệp log hệ thống, chuỗi xuất chuẩn (stdout/stderr output) từ môi trường thực thi, hoặc mã băm mật mã (commit hash/checksum). Không chấp nhận sự diễn giải lại dữ liệu.
+
+   - **Rủi ro sai lệch:** Tính toàn vẹn của bằng chứng có thể bị phá vỡ nếu dữ liệu bị giả mạo (tampering), môi trường trích xuất log bị ô nhiễm, hoặc đồng hồ hệ thống (NTP) lệch pha. Cần xác thực tính cô lập của nguồn cấp dữ liệu trước khi công nhận cấp độ này.
+
 - **Suy Luận (Deduced).** Theo logic từ bằng chứng Xác Nhận. Cho thấy chuỗi logic.
+**Bản chất:** Kết quả của quá trình suy luận diễn dịch (deductive reasoning), được nội suy giới hạn và trực tiếp từ các bằng chứng ở cấp độ "Xác Nhận". Mọi bước biến đổi thông tin phải tuân thủ nghiêm ngặt nguyên lý nhân quả (causality).
+   
+   - **Tiêu chuẩn định lượng:** Yêu cầu mô hình hóa chuỗi logic rõ ràng (Mapping). Việc liên kết từ "Bằng chứng A" sang "Hệ quả B" không được phép chứa các biến số ẩn chưa được đo lường (unverified variables). Sự vắng mặt của một bằng chứng phủ định chưa đủ để biến một suy luận thành sự thật; suy luận phải được chứng minh bằng sự hiện diện của các quy luật hệ thống đã biết.
+
+   - **Rủi ro sai lệch:** Nguy cơ cao mắc phải ngụy biện nhân quả giả (post hoc fallacy) hoặc bỏ qua các yếu tố nhiễu (confounding factors). Một trạng thái của hệ thống có thể là kết quả giao thoa của nhiều luồng tiến trình đồng thời, do đó, suy luận đơn tuyến dễ dẫn đến các điểm mù logic.
+
 - **Giả Thuyết (Hypothesized).** Có vẻ đúng nhưng chưa xác nhận. Nêu gì sẽ xác nhận hoặc bác bỏ nó.
+**Bản chất:** Một mô hình dự đoán có cơ sở, được xây dựng để lấp đầy các khoảng trống thông tin khi chuỗi dữ liệu bị đứt gãy. Đặc tính tối quan trọng của một giả thuyết khoa học là tính khả phản bác (falsifiability).
+
+   - **Tiêu chuẩn định lượng:** Tuyệt đối không để mở. Mọi giả thuyết khi được đưa ra phải đính kèm ngay lập tức các phương pháp đo lường (test conditions). Cụ thể: Phải định nghĩa chính xác hành động nào, công cụ kiểm tra nào, và ngưỡng giá trị mục tiêu nào sẽ chuyển đổi trạng thái của giả thuyết này thành "Xác Nhận" hoặc loại bỏ nó hoàn toàn thành "Bác Bỏ".
+   - **Rủi ro sai lệch:** Xu hướng thiên kiến xác nhận (confirmation bias), trong đó các dữ liệu thu thập về sau bị bóp méo để cố gắng khớp với giả thuyết ban đầu. Giả thuyết chưa qua kiểm chứng tuyệt đối không được sử dụng làm tiền đề tĩnh cho các vòng lặp suy luận tiếp theo hoặc làm cơ sở để thực thi các tác động thay đổi hệ thống.
 
 ## Nguyên Tắc
 
@@ -36,7 +62,13 @@ Slug là ID ticket khi có. Nếu không, lấy tên ngắn kebab-case từ mô 
 - Sử dụng đọc file song song và tìm kiếm khi nguồn bằng chứng độc lập.
 - Ủy thác quét rộng chỉ khi nền tảng hỗ trợ subagent và người dùng hoặc quy trình làm việc cho phép ủy thác. Nếu không, thu hẹp quét và tóm tắt bằng chứng dần dần.
 
+<HARD-GATE>
+KHÔNG được gọi bất kỳ kỹ năng triển khai nào, viết bất kỳ code nào, dựng bất kỳ dự án nào hoặc thực hiện bất kỳ hành động triển khai nào cho đến khi bạn đã phân tích, điều tra hoàn thành nhiệm vụ được yêu cầu. Điều này áp dụng cho MỌI dự án bất kể độ đơn giản nhận thức.
+</HARD-GATE>
+
 ## An Toàn
+
+LUÔN TUÂN THỦ policy `policy.dangerousCommands`, `policy.sensitiveFiles` không chạy lệnh không đọc file có đặt trong policy.
 
 - Ưu tiên lệnh chỉ đọc khi thu thập bằng chứng.
 - Không chạy migration, trình cài đặt, script dọn dẹp, ghi dịch vụ bên ngoài, lệnh phá hoại hoặc lệnh thay đổi hành vi trừ khi người dùng yêu cầu hoặc phê duyệt rõ ràng.
@@ -47,6 +79,7 @@ Slug là ID ticket khi có. Nếu không, lấy tên ngắn kebab-case từ mô 
 1. **Định tuyến đầu vào.**
    - Hồ sơ vụ việc hiện có: đọc nó, tóm tắt giả thuyết mở, bằng chứng thiếu, backlog và kết luận cuối cùng.
    - Vấn đề mới: ghi hình dạng đầu vào, phạm vi và bất kỳ giả thuyết nêu nào.
+   **DỪNG LẠI LÀM RÕ khi yêu cầu mơ hồ không rõ ràng, thiếu thông tin, giả thuyết không đủ chứng cứ:** dừng lại và hỏi lại đối đáp để nhận kết quả khi cần làm rõ đầu vào, giả thuyết, cung cấp thêm bằng chứng để cung cấp ra kết luận cuối cùng rồi tiếp tục.
 
 2. **Tìm điểm neo.**
    - Xác định một neo Xác Nhận độc lập từ lý thuyết của người dùng.
@@ -79,13 +112,13 @@ Slug là ID ticket khi có. Nếu không, lấy tên ngắn kebab-case từ mô 
    - Cung cấp hướng sửa lỗi chỉ ở cấp độ cơ chế.
    - Cung cấp bước tái tạo hoặc xác minh.
    - Cập nhật trạng thái vụ việc thành Đang Hoạt Động, Hoàn Thành, Bị Chặn hoặc Đã Thay Thế.
-   - Khuyên quy trình làm việc tiếp theo: `quick-dev` cho sửa lỗi đơn giản đã xác nhận, `brainstorming` cộng `writing-plans` cho lựa chọn hành vi sản phẩm hoặc mơ hồ, `writing-plans` chỉ khi yêu cầu đã rõ ràng, hoặc `requesting-code-review` cho đánh giá.
+   - Khuyên quy trình làm việc tiếp theo: `quick-dev` cho sửa lỗi đơn giản đã xác nhận, `brainstorming` cho sửa lỗi phức tạp, làm  chức năng mới đã được xác nhận với trường hợp có độ tin cậy *cao* và *trung binh*. *ĐỘ TIN CẬY THẤP* cần yêu cầu người dùng "ĐANH GIÁ có độ tin cậy thấp. Bạn cần hãy xác minh lại và tiến hành phân tích lại lần nữa để tăng độ tin cậy"
 
 ## Độ Tin Cậy
 
 - **Cao:** Triệu chứng được tái tạo hoặc quan sát trực tiếp, và nguyên nhân gốc có bằng chứng trích dẫn.
 - **Trung Bình:** Kết luận được suy luận từ bằng chứng đã xác nhận, với sự không chắc chắn nhỏ còn lại.
-- **Thấp:** Kết luận có vẻ đúng nhưng phụ thuộc vào bằng chứng thiếu được nêu rõ ràng.
+- **Thấp:** Kết luận có vẻ đúng nhưng phụ thuộc vào bằng chứng thiếu được nêu rõ ràng. **Đánh RED/GREEN** trường hợp độ tin cậy thấp và yêu cầu người dùng kiểm tra lại kết quả và tìm kiếm thêm dữ liệu đầu vào cung cấp lại để phân tích nâng độ tin cậy
 
 ## Template Hồ Sơ Vụ Việc
 

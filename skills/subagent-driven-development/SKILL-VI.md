@@ -15,26 +15,27 @@ Thực thi kế hoạch bằng cách gửi subagent mới cho mỗi nhiệm vụ
 
 ## Tuân Thủ Cài Đặt
 
-Trước khi gửi người triển khai đầu tiên, đọc `tais/setting.json` trong không gian làm việc hiện tại (dự phòng: `setting.json` tại gốc plugin). Subagent bỏ qua bootstrap, nên bộ điều khiển phải truyền chính sách liên quan trong mỗi prompt triển khai:
+Trước khi gửi người triển khai đầu tiên, kiểm tra policy đã lưu trước đó (nếu có) không tìm thấy hoặc chưa ghi nhớ BẮT BUỘC đọc `tais/setting.json` trong không gian làm việc hiện tại nếu có (dự phòng: `setting.json` tại gốc plugin). Subagent bỏ qua bootstrap, nên bộ điều khiển phải truyền chính sách liên quan trong mỗi prompt triển khai:
 
 - **`policy.autoCommit`**: Khi `false`, nói người triển khai bỏ qua commit — để lại thay đổi chưa commit.
 - **`policy.autoTest`**: Khi `false`, nói người triển khai bỏ qua chạy test trừ khi được yêu cầu rõ ràng.
 - **`policy.dangerousCommands.blocked`**: Truyền danh sách lệnh bị chặn để người triển khai tránh chúng.
 - **`policy.sensitiveFiles.blocked`**: Truyền mẫu file bị chặn để người triển khai tránh chúng.
 
+BẮT BUỘC ghi nhớ các policy khi thực hiện, LUÔN ƯU TIÊN theo `tais/setting.json` trong không gian làm việc hiện tại nếu có hoặc `setting.json` tại gốc plugin để lấy policy.
+
 ## Theo Dõi Trạng Thái
 
-Sử dụng theo dõi trạng thái cho kế hoạch nhiều nhiệm vụ bằng cách duy trì `docs/tungnt-ai-skills/status/<plan-name>-status.yaml` cùng TodoWrite.
+Sử dụng theo dõi trạng thái cho kế hoạch nhiều nhiệm vụ bằng cách thay đổi trạng thái `docs/tungnt-ai-skills/plans/YYYY-MM-DD-<feature-name>.md` hoặc `docs/tungnt-ai-skills/plans/YYYY-MM-DD-<feature-name>/*.md` cùng TodoWrite.
 
-- Tạo nó sau khi đọc kế hoạch và trích xuất nhiệm vụ.
-- Đánh dấu mỗi nhiệm vụ `in-progress` ngay trước khi gửi subagent triển khai.
-- Đánh dấu mỗi nhiệm vụ `complete` với `completed_at: YYYY-MM-DD` chỉ sau khi tuân thủ spec và đánh giá chất lượng code đều vượt qua.
+- Đánh dấu mỗi nhiệm vụ `in-progress` ngay trước khi gửi subagent triển khai trong file markdown.
+- Đánh dấu mỗi nhiệm vụ `complete` với `completed_at: YYYY-MM-DD` chỉ sau khi tuân thủ spec và đánh giá chất lượng code đều vượt qua ngay trong file markdown.
 - Đặt `overall_status: complete` sau khi người đánh giá code cuối cùng vượt qua.
 - Nếu file bị thiếu trong phiên tiếp tục, tái tạo từ kế hoạch và đánh dấu các nhiệm vụ đã hoàn thành dựa trên commit, checkbox kế hoạch đã chọn và bản ghi đánh giá.
 
 ## Hỗ Trợ Kế Hoạch Pha
 
-Khi kế hoạch sử dụng đầu ra theo pha (`plan.md` + file `phase-*.md`), thực thi các pha tuần tự theo thứ tự phụ thuộc:
+Khi kế hoạch sử dụng đầu ra theo pha (`docs/tungnt-ai-skills/plans/YYYY-MM-DD-<feature-name>/plan.md` + file `docs/tungnt-ai-skills/plans/YYYY-MM-DD-<feature-name>/phase-*.md`), thực thi các pha tuần tự theo thứ tự phụ thuộc:
 
 1. Đọc `plan.md` để trích xuất bảng ánh xạ pha và đồ thị phụ thuộc.
 2. Với mỗi pha (tôn trọng phụ thuộc):
@@ -44,7 +45,7 @@ Khi kế hoạch sử dụng đầu ra theo pha (`plan.md` + file `phase-*.md`),
    d. Cập nhật frontmatter pha `status` thành `complete` khi tất cả nhiệm vụ và đánh giá vượt qua.
 3. Sau khi tất cả pha hoàn thành, tiến đến đánh giá code cuối cùng và hoàn tất.
 
-Frontmatter pha là nguồn权威 cho tiến độ pha. File YAML trạng thái tùy chọn vẫn chỉ là theo dõi runtime. File kế hoạch đơn sử dụng luồng hiện tại không thay đổi.
+Frontmatter pha là nguồn chính thức cho tiến độ pha. File `plan` hoặc `phase-*` có trạng thái tùy chọn vẫn chỉ là theo dõi runtime. File kế hoạch đơn sử dụng luồng hiện tại không thay đổi.
 
 ## Khi Nào Sử Dụng
 

@@ -1,6 +1,6 @@
 ---
 name: security-and-hardening
-description: Use only after using-tungnt-ai-skills has selected a process workflow, as a supporting domain lens inside brainstorming, planning, execution, or review
+description: Use when the brainstorming skill is activated and invokes this skill; the skill is a supporting lens for brainstorming when help is needed with security decisions and system hardening.
 ---
 
 # Security and Hardening
@@ -22,18 +22,29 @@ Use stricter local security standards first.
 
 Do not use this as a replacement for a qualified security review, threat model, penetration test, or compliance assessment.
 
+<HARD-GATE>
+ONLY ACTIVATE when invoked by the `brainstorming` skill. DO NOT automatically activate the skill, DO NOT activate after other skills except the `brainstorming` skill.
+
+IF not `brainstorming`, stop and return the message "The security-and-hardening skill was not activated because it was invoked by a skill other than `brainstorming`."
+
+IF the `brainstorming` skill invokes to request support, notify `Using the security-and-hardening skill to work...`
+
+IF the user self-activates by calling `/security-and-hardening` directly, only perform the exact task that the domain skill is responsible for and provide suggestions for the user.
+
+```plaintext
+Suggestion: To continue, use:
+
+/brainstorming Based on the analysis from the /security-and-hardening skill above, continue building the spec and detailed implementation plan to execute.
+```
+
+ABSOLUTELY NO CODING, NO EDITING FILES when using the `security-and-hardening` skill.
+</HARD-GATE>
+
 ## Domain Workflow Trigger
 
-Do not invoke this skill before `using-tungnt-ai-skills` and the active process workflow. If this skill was loaded first, immediately load `using-tungnt-ai-skills`, choose the process skill, and return here only as a supporting lens.
+This is a domain skill for application security and system hardening. It supplies security judgment inside the selected process workflow to support `brainstorming` in plan design.
 
-This is a domain skill for application security and DevSecOps. It supplies security judgment inside the selected process workflow; it does not replace `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development`, or review skills.
-
-Invoke this skill during a workflow when the work includes security-sensitive behavior:
-
-- During `brainstorming`, use it to identify assets, trust boundaries, abuse cases, and security acceptance criteria.
-- During `writing-plans`, use it to convert threat-model findings into failing tests, CI checks, review gates, and explicit non-goals.
-- During execution, use it before changing security-sensitive code; if implementation reveals an unmodeled risk, stop and revise the spec or plan instead of inventing security behavior in code.
-- During review, use it as a security lens for diffs that touch input handling, access control, secrets, dependency changes, CI/CD, infrastructure, external calls, or LLM/tool output.
+Use this skill as a basis for evaluation and security hardening in the current process. Wait for evaluation results from the skill, then use the returned analysis and recommendations for `brainstorming` to continue implementing the next steps.
 
 ## TDD Trigger Coverage
 
@@ -159,6 +170,3 @@ After security-sensitive changes:
 - [ ] Review the diff for new sinks, dependencies, secrets, and deployment authority.
 - [ ] Document any accepted risk with severity, reachability, mitigation, owner, and review date.
 
-## Source Notes
-
-Based on OWASP Top 10:2025, OWASP Cheat Sheet Series, OWASP DevSecOps Guideline, OWASP Top 10 for LLM Applications, and common secure coding review practice.

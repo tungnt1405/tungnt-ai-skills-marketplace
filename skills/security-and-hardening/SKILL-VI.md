@@ -1,6 +1,6 @@
 ---
 name: security-and-hardening
-description: Chỉ sử dụng sau khi using-tungnt-ai-skills đã chọn quy trình làm việc, như một ống kính hỗ trợ bên trong brainstorming, lập kế hoạch, thực thi hoặc đánh giá
+description: Sử dụng khi kỹ năng brainstorming được kích hoạt và gọi tới kỹ năng, kỹ năng là một ống kính hỗ trợ cho brainstorming khi cần giúp đỡ về quyết định an toàn và tăng cường hệ thống.
 ---
 
 # Bảo Mật và Gia Cố
@@ -22,18 +22,29 @@ Sử dụng tiêu chuẩn bảo mật cục bộ nghiêm ngặt hơn trước.
 
 Không sử dụng cái này để thay thế đánh giá bảo mật đủ trình độ, mô hình đe dọa, kiểm tra xâm nhập hoặc đánh giá tuân thủ.
 
+<HARD-GATE>
+CHỈ KÍCH HOẠT khi kỹ năng `brainstorming` gọi tới. KHÔNG kích hoạt tự động kỹ năng, KHÔNG kích hoạt sau các kỹ năng khác ngoại trừ kỹ năng `brainstorming`.
+
+NẾU không phải `brainstorming` dừng lại và trả lại thông báo "Kỹ năng security-and-hardening không được kích hoạt do kỹ năng khác không phải `brainstorming` gọi tới."
+
+NẾU kỹ năng `brainstorming` gọi tới để yêu cầu hỗ trợ thì hãy thông báo `Đang dùng kỹ năng security-and-hardening để làm việc...`
+
+NẾU người dùng tự kích hoạt bằng cách gọi trực tiếp `/security-and-hardening` thì chỉ làm đúng nhiệm vụ mà kỹ năng lĩnh vực phụ trách và đưa gợi ý cho người dùng.
+
+```plaintext
+Gợi ý: Để tiếp tục, hãy dùng:
+
+/brainstorming Dựa trên phần phân tích từ kỹ năng security-and-hardening ở trên, tiếp tục xây dựng spec và kế hoạch triển khai chi tiết để thực hiện.
+```
+
+TUYỆT ĐỐI KHÔNG CODE, KHÔNG SỬA FILE khi dùng kỹ năng `security-and-hardening`.
+</HARD-GATE>
+
 ## Kích Hoạt Theo Quy Trình Lĩnh Vực
 
-Không gọi kỹ năng này trước `using-tungnt-ai-skills` và quy trình làm việc đang hoạt động. Nếu kỹ năng này được tải trước, ngay lập tức tải `using-tungnt-ai-skills`, chọn kỹ năng quy trình và quay lại đây chỉ như ống kính hỗ trợ.
+Đây là kỹ năng lĩnh vực cho bảo mật ứng dụng và tăng cường cho hệ thống. Nó cung cấp đánh giá bảo mật bên trong quy trình làm việc đã chọn để hỗ trợ `brainstorming` trong việc thiết kế kế hoạch.
 
-Đây là kỹ năng lĩnh vực cho bảo mật ứng dụng và DevSecOps. Nó cung cấp đánh giá bảo mật bên trong quy trình làm việc đã chọn; nó không thay thế `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development` hoặc kỹ năng đánh giá.
-
-Gọi kỹ năng này trong quy trình làm việc khi công việc bao gồm hành vi nhạy cảm bảo mật:
-
-- Trong `brainstorming`, sử dụng để xác định tài sản, ranh giới tin cậy, trường hợp lạm dụng và tiêu chí chấp thuận bảo mật.
-- Trong `writing-plans`, sử dụng để chuyển đổi phát hiện mô hình đe dọa thành test fail, kiểm tra CI, cổng đánh giá và phi mục tiêu rõ ràng.
-- Trong thực thi, sử dụng trước khi thay đổi code nhạy cảm bảo mật; nếu triển khai phát hiện rủi ro chưa được mô hình hóa, dừng và sửa đổi spec hoặc kế hoạch thay vì sáng tạo hành vi bảo mật trong code.
-- Trong đánh giá, sử dụng như ống kính bảo mật cho diff chạm xử lý đầu vào, kiểm soát truy cập, bí mật, thay đổi phụ thuộc, CI/CD, cơ sở hạ tầng, gọi bên ngoài hoặc đầu ra LLM/công cụ.
+Dùng kỹ năng này làm cơ sở đánh giá và tăng cường bảo mật trong quy trình hiện tại. Chờ kết quả đánh giá từ kỹ năng, sau đó dùng các phân tích và khuyến nghị trả về để `brainstorming` tiếp tục triển khai các bước tiếp theo.
 
 ## Phủ Định Kịch Bản RED
 
@@ -158,7 +169,3 @@ Sau các thay đổi nhạy cảm bảo mật:
 - [ ] Chạy `node skills/security-and-hardening/scripts/security-smoke-scan.mjs --path . --fail-on high` khi áp dụng.
 - [ ] Đánh giá diff cho hố mới, phụ thuộc, bí mật và quyền triển khai.
 - [ ] Ghi lại mọi rủi ro được chấp nhận với mức độ nghiêm trọng, khả năng tiếp cận, giảm thiểu, chủ sở hữu và ngày đánh giá.
-
-## Nguồn Tham Khảo
-
-Dựa trên OWASP Top 10:2025, OWASP Cheat Sheet Series, OWASP DevSecOps Guideline, OWASP Top 10 cho Ứng Dụng LLM và thực hành đánh giá mã hóa an toàn phổ biến.
