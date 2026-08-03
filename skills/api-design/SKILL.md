@@ -1,6 +1,6 @@
 ---
 name: api-design
-description: Use only after using-tungnt-ai-skills has selected a process workflow, as a supporting domain lens inside brainstorming, planning, execution, or review
+description: Use when the brainstorming skill is activated and invokes this skill; the skill is a supporting lens for brainstorming evaluation, design, and edits when working with APIs
 ---
 
 # API Design
@@ -22,13 +22,30 @@ Do not use for private helpers unless they cross a team, package, process, or de
 
 ## Domain Workflow Trigger
 
-This is a domain skill for API contract design. It supplies API design judgment inside the selected process workflow; it does not choose or replace `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development`, or review skills.
+<HARD-GATE>
+ONLY ACTIVATE when invoked by the `brainstorming` skill. DO NOT automatically activate the skill, do not activate after other skills except the `brainstorming` skill.
+
+IF not `brainstorming`, stop and return the message "The api-design skill was not activated because it was invoked by a skill other than `brainstorming`."
+
+IF the `brainstorming` skill invokes to request support, notify `Using the api-design skill to work...`
+
+IF the user self-activates by calling `/api-design` directly, only perform the exact task that the domain skill is responsible for and provide suggestions for the user.
+
+```plaintext
+Suggestion: To continue, use:
+
+/brainstorming Based on the analysis from the /api-design skill above, continue building the spec and detailed implementation plan to execute.
+```
+
+ABSOLUTELY NO CODING, NO EDITING FILES when using the `api-design` skill.
+</HARD-GATE>
+
+This is a domain skill for API contract design. It supplies API design judgment inside the selected process workflow; it does not choose or replace `brainstorming` or review skills, but will support `brainstorming` to make more specific judgments in decision-making.
 
 Invoke this skill during a workflow only when the work involves designing, creating, updating, or reviewing REST/HTTP API contracts:
 
 - During `brainstorming`, use it when the user asks to create or change an API, endpoint, request schema, response schema, error semantics, pagination, filtering, sorting, versioning, idempotency, retry behavior, or compatibility behavior.
-- During `writing-plans`, use it when an approved spec includes API contract behavior that must become TDD tasks and failing tests.
-- During execution, use it as a constraint when a plan task implements or changes API contract behavior; if implementation reveals a contract gap, stop and revise the spec or plan instead of inventing behavior in code.
+- During execution, use it as a constraint when a plan task implements or changes API contract behavior; if implementation reveals a contract gap, stop and notify `brainstorming` to analyze the gap and make adjustments.
 - During review, use it as an API lens when the diff changes endpoints, schemas, errors, pagination, retries, idempotency, versioning, validation, or compatibility.
 
 Do not invoke this skill for generic backend logic, private helpers, database-only changes, UI-only work, or implementation tasks that do not expose or change an API contract.
@@ -110,6 +127,3 @@ Before shipping, answer:
 - Removed fields, reinterpreted fields, narrowed enum values, or new required data.
 - No idempotency, versioning, deprecation, or migration plan.
 
-## Source Notes
-
-Based on Microsoft REST API Guidelines, especially the current Azure REST API Guidelines and Considerations for Service Design, plus Addy Osmani's `api-and-interface-design` skill.

@@ -30,7 +30,7 @@ const ANTIGRAVITY_PLUGIN_REQUIRED_FILES = [
 const ANTIGRAVITY_PLUGIN_INSTALLED_REQUIRED_FILES = [
   'plugin.json',
   REQUIRED_SETTINGS_FILE,
-  'hooks.json',
+  'hooks/hooks-codex-claude.json',
   'hooks/antigravity-pre-invocation',
   'hooks/antigravity-pre-invocation.cmd',
   'hooks/antigravity-pre-invocation.ps1',
@@ -235,6 +235,26 @@ export const TARGETS = [
         },
       },
       // pluginId: 'tungnt-ai-skills@tungnt-ai-skills-marketplace',
+    },
+    packageFallback: {
+      mode: 'package',
+      displayName: 'Copilot installed plugin',
+      defaultTarget: (env = process.env) => joinHome(env, '.copilot', 'installed-plugins', 'tungnt-ai-skills-marketplace', 'tungnt-ai-skills'),
+      expectedParent: (env = process.env) => joinHome(env, '.copilot', 'installed-plugins'),
+      includedEntries: ['.claude-plugin', 'hooks', 'skills', 'setting.json', 'plugin.json'],
+      requiredFiles: [
+        'plugin.json',
+        '.claude-plugin/plugin.json',
+        '.claude-plugin/marketplace.json',
+        REQUIRED_SETTINGS_FILE,
+        ...REQUIRED_SKILL_FILES,
+        'hooks/session-start',
+        'hooks/session-start.cmd',
+        'hooks/session-start.ps1',
+      ],
+      hookFileOverrides: {
+        'hooks/hooks-codex-claude.json': 'hooks/hooks-copilot.json',
+      },
     },
     updateCacheDirs: [
       {

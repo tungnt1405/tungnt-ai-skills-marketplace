@@ -173,6 +173,9 @@ function install(args, env, io) {
         }
       } else if (target.nativeCommands && target.fallbackInstall) {
         printFallbackPlan(packageRoot, target.fallbackInstall, env, io);
+        if (target.packageFallback) {
+          printFallbackPlan(packageRoot, target.packageFallback, env, io);
+        }
         printNextSteps(target, io);
       } else if (target.nativeCommands) {
         io.out('Mode: native marketplace commands\n');
@@ -220,6 +223,9 @@ function install(args, env, io) {
             throw new Error(`${target.displayName} requires --native; no manual marketplace setup is declared.`);
           }
           runFallbackInstall(packageRoot, target.fallbackInstall, env, options);
+          if (target.packageFallback) {
+            installPackageFallback(packageRoot, target.packageFallback, env, options);
+          }
           io.out('Status: marketplace configured\n');
           printNextSteps(target, io);
         }
@@ -346,6 +352,9 @@ function update(args, env, io) {
       cleanUpdateCaches(target, env, io);
       if (target.nativeCommands && target.fallbackInstall) {
         runFallbackInstall(packageRoot, target.fallbackInstall, env, installOptions);
+        if (target.packageFallback) {
+          installPackageFallback(packageRoot, target.packageFallback, env, installOptions);
+        }
         io.out('Status: updated\n');
         printNextSteps(target, io);
         continue;
@@ -502,6 +511,10 @@ function printFallbackPlan(packageRoot, fallback, env, io) {
   if (fallback.mode === 'copilotSettings') {
     io.out(`Manual settings file: ${fallback.settingsFile(env)}\n`);
     io.out(`Manual marketplace: ${fallback.marketplaceId}\n`);
+    if (fallback.packageFallback) {
+      io.out(`Plugin target: ${fallback.packageFallback.defaultTarget(env)}\n`);
+      io.out(`Plugin entries: ${listPlannedEntries(packageRoot, fallback.packageFallback).join(', ')}\n`);
+    }
   }
 }
 

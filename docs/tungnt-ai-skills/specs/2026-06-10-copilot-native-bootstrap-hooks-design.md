@@ -1,5 +1,10 @@
 # Copilot Native Bootstrap Hooks Design
 
+> **Status:** Active. This is the canonical dual-file hook architecture.
+> `hooks/hooks.json` = Claude Code PascalCase (`SessionStart`).
+> `hooks/hooks.copilot.json` = Copilot lowercase (`sessionStart`).
+> Both coexist. The 2026-06-18 cleanup spec that deleted `hooks.copilot.json` was reverted because Claude Code validates `plugin.json.hooks` against PascalCase schema at native install time — Copilot format in `hooks.json` causes `invalid_key` crash.
+
 ## Problem
 
 Copilot has `tungnt-ai-skills` installed and enabled, and Copilot can discover plugin hook files. The failure is not basic marketplace installation or missing hook discovery.

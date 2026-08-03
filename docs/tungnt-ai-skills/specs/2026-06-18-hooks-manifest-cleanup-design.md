@@ -1,5 +1,14 @@
 # Design: Hook Manifests Cleanup
 
+> **⚠️ REVERTED (2026-07-20):** The removal of `hooks.copilot.json` was reverted.
+> `hooks.json` and `hooks.copilot.json` serve different schemas:
+> - `hooks.json` → Claude Code PascalCase (`SessionStart`, matcher, nested hooks)
+> - `hooks.copilot.json` → Copilot lowercase (`sessionStart`, direct bash/powershell)
+>
+> `plugin.json.hooks` points to `hooks.json` (Claude Code format).
+> Copilot native install discovers `hooks.copilot.json` by convention.
+> See `2026-06-10-copilot-native-bootstrap-hooks-design.md` for the canonical dual-file architecture.
+
 ## Overview
 
 Remove duplicate hook manifest files and fix Claude `matcher` values. Each AI platform keeps exactly one manifest file with a naming convention that makes the target AI obvious.
@@ -98,22 +107,24 @@ Two independent changes:
 
 **Why:** Claude Code's `SessionStart` hook fires both on fresh startup and session resume. Without `resume` in the matcher, resumed sessions won't trigger the bootstrap injection. Matches the polyglot documentation at `docs/windows/polyglot-hooks.md:68`.
 
-## Files NOT Changed
+## Files NOT Changed (pre-revert)
 
-- `hooks/hooks.json` — kept as the single Copilot manifest (content unchanged)
-- `hooks/hooks.unix.json` / `hooks/hooks.windows.json` — kept as Claude manifests (only matcher values changed)
+- `hooks/hooks.json` — ~~kept as the single Copilot manifest~~ **reverted**: now Claude Code PascalCase (`SessionStart`)
+- `hooks/hooks.copilot.json` — **restored**: Copilot lowercase (`sessionStart`)
+- `hooks/hooks.unix.json` / `hooks/hooks.windows.json` — kept as Claude Code fallback installer overrides (only matcher values changed)
 - `hooks/hooks-cursor.json` — kept as Cursor manifest (unchanged)
 - `hooks/hooks.antigravity.unix.json` / `hooks/hooks.antigravity.windows.json` — kept as Antigravity manifests (unchanged)
 - `hooks/session-start` / `session-start.cmd` / `session-start.ps1` — unchanged
 - `hooks/antigravity-pre-invocation` / `.cmd` / `.ps1` — unchanged
 
-## Current Tree After Changes
+## Current Tree After Revert
 
 ```
 hooks/
-├── hooks.json                   # Copilot CLI (explicit ref + default discovery)
-├── hooks.unix.json              # Claude Code — Unix
-├── hooks.windows.json           # Claude Code — Windows
+├── hooks.json                   # Claude Code — PascalCase SessionStart (plugin.json.hooks)
+├── hooks.copilot.json           # Copilot — lowercase sessionStart
+├── hooks.unix.json              # Claude Code fallback installer override — Unix
+├── hooks.windows.json           # Claude Code fallback installer override — Windows
 ├── hooks-cursor.json            # Cursor
 ├── hooks.antigravity.unix.json  # Antigravity CLI/IDE — Unix
 ├── hooks.antigravity.windows.json # Antigravity CLI/IDE — Windows

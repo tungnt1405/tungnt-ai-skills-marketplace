@@ -162,7 +162,24 @@ assert.equal(exists('skills/prompt-leverage/references/framework.md'), true, 'pr
 assert.equal(exists('skills/prompt-leverage/scripts/augment_prompt.py'), true, 'prompt-leverage augment script must exist');
 assertIncludes(bootstrap, '### Manual Utility Skills', 'bootstrap manual utility taxonomy');
 assertIncludes(bootstrap, '- `prompt-leverage`', 'bootstrap prompt-leverage manual utility');
+assertIncludes(bootstrap, '- `ba-spec`', 'bootstrap ba-spec manual utility');
+assertIncludes(bootstrap, '- `figma-to-code`', 'bootstrap figma-to-code manual utility');
 assertIncludes(bootstrap, 'must not auto-trigger on vague, complex, or underspecified requests', 'bootstrap prompt-leverage no auto-trigger');
+assertIncludes(bootstrap, 'must not auto-run during install, session bootstrap, or generic BA/spec requests', 'bootstrap ba-spec no auto-trigger');
+assertIncludes(bootstrap, 'manually generate BA feature specifications', 'bootstrap ba-spec purpose');
+assertIncludes(bootstrap, 'active `ba-spec` work needs Figma implementation guidance', 'bootstrap figma-to-code ba-spec routing');
+assertIncludes(bootstrap, 'must not auto-run for BA-only specs or Figma evidence logs', 'bootstrap figma-to-code no auto-trigger');
+assert.equal(exists('skills/figma-to-code/SKILL.md'), true, 'figma-to-code skill must exist');
+const figmaToCode = read('skills/figma-to-code/SKILL.md');
+assert.equal(frontmatterName(figmaToCode), 'figma-to-code', 'figma-to-code frontmatter name');
+assertIncludes(figmaToCode, 'Use this skill only when:', 'figma-to-code explicit trigger scope');
+assertIncludes(figmaToCode, 'ba-spec` is already active', 'figma-to-code ba-spec support');
+assertIncludes(figmaToCode, 'BA-only spec generation', 'figma-to-code ba-only guard');
+assert.equal(
+  bootstrap.includes('| ba-spec |'),
+  false,
+  'ba-spec must not be added to domain lens routing',
+);
 assert.equal(
   bootstrap.includes('| prompt, prompt-leverage, upgrade prompt'),
   false,
@@ -211,7 +228,7 @@ const forbiddenRepoTokens = [
 
 for (const file of walk(root)) {
   const relative = path.relative(root, file);
-  if (relative.startsWith('.git')) {
+  if (relative.startsWith('.git') || relative.startsWith('.claude')) {
     continue;
   }
   const content = fs.readFileSync(file, 'utf8');
@@ -239,5 +256,52 @@ for (const dir of scannedDirs) {
     assert.equal(absolutePathPattern.test(content), false, `${path.relative(root, file)} contains an absolute local path`);
   }
 }
+
+// Phase 1: Template registry and settings scan
+assert.equal(exists('docs/tungnt-ai-skills/templates/README.md'), true, 'shared template registry must exist');
+assertIncludes(brainstorming, '## Settings Scan', 'brainstorming settings scan section');
+assertIncludes(bootstrap, 'plans/templates/', 'bootstrap template root reference');
+assertIncludes(bootstrap, 'docs/tungnt-ai-skills/templates/', 'bootstrap docs template root reference');
+
+// Phase 2: Plan shape and validation
+const writingPlans = read('skills/writing-plans/SKILL.md');
+assertIncludes(writingPlans, '## Plan Shape', 'writing-plans plan shape section');
+assertIncludes(writingPlans, 'Single-file plan', 'writing-plans single-file signal');
+assertIncludes(writingPlans, 'Phased plan', 'writing-plans phased signal');
+assertIncludes(writingPlans, '3 or more workflow skills', 'writing-plans concrete split signal');
+assertIncludes(writingPlans, '3 or more implementation phases', 'writing-plans concrete split signal');
+assertIncludes(writingPlans, 'Phase frontmatter is authoritative', 'writing-plans frontmatter authority');
+assertIncludes(writingPlans, '## Validation', 'writing-plans validation section');
+assertIncludes(writingPlans, 'only when the user explicitly invokes', 'writing-plans explicit-only validation');
+
+// Phase 3: Execution skills phase support
+assertIncludes(executingPlans, '## Phased Plan Support', 'executing-plans phased plan support');
+assertIncludes(executingPlans, 'Phase frontmatter is the source of truth', 'executing-plans frontmatter authority');
+assertIncludes(sdd, '## Phased Plan Support', 'subagent-driven-development phased plan support');
+assertIncludes(sdd, 'Phase frontmatter is authoritative', 'subagent-driven-development frontmatter authority');
+
+// Phase 4: Investigation debug diagnosis
+assertIncludes(investigation, '## Debug Diagnosis', 'investigation debug diagnosis section');
+assertIncludes(investigation, 'Exact symptom', 'investigation debug diagnosis field');
+assertIncludes(investigation, 'Root cause', 'investigation debug diagnosis field');
+assertIncludes(investigation, 'Blast radius', 'investigation debug diagnosis field');
+assertIncludes(investigation, 'Verification steps', 'investigation debug diagnosis field');
+assertIncludes(investigation, 'do not implement', 'investigation diagnosis-only boundary');
+
+// Phase 5: Quick-dev systematic routing
+assertIncludes(quickDev, 'exceeds quick-dev scope', 'quick-dev escalation message');
+assertIncludes(quickDev, 'escalation is mandatory', 'quick-dev mandatory escalation');
+assertIncludes(quickDev, 'Restate intent and verify scope', 'quick-dev scope verification step');
+
+// Phase 2: Settings precedence
+assertIncludes(bootstrap, 'tais/setting.json', 'bootstrap tais setting reference');
+assertIncludes(bootstrap, 'safe defaults if missing/invalid', 'bootstrap safe defaults fallback');
+assertIncludes(executingPlans, 'tais/setting.json', 'executing-plans tais setting reference');
+assertIncludes(sdd, 'tais/setting.json', 'subagent-driven-development tais setting reference');
+assertIncludes(brainstorming, 'tais/setting.json', 'brainstorming tais setting reference');
+
+// Phase 3: Quick-dev micro-brainstorm preflight
+assertIncludes(quickDev, 'Micro-Brainstorm Preflight', 'quick-dev micro-brainstorm section');
+assertIncludes(quickDev, 'Skip preflight only when', 'quick-dev preflight skip condition');
 
 console.log('skill content tests passed');

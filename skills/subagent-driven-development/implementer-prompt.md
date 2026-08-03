@@ -32,7 +32,7 @@ Task tool (general-purpose):
     1. Implement exactly what the task specifies
     2. Write tests (following TDD if task says to)
     3. Verify implementation works
-    4. Commit your work
+    4. Commit your work (only if the controller says to commit — skip if policy.autoCommit is false)
     5. Self-review (see below)
     6. Report back
 

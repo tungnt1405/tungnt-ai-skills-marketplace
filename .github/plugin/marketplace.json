@@ -1,0 +1,23 @@
+{
+  "name": "tungnt-ai-skills-marketplace",
+  "description": "Development marketplace for Tungnt core skills library",
+  "owner": {
+    "name": "Tungnt1405",
+    "email": "tungnt.autowork@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "tungnt-ai-skills",
+      "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, proven techniques, personal engineering experience, and curated skills inspired by Superpowers, BMad, OWASP, and related ecosystems.",
+      "source": "./",
+      "version": "1.4.17",
+      "category": "Coding",
+      "skills": "skills/",
+      "hooks": "hooks/hooks-copilot.json",
+      "author": {
+        "name": "Tungnt1405",
+        "email": "tungnt.autowork@gmail.com"
+      }
+    }
+  ]
+}

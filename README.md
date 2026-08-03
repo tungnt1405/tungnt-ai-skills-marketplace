@@ -67,12 +67,16 @@ Domain skills must be used inside the selected process workflow. They do not rep
 Manual utility skills do not auto-trigger:
 
 - `prompt-leverage` runs only when the user explicitly invokes `skill:prompt-leverage` or asks to improve, upgrade, clarify, template, or apply a raw prompt. `skill:prompt-leverage prompt: <text>` upgrades only; `skill:prompt-leverage apply prompt: <text>` upgrades first, then restarts the normal workflow selection.
+- `ba-spec` runs only when the user explicitly invokes `ba-spec`. It creates BA feature-spec Markdown and HTML in the conversation language from business input, Figma links/screenshots, documents, tickets, meeting notes, or change requests. It does not auto-run on install/session start and does not implement production code.
+- `figma-to-code` runs only when the user explicitly invokes `figma-to-code`, asks to implement UI code from Figma, or when active `ba-spec` work needs Figma implementation guidance. It does not auto-run for BA-only specs or Figma evidence logs.
 
 Skill calls use the real names from each `SKILL.md` file, not a plugin-prefixed namespace.
 
 Recent workflow additions:
 
 - `prompt-leverage` provides a manual prompt preprocessor for explicit prompt-upgrade requests without changing the normal workflow gates.
+- `ba-spec` provides manual BA feature-spec generation in the conversation language with Figma evidence gates and Markdown + HTML packaging.
+- `figma-to-code` provides manual Figma-to-frontend-code guidance and can support `ba-spec` only when Figma-related developer implementation guidance is needed.
 - `ui-ux-pro-max` provides UI/UX design intelligence as a domain skill; use it inside the normal workflow without replacing `brainstorming`, `writing-plans`, or execution gates.
 - `brainstorming` can emit an optional Spec Kernel with goal, users, acceptance criteria, constraints, and out-of-scope items for handoff to `writing-plans`.
 - `executing-plans` and `subagent-driven-development` can maintain lightweight YAML status files at `docs/tungnt-ai-skills/status/<plan-name>-status.yaml`.
@@ -498,10 +502,10 @@ with the marketplace entry:
 The Copilot plugin uses the root `plugin.json` manifest. That manifest exposes bundled skills through `skills/` and points Copilot at the Copilot-native hook manifest:
 
 ```text
-hooks/hooks.json
+hooks/hooks-copilot.json
 ```
 
-Copilot discovers `hooks/hooks.json` by default in the installed plugin. The source `hooks/hooks.json` therefore uses Copilot's `sessionStart` hook shape to run `hooks/session-start`, which injects `skills/using-tungnt-ai-skills/SKILL.md` as session context.
+Copilot discovers `hooks/hooks-copilot.json` in the installed plugin. This file uses Copilot's `sessionStart` hook shape to run `hooks/session-start`, which injects `skills/using-tungnt-ai-skills/SKILL.md` as session context.
 
 The Copilot hook command must resolve the installed plugin root, not the user's active workspace. The manifests first use a Copilot-provided `COPILOT_PLUGIN_ROOT` when available, then a test override `TUNGNT_AI_SKILLS_PLUGIN_ROOT`, then the standard installed plugin path under the current user's home directory. Do not hardcode a machine-specific path such as `C:\Users\<name>`.
 
@@ -616,7 +620,7 @@ Harness-specific metadata in this repo:
 
 - Claude Code: `.claude-plugin/plugin.json`
 - Codex: `.codex-plugin/plugin.json`, `.agents/plugins/marketplace.json`
-- GitHub Copilot CLI: `plugin.json`, `hooks/hooks.json`
+- GitHub Copilot CLI: `plugin.json`, `hooks/hooks-copilot.json`
 - Gemini CLI: `gemini-extension.json`
 - Google Antigravity: `.agents/plugins/tungnt-ai-skills-marketplace/plugin.json`, `plugin.json`
 - OpenCode: `.opencode/plugins/`
