@@ -71,6 +71,21 @@ export function copyPackage(packageRoot, destination, target = {}) {
   }
   copySelectedHookManifest(packageRoot, destination, target);
   copySelectedRootHookManifest(packageRoot, destination, target);
+  applyHookFileOverrides(packageRoot, destination, target);
+}
+
+function applyHookFileOverrides(packageRoot, destination, target = {}) {
+  if (!target.hookFileOverrides) {
+    return;
+  }
+  for (const [destFile, sourceFile] of Object.entries(target.hookFileOverrides)) {
+    const sourcePath = path.join(packageRoot, sourceFile);
+    const destPath = path.join(destination, destFile);
+    if (fs.existsSync(sourcePath)) {
+      fs.mkdirSync(path.dirname(destPath), { recursive: true });
+      fs.copyFileSync(sourcePath, destPath);
+    }
+  }
 }
 
 export function copyExtraPackages(packageRoot, target = {}, env = process.env) {
