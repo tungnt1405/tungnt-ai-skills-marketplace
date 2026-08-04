@@ -1,3 +1,4 @@
+: << 'CMDBLOCK'
 @echo off
 REM Windows launcher for SessionStart bootstrap hooks.
 
@@ -10,3 +11,7 @@ if %ERRORLEVEL% equ 0 (
 )
 
 exit /b 0
+CMDBLOCK
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+exec bash "${SCRIPT_DIR}/session-start"

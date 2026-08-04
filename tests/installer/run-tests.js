@@ -392,7 +392,7 @@ test('copilot plugin declares native bootstrap hook manifest', () => {
   const plugin = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'plugin.json'), 'utf8'));
 
   assert.equal(plugin.skills, './skills/');
-  assert.equal(plugin.hooks, 'hooks/hooks-codex-claude.json');
+  assert.equal(plugin.hooks, 'hooks/hooks.json');
 });
 
 test('copilot hook manifest uses documented sessionStart command shape', () => {
@@ -439,26 +439,21 @@ test('copilot source validation requires bootstrap hook files', () => {
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'setting.json')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'run-hook.cmd')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.cmd')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.ps1')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks-copilot.json')), true);
 });
 
 test('antigravity hook manifest uses documented PreInvocation injectSteps shape', () => {
-  const manifestFile = process.platform === 'win32'
-    ? 'hooks.antigravity.windows.json'
-    : 'hooks.antigravity.unix.json';
-  const expectedCommand = process.platform === 'win32'
-    ? 'hooks\\antigravity-pre-invocation.cmd'
-    : 'bash ./hooks/antigravity-pre-invocation';
-  const hooks = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks', manifestFile), 'utf8'));
+  const hooks = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.antigravity.json'), 'utf8'));
   const hook = hooks['tungnt-ai-skills-bootstrap'];
   const entry = hook.PreInvocation[0];
 
   assert.equal(Array.isArray(hook.PreInvocation), true);
   assert.equal(hook.PreInvocation.length, 1);
   assert.equal(entry.type, 'command');
-  assert.equal(entry.command, expectedCommand);
+  assert.equal(entry.command, 'hooks/run-hook.cmd antigravity-pre-invocation');
   assert.equal(entry.timeout, 10);
 });
 
@@ -470,11 +465,11 @@ test('antigravity source validation requires PreInvocation bootstrap hook files'
     assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'plugin.json')), true);
     assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'setting.json')), true);
     assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
+    assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'run-hook.cmd')), true);
     assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'antigravity-pre-invocation')), true);
     assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'antigravity-pre-invocation.cmd')), true);
     assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'antigravity-pre-invocation.ps1')), true);
-    assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.antigravity.windows.json')), true);
-    assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.antigravity.unix.json')), true);
+    assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.antigravity.json')), true);
   }
 });
 
@@ -791,30 +786,29 @@ test('install --agent claude imports local marketplace by default', () => {
   assert.equal(fs.existsSync(path.join(destination, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')), true);
 });
 
-test('install --agent claude writes platform-specific hooks manifest', () => {
+test('install --agent claude includes the shared hooks manifest', () => {
   const home = tempDir();
   const out = capture();
   const code = runCli(['install', '--agent', 'claude'], emptyPathEnv(home), out.io);
   const hooksFile = path.join(home, '.claude', 'plugins', 'cache', 'tungnt-ai-skills-marketplace', 'hooks', 'hooks.json');
   const hooks = JSON.parse(fs.readFileSync(hooksFile, 'utf8'));
-  const command = hooks.hooks.SessionStart[0].hooks[0].command;
+  const sessionStart = hooks.hooks.SessionStart[0];
+  const entry = hooks.hooks.SessionStart[0].hooks[0];
 
   assert.equal(code, 0, out.stderr());
-  if (process.platform === 'win32') {
-    assert.equal(command, '"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.cmd"');
-  } else {
-    assert.equal(command, 'bash "${CLAUDE_PLUGIN_ROOT}/hooks/session-start"');
-  }
+  assert.equal(sessionStart.matcher, 'startup|resume|clear|compact');
+  assert.equal(entry.command, '"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd" session-start');
+  assert.equal(entry.shell, 'bash');
 });
 
 test('claude fallback source includes bootstrap hook entrypoints', () => {
   const target = getTargetById('claude').fallbackInstall;
   validateSource(PACKAGE_ROOT, target);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'run-hook.cmd')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.cmd')), true);
   assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'session-start.ps1')), true);
-  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.windows.json')), true);
-  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.unix.json')), true);
+  assert.equal(fs.existsSync(path.join(PACKAGE_ROOT, 'hooks', 'hooks.json')), true);
 });
 
 test('install --agent agy --dry-run uses Antigravity CLI plugin layout', () => {
@@ -923,7 +917,7 @@ test('agy installs plugin folder with marker file and skills', () => {
   assert.equal(fs.existsSync(path.join(home, '.gemini', 'gemini-extension.json')), true);
 });
 
-test('agy install writes Antigravity root hooks manifest with platform command', () => {
+test('agy install writes the shared Antigravity root hooks manifest', () => {
   const home = tempDir();
   const env = fakeEnv(home);
   const target = getTargetById('agy');
@@ -934,11 +928,7 @@ test('agy install writes Antigravity root hooks manifest with platform command',
   const command = hooks['tungnt-ai-skills-bootstrap'].PreInvocation[0].command;
 
   assert.equal(code, 0, out.stderr());
-  if (process.platform === 'win32') {
-    assert.equal(command, 'hooks\\antigravity-pre-invocation.cmd');
-  } else {
-    assert.equal(command, 'bash ./hooks/antigravity-pre-invocation');
-  }
+  assert.equal(command, 'hooks/run-hook.cmd antigravity-pre-invocation');
 });
 
 test('update --agent codex clears installed plugin cache before refreshing fallback', () => {
