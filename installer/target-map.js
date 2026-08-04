@@ -19,18 +19,19 @@ const ANTIGRAVITY_PLUGIN_ENTRIES = [
 const ANTIGRAVITY_PLUGIN_REQUIRED_FILES = [
   'plugin.json',
   REQUIRED_SETTINGS_FILE,
+  'hooks/run-hook.cmd',
   'hooks/antigravity-pre-invocation',
   'hooks/antigravity-pre-invocation.cmd',
   'hooks/antigravity-pre-invocation.ps1',
-  'hooks/hooks.antigravity.windows.json',
-  'hooks/hooks.antigravity.unix.json',
+  'hooks/hooks.antigravity.json',
   ...REQUIRED_SKILL_FILES,
 ];
 
 const ANTIGRAVITY_PLUGIN_INSTALLED_REQUIRED_FILES = [
   'plugin.json',
   REQUIRED_SETTINGS_FILE,
-  'hooks/hooks-codex-claude.json',
+  'hooks/hooks.json',
+  'hooks/run-hook.cmd',
   'hooks/antigravity-pre-invocation',
   'hooks/antigravity-pre-invocation.cmd',
   'hooks/antigravity-pre-invocation.ps1',
@@ -58,13 +59,7 @@ const CLAUDE_LOCAL_MARKETPLACE_ENTRIES = [
   REQUIRED_SETTINGS_FILE,
 ];
 
-const CLAUDE_HOOK_MANIFEST_FILE = process.platform === 'win32'
-  ? 'hooks/hooks.windows.json'
-  : 'hooks/hooks.unix.json';
-
-const ANTIGRAVITY_HOOK_MANIFEST_FILE = process.platform === 'win32'
-  ? 'hooks/hooks.antigravity.windows.json'
-  : 'hooks/hooks.antigravity.unix.json';
+const ANTIGRAVITY_HOOK_MANIFEST_FILE = 'hooks/hooks.antigravity.json';
 
 function homeDir(env = process.env) {
   return env.HOME || env.USERPROFILE || os.homedir();
@@ -114,12 +109,11 @@ export const TARGETS = [
         '.claude-plugin/marketplace.json',
         '.claude-plugin/plugin.json',
         'hooks/session-start',
+        'hooks/run-hook.cmd',
         'hooks/session-start.cmd',
         'hooks/session-start.ps1',
-        'hooks/hooks.windows.json',
-        'hooks/hooks.unix.json',
+        'hooks/hooks.json',
       ],
-      hookManifestFile: CLAUDE_HOOK_MANIFEST_FILE,
     },
     updateCacheDirs: [
       {
@@ -206,6 +200,7 @@ export const TARGETS = [
       REQUIRED_SETTINGS_FILE,
       ...REQUIRED_SKILL_FILES,
       'hooks/session-start',
+      'hooks/run-hook.cmd',
       'hooks/session-start.cmd',
       'hooks/session-start.ps1',
     ],
@@ -249,12 +244,10 @@ export const TARGETS = [
         REQUIRED_SETTINGS_FILE,
         ...REQUIRED_SKILL_FILES,
         'hooks/session-start',
+        'hooks/run-hook.cmd',
         'hooks/session-start.cmd',
         'hooks/session-start.ps1',
       ],
-      hookFileOverrides: {
-        'hooks/hooks-codex-claude.json': 'hooks/hooks-copilot.json',
-      },
     },
     updateCacheDirs: [
       {

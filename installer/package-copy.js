@@ -69,23 +69,7 @@ export function copyPackage(packageRoot, destination, target = {}) {
   for (const entry of plannedEntries(packageRoot, target)) {
     copyEntry(path.join(packageRoot, entry), path.join(destination, entry), entry);
   }
-  copySelectedHookManifest(packageRoot, destination, target);
   copySelectedRootHookManifest(packageRoot, destination, target);
-  applyHookFileOverrides(packageRoot, destination, target);
-}
-
-function applyHookFileOverrides(packageRoot, destination, target = {}) {
-  if (!target.hookFileOverrides) {
-    return;
-  }
-  for (const [destFile, sourceFile] of Object.entries(target.hookFileOverrides)) {
-    const sourcePath = path.join(packageRoot, sourceFile);
-    const destPath = path.join(destination, destFile);
-    if (fs.existsSync(sourcePath)) {
-      fs.mkdirSync(path.dirname(destPath), { recursive: true });
-      fs.copyFileSync(sourcePath, destPath);
-    }
-  }
 }
 
 export function copyExtraPackages(packageRoot, target = {}, env = process.env) {
@@ -104,16 +88,6 @@ export function copySettingTemplate(packageRoot, destination) {
     fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
     fs.copyFileSync(templatePath, destinationPath);
   }
-}
-
-function copySelectedHookManifest(packageRoot, destination, target = {}) {
-  if (!target.hookManifestFile) {
-    return;
-  }
-  const source = path.join(packageRoot, target.hookManifestFile);
-  const destinationFile = path.join(destination, 'hooks', 'hooks.json');
-  fs.mkdirSync(path.dirname(destinationFile), { recursive: true });
-  fs.copyFileSync(source, destinationFile);
 }
 
 function copySelectedRootHookManifest(packageRoot, destination, target = {}) {
