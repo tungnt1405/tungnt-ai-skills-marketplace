@@ -23,6 +23,5 @@
   "source": "./",
   "skills": "./skills/",
   "category": "Coding",
-  "settings": "setting.json",
-  "hooks": "hooks/hooks.json"
+  "settings": "setting.json"
 }

@@ -21,6 +21,8 @@
   in its standard installation directory or `bash` on `PATH`. The Antigravity manifest also
   uses this dispatcher for its `PreInvocation` bootstrap hook.
 - Added skill structure validation and regression tests for the installer and bootstrap.
+- Removed the redundant `hooks/hooks.json` manifest reference because Claude Code loads the
+  standard hooks file automatically.
 
 ### Installation and updates
 

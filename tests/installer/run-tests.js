@@ -388,11 +388,11 @@ test('install --agent copilot imports marketplace settings by default', () => {
   });
 });
 
-test('copilot plugin declares native bootstrap hook manifest', () => {
+test('plugin manifest leaves standard hooks file to automatic discovery', () => {
   const plugin = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'plugin.json'), 'utf8'));
 
   assert.equal(plugin.skills, './skills/');
-  assert.equal(plugin.hooks, 'hooks/hooks.json');
+  assert.equal(Object.hasOwn(plugin, 'hooks'), false);
 });
 
 test('copilot hook manifest uses documented sessionStart command shape', () => {
