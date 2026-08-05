@@ -7,54 +7,13 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const domainSkills = {
   'api-design': {
-    forbiddenDescriptionTerms: [
-      'API',
-      'contract',
-      'REST',
-      'HTTP',
-      'endpoint',
-      'request',
-      'response',
-      'pagination',
-      'idempotency',
-      'versioning',
-    ],
+    description: 'Use when the brainstorming skill is activated and invokes this skill; the skill is a supporting lens for brainstorming evaluation, design, and edits when working with APIs',
   },
   'security-and-hardening': {
-    forbiddenDescriptionTerms: [
-      'security',
-      'hardening',
-      'user input',
-      'authentication',
-      'authorization',
-      'sessions',
-      'secrets',
-      'sensitive data',
-      'file uploads',
-      'webhooks',
-      'URL fetches',
-      'CORS',
-      'cookie',
-      'OWASP',
-      'DevSecOps',
-    ],
+    description: 'Use when the brainstorming skill is activated and invokes this skill; the skill is a supporting lens for brainstorming when help is needed with security decisions and system hardening.',
   },
   'ui-ux-pro-max': {
-    forbiddenDescriptionTerms: [
-      'UI',
-      'UX',
-      'design',
-      'building',
-      'designing',
-      'reviewing',
-      'improving',
-      'web application',
-      'mobile application',
-      'styles',
-      'palettes',
-      'font pairings',
-      'charts',
-    ],
+    description: 'Use when the brainstorming skill is activated and invokes this skill; the skill is a supporting lens for brainstorming evaluation, design, and edits when designing UI/UX',
   },
 };
 
@@ -80,28 +39,15 @@ function assertDomainDescription(skillName, config) {
   const description = frontmatterField(content, 'description', relativePath);
 
   assert.equal(
-    description.startsWith('Use only after using-tungnt-ai-skills has selected a process workflow'),
-    true,
-    `${skillName} description must defer to bootstrap/process workflow first`,
-  );
-  assert.equal(
-    description === 'Use only after using-tungnt-ai-skills has selected a process workflow, as a supporting domain lens inside brainstorming, planning, execution, or review',
-    true,
-    `${skillName} description must use the generic domain-lens trigger`,
+    description,
+    config.description,
+    `${skillName} description must use its brainstorming-only domain-lens trigger`,
   );
   assert.equal(
     content.includes('Domain Workflow Trigger') || content.includes('Domain skill'),
     true,
     `${skillName} must declare domain workflow behavior in the body`,
   );
-
-  for (const term of config.forbiddenDescriptionTerms) {
-    assert.equal(
-      description.toLowerCase().includes(term.toLowerCase()),
-      false,
-      `${skillName} description contains trigger-heavy domain term: ${term}`,
-    );
-  }
 }
 
 for (const [skillName, config] of Object.entries(domainSkills)) {
@@ -117,7 +63,7 @@ for (const skillName of Object.keys(domainSkills)) {
   );
 }
 assert.equal(
-  bootstrap.includes('Domain skills add specialized judgment inside an already selected process workflow'),
+  bootstrap.includes('Domain skills add specialized judgment inside the selected workflow'),
   true,
   'using-tungnt-ai-skills must state domain skills run inside selected workflows',
 );
@@ -130,7 +76,7 @@ assert.equal(
 for (const required of [
   '## Ambiguous Project Triage',
   '## Domain Lens Routing',
-  'security/data loss > public API contract > UI/UX polish',
+  'security/data loss > public API contract > UI/UX',
   'REST, HTTP, endpoint',
   '`api-design`',
   'auth, authentication, authorization',
@@ -156,17 +102,17 @@ assert.equal(
   'writing-plans must have a Plan Shape section',
 );
 assert.equal(
-  writingPlans.includes('Phase frontmatter is authoritative'),
+  writingPlans.includes('Phase frontmatter is the primary reference source'),
   true,
   'writing-plans must declare phase frontmatter authority',
 );
 assert.equal(
-  writingPlans.includes('## Validation'),
+  writingPlans.includes('## Verification'),
   true,
-  'writing-plans must have a Validation section',
+  'writing-plans must have a Verification section',
 );
 assert.equal(
-  writingPlans.includes('only when the user explicitly invokes'),
+  writingPlans.includes('only when user explicitly invokes'),
   true,
   'writing-plans validation must be explicit-only',
 );
