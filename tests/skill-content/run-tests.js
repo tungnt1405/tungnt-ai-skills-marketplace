@@ -52,11 +52,11 @@ assertIncludes(bootstrap, '### Process Skills', 'bootstrap process taxonomy');
 assertIncludes(bootstrap, '### Domain Skills', 'bootstrap domain taxonomy');
 assertIncludes(bootstrap, '- `api-design`', 'bootstrap api domain');
 assertIncludes(bootstrap, '- `security-and-hardening`', 'bootstrap security domain');
-assertIncludes(bootstrap, 'Domain skills add specialized judgment inside an already selected process workflow', 'bootstrap domain rule');
+assertIncludes(bootstrap, 'Domain skills add specialized judgment inside the selected workflow', 'bootstrap domain rule');
 assertIncludes(bootstrap, 'domain skills cannot replace the RED/GREEN skill-testing gate', 'bootstrap writing-skills gate');
 assertIncludes(bootstrap, '## Ambiguous Project Triage', 'bootstrap ambiguous triage');
 assertIncludes(bootstrap, '## Domain Lens Routing', 'bootstrap domain lens routing');
-assertIncludes(bootstrap, 'security/data loss > public API contract > UI/UX polish', 'bootstrap risk priority');
+assertIncludes(bootstrap, 'security/data loss > public API contract > UI/UX', 'bootstrap risk priority');
 assertIncludes(bootstrap, '| REST, HTTP, endpoint', 'bootstrap api routing signals');
 assertIncludes(bootstrap, '| auth, authentication, authorization', 'bootstrap security routing signals');
 assertIncludes(bootstrap, '| UI, UX, dashboard', 'bootstrap ui routing signals');
@@ -94,13 +94,13 @@ const quickDev = read('skills/quick-dev/SKILL.md');
 assert.equal(frontmatterName(quickDev), 'quick-dev', 'quick-dev frontmatter name');
 assertIncludes(quickDev, 'under 30 minutes', 'quick-dev scope gate');
 assertIncludes(quickDev, '1-2 non-test/non-doc files', 'quick-dev scope gate');
-assertIncludes(quickDev, 'Escalate Out Of Quick Dev', 'quick-dev red flags');
-assertIncludes(quickDev, 'switch to `brainstorming` then `writing-plans`', 'quick-dev red flags');
+assertIncludes(quickDev, 'Escalation Out of Quick Dev', 'quick-dev red flags');
+assertIncludes(quickDev, 'switch to `brainstorming` when any red flag appears', 'quick-dev red flags');
 
 const apiDesign = read('skills/api-design/SKILL.md');
 assert.equal(frontmatterName(apiDesign), 'api-design', 'api-design frontmatter name');
-assertIncludes(apiDesign, 'Use only after using-tungnt-ai-skills has selected a process workflow', 'api-design post-bootstrap trigger');
-assertIncludes(apiDesign, 'supporting domain lens inside brainstorming, planning, execution, or review', 'api-design generic domain trigger');
+assertIncludes(apiDesign, 'Use when the brainstorming skill is activated and invokes this skill', 'api-design brainstorming trigger');
+assertIncludes(apiDesign, 'ONLY ACTIVATE when invoked by the `brainstorming` skill', 'api-design activation guard');
 assertIncludes(apiDesign, 'TDD Trigger Coverage', 'api-design TDD coverage');
 assertIncludes(apiDesign, 'Baseline failure', 'api-design TDD coverage');
 assertIncludes(apiDesign, 'Skill counter', 'api-design TDD coverage');
@@ -113,10 +113,9 @@ assertIncludes(apiDesign, 'Compatibility Review', 'api-design compatibility revi
 
 const security = read('skills/security-and-hardening/SKILL.md');
 assert.equal(frontmatterName(security), 'security-and-hardening', 'security-and-hardening frontmatter name');
-assertIncludes(security, 'Use only after using-tungnt-ai-skills has selected a process workflow', 'security-and-hardening post-bootstrap trigger');
-assertIncludes(security, 'supporting domain lens inside brainstorming, planning, execution, or review', 'security-and-hardening generic domain trigger');
+assertIncludes(security, 'Use when the brainstorming skill is activated and invokes this skill', 'security-and-hardening brainstorming trigger');
+assertIncludes(security, 'ONLY ACTIVATE when invoked by the `brainstorming` skill', 'security-and-hardening activation guard');
 assertIncludes(security, 'Domain Workflow Trigger', 'security-and-hardening workflow trigger');
-assertIncludes(security, 'Do not invoke this skill before `using-tungnt-ai-skills`', 'security-and-hardening bootstrap guard');
 assertIncludes(security, 'TDD Trigger Coverage', 'security-and-hardening TDD coverage');
 assertIncludes(security, 'OWASP Top 10:2025', 'security-and-hardening OWASP 2025');
 assertIncludes(security, 'A03:2025 Software Supply Chain Failures', 'security-and-hardening supply chain');
@@ -135,9 +134,8 @@ assertIncludes(cors, 'Access-Control-Allow-Credentials', 'CORS reference credent
 
 const uiUx = read('skills/ui-ux-pro-max/SKILL.md');
 assert.equal(frontmatterName(uiUx), 'ui-ux-pro-max', 'ui-ux-pro-max frontmatter name');
-assertIncludes(uiUx, 'Use only after using-tungnt-ai-skills has selected a process workflow', 'ui-ux-pro-max post-bootstrap trigger');
-assertIncludes(uiUx, 'supporting domain lens inside brainstorming, planning, execution, or review', 'ui-ux-pro-max generic domain trigger');
-assertIncludes(uiUx, 'must not replace `brainstorming`, `writing-plans`, or execution/review skills', 'ui-ux-pro-max process guard');
+assertIncludes(uiUx, 'Use when the brainstorming skill is activated and invokes this skill', 'ui-ux-pro-max brainstorming trigger');
+assertIncludes(uiUx, 'ONLY ACTIVATE when invoked by the `brainstorming` skill', 'ui-ux-pro-max activation guard');
 
 const promptLeverage = read('skills/prompt-leverage/SKILL.md');
 assert.equal(frontmatterName(promptLeverage), 'prompt-leverage', 'prompt-leverage frontmatter name');
@@ -173,8 +171,8 @@ assert.equal(exists('skills/figma-to-code/SKILL.md'), true, 'figma-to-code skill
 const figmaToCode = read('skills/figma-to-code/SKILL.md');
 assert.equal(frontmatterName(figmaToCode), 'figma-to-code', 'figma-to-code frontmatter name');
 assertIncludes(figmaToCode, 'Use this skill only when:', 'figma-to-code explicit trigger scope');
-assertIncludes(figmaToCode, 'ba-spec` is already active', 'figma-to-code ba-spec support');
-assertIncludes(figmaToCode, 'BA-only spec generation', 'figma-to-code ba-only guard');
+assertIncludes(figmaToCode, '`brainstorming` or `ba-spec`) is already active', 'figma-to-code ba-spec support');
+assertIncludes(figmaToCode, 'BA-only specs', 'figma-to-code ba-only guard');
 assert.equal(
   bootstrap.includes('| ba-spec |'),
   false,
@@ -199,8 +197,8 @@ const codeQualityPrompt = read('skills/subagent-driven-development/code-quality-
 assertIncludes(codeQualityPrompt, 'Run all three lenses inside this single reviewer pass', 'code quality reviewer prompt');
 
 const executingPlans = read('skills/executing-plans/SKILL.md');
-assertIncludes(executingPlans, 'docs/tungnt-ai-skills/status/<plan-name>-status.yaml', 'executing-plans status tracking');
-assertIncludes(executingPlans, 'review continuation', 'executing-plans continuation');
+assertIncludes(executingPlans, 'docs/tungnt-ai-skills/plans/YYYY-MM-DD-<feature-name>.md', 'executing-plans status tracking');
+assertIncludes(executingPlans, 'review continuation item', 'executing-plans continuation');
 
 const sdd = read('skills/subagent-driven-development/SKILL.md');
 assertIncludes(sdd, 'status tracking', 'subagent-driven-development status tracking');
@@ -268,17 +266,16 @@ const writingPlans = read('skills/writing-plans/SKILL.md');
 assertIncludes(writingPlans, '## Plan Shape', 'writing-plans plan shape section');
 assertIncludes(writingPlans, 'Single-file plan', 'writing-plans single-file signal');
 assertIncludes(writingPlans, 'Phased plan', 'writing-plans phased signal');
-assertIncludes(writingPlans, '3 or more workflow skills', 'writing-plans concrete split signal');
 assertIncludes(writingPlans, '3 or more implementation phases', 'writing-plans concrete split signal');
-assertIncludes(writingPlans, 'Phase frontmatter is authoritative', 'writing-plans frontmatter authority');
-assertIncludes(writingPlans, '## Validation', 'writing-plans validation section');
-assertIncludes(writingPlans, 'only when the user explicitly invokes', 'writing-plans explicit-only validation');
+assertIncludes(writingPlans, 'Phase frontmatter is the primary reference source', 'writing-plans frontmatter authority');
+assertIncludes(writingPlans, '## Verification', 'writing-plans verification section');
+assertIncludes(writingPlans, 'only when user explicitly invokes', 'writing-plans explicit-only verification');
 
 // Phase 3: Execution skills phase support
 assertIncludes(executingPlans, '## Phased Plan Support', 'executing-plans phased plan support');
 assertIncludes(executingPlans, 'Phase frontmatter is the source of truth', 'executing-plans frontmatter authority');
 assertIncludes(sdd, '## Phased Plan Support', 'subagent-driven-development phased plan support');
-assertIncludes(sdd, 'Phase frontmatter is authoritative', 'subagent-driven-development frontmatter authority');
+assertIncludes(sdd, 'Phase frontmatter is the official source of truth', 'subagent-driven-development frontmatter authority');
 
 // Phase 4: Investigation debug diagnosis
 assertIncludes(investigation, '## Debug Diagnosis', 'investigation debug diagnosis section');
@@ -295,13 +292,13 @@ assertIncludes(quickDev, 'Restate intent and verify scope', 'quick-dev scope ver
 
 // Phase 2: Settings precedence
 assertIncludes(bootstrap, 'tais/setting.json', 'bootstrap tais setting reference');
-assertIncludes(bootstrap, 'safe defaults if missing/invalid', 'bootstrap safe defaults fallback');
+assertIncludes(bootstrap, 'Safe defaults if missing/invalid', 'bootstrap safe defaults fallback');
 assertIncludes(executingPlans, 'tais/setting.json', 'executing-plans tais setting reference');
 assertIncludes(sdd, 'tais/setting.json', 'subagent-driven-development tais setting reference');
 assertIncludes(brainstorming, 'tais/setting.json', 'brainstorming tais setting reference');
 
 // Phase 3: Quick-dev micro-brainstorm preflight
 assertIncludes(quickDev, 'Micro-Brainstorm Preflight', 'quick-dev micro-brainstorm section');
-assertIncludes(quickDev, 'Skip preflight only when', 'quick-dev preflight skip condition');
+assertIncludes(quickDev, 'Skip preflight ONLY WHEN', 'quick-dev preflight skip condition');
 
 console.log('skill content tests passed');

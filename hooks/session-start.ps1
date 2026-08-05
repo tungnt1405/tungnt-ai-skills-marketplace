@@ -27,6 +27,15 @@ $warningMessage
 </EXTREMELY_IMPORTANT>
 "@
 
+$copilotContext = 'Before responding or taking action, you MUST call the skill tool to load using-tungnt-ai-skills and follow it. Then call the relevant skill it selects. For creative coding work, this means calling brainstorming before writing code.'
+
+$pluginDataDir = if ($env:COPILOT_PLUGIN_DATA) { $env:COPILOT_PLUGIN_DATA } elseif ($env:CLAUDE_PLUGIN_DATA) { $env:CLAUDE_PLUGIN_DATA } else { Join-Path ([System.IO.Path]::GetTempPath()) 'tungnt-ai-skills' }
+$platform = if ($env:CURSOR_PLUGIN_ROOT) { 'cursor' } elseif ($env:CLAUDE_PLUGIN_ROOT -and -not $env:COPILOT_CLI) { 'claude' } elseif ($env:COPILOT_CLI -or $env:COPILOT_PLUGIN_ROOT) { 'copilot' } else { 'unknown' }
+try {
+    New-Item -ItemType Directory -Force -Path $pluginDataDir -ErrorAction Stop | Out-Null
+    Add-Content -LiteralPath (Join-Path $pluginDataDir 'session-start.log') -Value "$(Get-Date -Format o) sessionStart platform=$platform pid=$PID" -ErrorAction Stop
+} catch {}
+
 if ($env:CURSOR_PLUGIN_ROOT) {
     @{
         additional_context = $sessionContext
@@ -40,6 +49,6 @@ if ($env:CURSOR_PLUGIN_ROOT) {
     } | ConvertTo-Json -Depth 6 -Compress
 } else {
     @{
-        additionalContext = $sessionContext
+        additionalContext = $copilotContext
     } | ConvertTo-Json -Depth 6 -Compress
 }

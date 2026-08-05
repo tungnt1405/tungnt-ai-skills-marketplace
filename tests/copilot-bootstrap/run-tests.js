@@ -43,6 +43,7 @@ const [entry] = manifest.hooks.sessionStart;
 const command = process.platform === 'win32' ? entry.powershell : entry.bash;
 const hookEnv = {
   TUNGNT_AI_SKILLS_PLUGIN_ROOT: PACKAGE_ROOT,
+  COPILOT_PLUGIN_DATA: fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-plugin-data-')),
 };
 
 assert.equal(typeof command, 'string');
@@ -63,6 +64,13 @@ assert.equal(
 );
 assert.match(pluginRootRun.stdout, /"additionalContext"/);
 assert.match(pluginRootRun.stdout, /using-tungnt-ai-skills/);
+assert.match(pluginRootRun.stdout, /skill tool/);
+assert.match(pluginRootRun.stdout, /brainstorming before writing code/);
+assert.doesNotMatch(pluginRootRun.stdout, /Project Settings Compliance/);
+assert.match(
+  fs.readFileSync(path.join(hookEnv.COPILOT_PLUGIN_DATA, 'session-start.log'), 'utf8'),
+  /sessionStart platform=(?:copilot|unknown) pid=\d+/,
+);
 
 const workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-hook-workspace-'));
 const workspaceRun = runHookCommand(workspaceDir, command, hookEnv);
@@ -78,5 +86,8 @@ assert.equal(
 );
 assert.match(workspaceRun.stdout, /"additionalContext"/);
 assert.match(workspaceRun.stdout, /using-tungnt-ai-skills/);
+assert.match(workspaceRun.stdout, /skill tool/);
+assert.match(workspaceRun.stdout, /brainstorming before writing code/);
+assert.doesNotMatch(workspaceRun.stdout, /Project Settings Compliance/);
 
 console.log('Copilot bootstrap hook cwd test passed');
