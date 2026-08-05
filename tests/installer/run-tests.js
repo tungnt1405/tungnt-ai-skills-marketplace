@@ -388,12 +388,13 @@ test('install --agent copilot imports marketplace settings by default', () => {
   });
 });
 
-test('plugin manifests leave standard hooks file to automatic discovery', () => {
-  const manifests = ['plugin.json', path.join('.claude-plugin', 'plugin.json')]
-    .map(file => JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, file), 'utf8')));
+test('plugin manifests select hooks for their harness', () => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'plugin.json'), 'utf8'));
+  const claudeManifest = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, '.claude-plugin', 'plugin.json'), 'utf8'));
 
-  assert.equal(manifests[0].skills, './skills/');
-  assert.equal(manifests.every(manifest => !Object.hasOwn(manifest, 'hooks')), true);
+  assert.equal(manifest.skills, './skills/');
+  assert.equal(manifest.hooks, './hooks/hooks-copilot.json');
+  assert.equal(Object.hasOwn(claudeManifest, 'hooks'), false);
 });
 
 test('copilot hook manifest uses documented sessionStart command shape', () => {
