@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# UserPromptSubmit hook: remind agent to call using-tungnt-ai-skills skill
+# on every prompt submission, so bootstrap routing applies per-turn.
+
+set -euo pipefail
+
+escape_for_json() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\n'/\\n}"
+    s="${s//$'\r'/\\r}"
+    s="${s//$'\t'/\\t}"
+    printf '%s' "$s"
+}
+
+session_context="Before responding or taking action, you MUST call the Skill tool to load using-tungnt-ai-skills and follow its routing rules. Use the Skill tool: 'Skill' with name 'using-tungnt-ai-skills', then invoke whichever skill it selects."
+
+escaped=$(escape_for_json "$session_context")
+
+printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "UserPromptSubmit",\n    "additionalContext": "%s"\n  }\n}\n' "$escaped"
+
+exit 0
