@@ -11,7 +11,14 @@ if (-not [string]::IsNullOrWhiteSpace($stdinPayload)) {
 }
 
 if ($null -ne $invocationNum -and [int]$invocationNum -gt 1) {
-    @{ injectSteps = @() } | ConvertTo-Json -Depth 5 -Compress
+    # Antigravity has no UserPromptSubmit event; PreInvocation is the per-turn
+    # hook, so remind on every invocation after the first full bootstrap.
+    $reminder = 'Before responding or taking action, you MUST call the Skill tool to load using-tungnt-ai-skills and follow its routing rules. Then invoke whichever skill it selects.'
+    @{
+        injectSteps = @(
+            @{ ephemeralMessage = $reminder }
+        )
+    } | ConvertTo-Json -Depth 5 -Compress
     exit 0
 }
 
