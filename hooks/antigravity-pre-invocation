@@ -7,7 +7,9 @@ stdin_payload="$(cat || true)"
 invocation_num="$(printf '%s' "$stdin_payload" | sed -n 's/.*"invocationNum"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' | head -n 1)"
 
 if [ -n "$invocation_num" ] && [ "$invocation_num" -gt 1 ]; then
-  printf '{\n  "injectSteps": []\n}\n'
+  # Antigravity has no UserPromptSubmit event; PreInvocation is the per-turn
+  # hook, so remind on every invocation after the first full bootstrap.
+  printf '{\n  "injectSteps": [\n    {\n      "ephemeralMessage": "Before responding or taking action, you MUST call the Skill tool to load using-tungnt-ai-skills and follow its routing rules. Then invoke whichever skill it selects."\n    }\n  ]\n}\n'
   exit 0
 fi
 
