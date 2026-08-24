@@ -1,6 +1,6 @@
 # tungnt-ai-skills
 
-A collection of skills for Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, and Antigravity.
+A collection of skills for Claude Code, Codex, GitHub Copilot CLI, Gemini CLI, Antigravity, and OpenCode.
 Each session automatically loads `using-tungnt-ai-skills`, then selects the appropriate
 workflow for investigation, brainstorming, planning, implementation, and review.
 
@@ -18,7 +18,7 @@ The command above installs the plugin for all supported agents. To install it fo
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex
 ```
 
-Valid agents: `claude`, `codex`, `copilot`, `gemini`, `agy`, `antigravity`,
+Valid agents: `claude`, `codex`, `copilot`, `gemini`, `opencode`, `agy`, `antigravity`,
 `antigravity-ide`, `antigravity-all`.
 
 Preview the changes without writing files:
@@ -27,17 +27,18 @@ Preview the changes without writing files:
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --dry-run
 ```
 
-## Install with a native CLI
+## Native install mode
 
-Add `--native` to have the installer call the agent's CLI:
+Add `--native` to have the installer use the agent's native install flow:
 
 ```bash
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent claude --native
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent codex --native
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent copilot --native
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent opencode --native
 ```
 
-`--native` applies to Claude Code, Codex, and GitHub Copilot CLI. Gemini and Antigravity use
+`--native` applies to Claude Code, Codex, GitHub Copilot CLI, and OpenCode. Gemini and Antigravity use
 file copies managed by the installer.
 
 To install without `npx`, run the following commands directly:
@@ -71,6 +72,7 @@ Update one native plugin:
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills update --agent claude --native
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills update --agent codex --native
 npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills update --agent copilot --native
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills update --agent opencode --native
 ```
 
 To update natively without `npx`, run the following commands directly:
@@ -102,6 +104,11 @@ Clone the repository, then copy the entire package to the agent's plugin directo
 | Gemini CLI | `~/.gemini/extensions/tungnt-ai-skills` |
 | Antigravity CLI | `~/.gemini/antigravity-cli/plugins/tungnt-ai-skills` |
 | Antigravity IDE | `~/.gemini/config/plugins/tungnt-ai-skills` |
+| OpenCode | `~/.config/opencode/tungnt-ai-skills` + `~/.config/opencode/plugins/tungnt-ai-skills.js` |
+
+For OpenCode details, see [docs/README.opencode.md](docs/README.opencode.md).
+`--native` registers the plugin through OpenCode's own global config
+(`~/.config/opencode/opencode.json`) because `opencode plugin add` accepts npm registry packages only.
 
 ## Verification
 

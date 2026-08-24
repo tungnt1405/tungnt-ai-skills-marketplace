@@ -6,13 +6,6 @@
         "command": "hooks/run-hook.cmd antigravity-pre-invocation",
         "timeout": 10
       }
-    ],
-    "PreToolUse": [
-      {
-        "type": "command",
-        "command": "./hooks/run-hook.cmd user-prompt-submit",
-        "timeout": 10
-      }
     ]
   }
 }

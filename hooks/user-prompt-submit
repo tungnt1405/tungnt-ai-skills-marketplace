@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
-# UserPromptSubmit hook: remind agent to call using-tungnt-ai-skills skill
-# on every prompt submission, so bootstrap routing applies per-turn.
+# UserPromptSubmit hook: remind agent to follow using-tungnt-ai-skills routing.
+# Platform-aware:
+# - Claude Code: SessionStart already injected the full bootstrap and it persists
+#   in context for the whole session, so remind softly instead of forcing a
+#   redundant Skill tool reload every turn.
+# - Copilot CLI / other platforms: nothing persists across turns, so require an
+#   explicit reload via the Skill tool. Output uses top-level additionalContext
+#   (SDK standard), matching hooks/session-start's platform expectations.
 
 set -euo pipefail
 
@@ -14,10 +20,17 @@ escape_for_json() {
     printf '%s' "$s"
 }
 
-session_context="Before responding or taking action, you MUST call the Skill tool to load using-tungnt-ai-skills and follow its routing rules. Use the Skill tool: 'Skill' with name 'using-tungnt-ai-skills', then invoke whichever skill it selects."
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -z "${COPILOT_CLI:-}" ] && [ -z "${CURSOR_PLUGIN_ROOT:-}" ]; then
+    session_context="Your tungnt-ai-skills bootstrap skill content was injected at session start and remains in your context. Follow its routing rules before responding or taking action. Only call the Skill tool to load using-tungnt-ai-skills if that content is missing from your context."
+    escaped=$(escape_for_json "$session_context")
+    printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "UserPromptSubmit",\n    "additionalContext": "%s"\n  }\n}\n' "$escaped"
+    exit 0
+fi
+
+session_context="Before responding or taking action, you MUST call the Skill tool to load using-tungnt-ai-skills and follow its routing rules. Then invoke whichever skill it selects."
 
 escaped=$(escape_for_json "$session_context")
 
-printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "UserPromptSubmit",\n    "additionalContext": "%s"\n  }\n}\n' "$escaped"
+printf '{\n  "additionalContext": "%s"\n}\n' "$escaped"
 
 exit 0

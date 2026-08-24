@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Setup script for OpenCode plugin tests
 # Creates an isolated test environment with proper plugin installation
+# The npx installer path (install --agent opencode) produces the same layout this script assembles.
 set -euo pipefail
 
 # Get the repository root (two levels up from tests/opencode/)

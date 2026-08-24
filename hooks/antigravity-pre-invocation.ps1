@@ -37,6 +37,8 @@ You have tungnt-ai-skills.
 
 Below is the full content of your bootstrap skill (using-tungnt-ai-skills). Read it before responding or taking action. Follow its routing rules and use the relevant Antigravity skill/plugin mechanism for any additional skills.
 
+This injected context appears only on the first invocation and does not persist. On every later turn you will receive a short reminder: respond to it by calling the Skill tool to load using-tungnt-ai-skills again before taking action.
+
 $bootstrapContent
 </EXTREMELY_IMPORTANT>
 "@
