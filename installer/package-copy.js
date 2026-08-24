@@ -69,6 +69,7 @@ export function copyPackage(packageRoot, destination, target = {}) {
   for (const entry of plannedEntries(packageRoot, target)) {
     copyEntry(path.join(packageRoot, entry), path.join(destination, entry), entry);
   }
+  copyRegisterPluginSources(packageRoot, destination, target);
   copySelectedRootHookManifest(packageRoot, destination, target);
 }
 
@@ -87,6 +88,17 @@ export function copySettingTemplate(packageRoot, destination) {
   if (fs.existsSync(templatePath) && !fs.existsSync(destinationPath)) {
     fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
     fs.copyFileSync(templatePath, destinationPath);
+  }
+}
+
+function copyRegisterPluginSources(packageRoot, destination, target = {}) {
+  const sources = [...new Set((target.registerPluginFiles || []).map((entry) => entry.source))];
+  for (const source of sources) {
+    const sourcePath = path.join(packageRoot, source);
+    if (!fs.existsSync(sourcePath)) {
+      continue;
+    }
+    copyEntry(sourcePath, path.join(destination, source), source);
   }
 }
 
@@ -204,4 +216,61 @@ export function restoreSettingJson(destination) {
   if (fs.existsSync(tmpDir)) {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
+}
+
+export function pluginFileMode(entry) {
+  return entry.symlinkOnPosix && process.platform !== 'win32' ? 'symlink' : 'copy';
+}
+
+export function registerPluginFilesForTarget(packageRoot, target, env = process.env) {
+  const results = [];
+  for (const entry of target.registerPluginFiles || []) {
+    const sourcePath = path.join(packageRoot, entry.source);
+    if (!fs.existsSync(sourcePath)) {
+      throw new Error(`${target.displayName} register source is missing: ${entry.source}`);
+    }
+    const destinationPath = path.resolve(entry.destination(env));
+    const expectedParent = target.expectedParent
+      ? target.expectedParent(env)
+      : path.dirname(destinationPath);
+    ensureInsideExpectedParent(destinationPath, expectedParent);
+    // Never write through a pre-existing entry (a planted symlink would redirect writes).
+    fs.rmSync(destinationPath, { recursive: true, force: true });
+    fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
+
+    const mode = pluginFileMode(entry);
+    if (mode === 'symlink') {
+      const packageDir = path.resolve(target.defaultTarget(env));
+      const linkTarget = path.join(packageDir, entry.source);
+      let realTarget;
+      try {
+        realTarget = fs.realpathSync(linkTarget);
+      } catch {
+        throw new Error(
+          `${target.displayName} register target does not exist yet: ${linkTarget}. Install/copy the package to ${packageDir} before registering symlinks.`
+        );
+      }
+      const realPackageDir = fs.realpathSync(packageDir);
+      if (realTarget !== realPackageDir && !realTarget.startsWith(realPackageDir + path.sep)) {
+        throw new Error(`Refusing to link ${realTarget}; it resolves outside ${realPackageDir}`);
+      }
+      try {
+        fs.symlinkSync(linkTarget, destinationPath);
+        results.push({ destination: destinationPath, mode });
+        continue;
+      } catch (error) {
+        results.push({
+          destination: destinationPath,
+          mode: 'copy',
+          warning: `symlink failed (${error.code ?? error.message}); copied file instead`,
+        });
+      }
+    }
+
+    fs.copyFileSync(sourcePath, destinationPath);
+    if (!results.length || results[results.length - 1].destination !== destinationPath) {
+      results.push({ destination: destinationPath, mode: 'copy' });
+    }
+  }
+  return results;
 }

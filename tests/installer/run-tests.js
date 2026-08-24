@@ -14,12 +14,14 @@ import {
   ensureInsideExpectedParent,
   getPackageRoot,
   listPlannedEntries,
+  pluginFileMode,
+  registerPluginFilesForTarget,
   removeManagedPackageEntries,
   removeExistingInstall,
   validateInstall,
   validateSource,
 } from '../../installer/package-copy.js';
-import { runCli } from '../../installer/cli.js';
+import { runCli, writeOpenCodeConfig } from '../../installer/cli.js';
 
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -152,12 +154,13 @@ test('target map includes exactly the supported agents', () => {
     'codex',
     'copilot',
     'gemini',
+    'opencode',
     'agy',
     'antigravity',
     'antigravity-ide',
     'antigravity-all',
   ]);
-  assert.equal(getAllTargets().length, 8);
+  assert.equal(getAllTargets().length, 9);
 });
 
 test('target map resolves targets under fake HOME', () => {
@@ -1150,6 +1153,352 @@ test('update merge-mode preserves existing setting.json', () => {
   } finally {
     target.installMode = originalMode;
   }
+});
+
+test('pluginFileMode: posix+symlinkOnPosix=symlink, win32 or opt-out=copy', () => {
+  const entry = { symlinkOnPosix: true };
+  const originalDescriptor = Object.getOwnPropertyDescriptor(process, 'platform');
+  try {
+    Object.defineProperty(process, 'platform', { value: 'linux' });
+    assert.equal(pluginFileMode(entry), 'symlink');
+    Object.defineProperty(process, 'platform', { value: 'win32' });
+    assert.equal(pluginFileMode(entry), 'copy');
+  } finally {
+    if (originalDescriptor) Object.defineProperty(process, 'platform', originalDescriptor);
+  }
+  assert.equal(pluginFileMode({}), 'copy');
+});
+
+test('registerPluginFilesForTarget: copies when symlinkOnPosix is false', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const packageRoot = PACKAGE_ROOT;
+  const pkgDir = path.join(home, '.config', 'opencode', 'tungnt-ai-skills');
+  fs.mkdirSync(path.dirname(path.join(pkgDir, '.opencode/plugins/tungnt-ai-skills.js')), { recursive: true });
+  fs.copyFileSync(
+    path.join(PACKAGE_ROOT, '.opencode/plugins/tungnt-ai-skills.js'),
+    path.join(pkgDir, '.opencode/plugins/tungnt-ai-skills.js')
+  );
+  const target = {
+    displayName: 'OpenCode',
+    defaultTarget: (e) => path.join(e.HOME, '.config', 'opencode', 'tungnt-ai-skills'),
+    registerPluginFiles: [
+      {
+        source: '.opencode/plugins/tungnt-ai-skills.js',
+        destination: (e) => path.join(e.HOME, '.config', 'opencode', 'plugins', 'tungnt-ai-skills.js'),
+        symlinkOnPosix: false,
+      },
+    ],
+  };
+  const results = registerPluginFilesForTarget(packageRoot, target, env);
+  const dest = path.join(home, '.config', 'opencode', 'plugins', 'tungnt-ai-skills.js');
+  assert.equal(results.length, 1);
+  assert.equal(results[0].mode, 'copy');
+  assert.equal(fs.lstatSync(dest).isSymbolicLink(), false);
+  assert.ok(fs.readFileSync(dest, 'utf8').includes('TungntAiSkillsPlugin'));
+});
+
+test('registerPluginFilesForTarget: symlinks into the package and replaces planted entries', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const pluginsDir = path.join(home, '.config', 'opencode', 'plugins');
+  fs.mkdirSync(pluginsDir, { recursive: true });
+  // Plant a regular file AND a dangling symlink; both must be replaced safely.
+  fs.writeFileSync(path.join(pluginsDir, 'tungnt-ai-skills.js'), 'planted');
+  // Replace a pre-existing DANGLING symlink safely (rmSync must unlink, not follow).
+  const danglingDest = path.join(pluginsDir, 'tungnt-ai-skills-dangling.js');
+  fs.symlinkSync(path.join(home, 'does-not-exist-target'), danglingDest);
+  const target = {
+    displayName: 'OpenCode',
+    defaultTarget: (e) => path.join(e.HOME, '.config', 'opencode', 'tungnt-ai-skills'),
+    registerPluginFiles: [
+      {
+        source: '.opencode/plugins/tungnt-ai-skills.js',
+        destination: (e) => path.join(e.HOME, '.config', 'opencode', 'plugins', 'tungnt-ai-skills.js'),
+        symlinkOnPosix: true,
+      },
+    ],
+  };
+  // Prepare the fake installed package so the containment check can resolve realpaths.
+  const pkgDir = target.defaultTarget(env);
+  fs.mkdirSync(path.dirname(path.join(pkgDir, '.opencode/plugins/tungnt-ai-skills.js')), { recursive: true });
+  fs.copyFileSync(
+    path.join(PACKAGE_ROOT, '.opencode/plugins/tungnt-ai-skills.js'),
+    path.join(pkgDir, '.opencode/plugins/tungnt-ai-skills.js')
+  );
+  const results = registerPluginFilesForTarget(PACKAGE_ROOT, target, env);
+  const dest = path.join(pluginsDir, 'tungnt-ai-skills.js');
+  assert.equal(results[0].mode, 'symlink');
+  const realDest = fs.realpathSync(dest);
+  assert.ok(
+    realDest.startsWith(fs.realpathSync(pkgDir)),
+    'link target must resolve inside the installed package'
+  );
+  const t2 = {
+    displayName: 'OpenCode',
+    defaultTarget: target.defaultTarget,
+    registerPluginFiles: [
+      { ...target.registerPluginFiles[0], destination: () => danglingDest },
+    ],
+  };
+  const results2 = registerPluginFilesForTarget(PACKAGE_ROOT, t2, env);
+  assert.equal(results2[0].mode, 'symlink');
+  assert.ok(fs.existsSync(danglingDest), 'dangling symlink replaced by working registration');
+});
+
+test('dry-run install --agent opencode prints planned entries and register step', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const out = capture();
+  const code = runCli(['install', '--agent', 'opencode', '--dry-run'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.ok(out.stdout().includes('Planned entries: skills, setting.json'), out.stdout());
+  assert.ok(out.stdout().includes('Register plugin (symlink)'), out.stdout());
+  assert.ok(out.stdout().includes(path.join('.config', 'opencode', 'plugins', 'tungnt-ai-skills.js')), out.stdout());
+});
+
+test('opencode target: id registered, planned entries, required files exist in repo', () => {
+  const target = getTargetById('opencode');
+  assert.ok(target, 'opencode target must be declared');
+  assert.equal(supportedTargetIds().includes('opencode'), true);
+
+  const home = tempDir();
+  const env = fakeEnv(home);
+  assert.deepEqual(listPlannedEntries(PACKAGE_ROOT, target).sort(), ['setting.json', 'skills']);
+  validateSource(PACKAGE_ROOT, target); // throws if .opencode/plugins/tungnt-ai-skills.js is missing
+  assert.equal(target.defaultTarget(env), path.join(home, '.config', 'opencode', 'tungnt-ai-skills'));
+});
+
+test('install/update --agent opencode produces the registered layout end-to-end', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const out = capture();
+  let code = runCli(['install', '--agent', 'opencode'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+
+  const packageDir = path.join(home, '.config', 'opencode', 'tungnt-ai-skills');
+  assert.ok(fs.existsSync(path.join(packageDir, 'skills', 'using-tungnt-ai-skills', 'SKILL.md')));
+  assert.ok(fs.existsSync(path.join(packageDir, 'setting.json')));
+
+  const registered = path.join(home, '.config', 'opencode', 'plugins', 'tungnt-ai-skills.js');
+  if (process.platform === 'win32') {
+    assert.equal(fs.lstatSync(registered).isSymbolicLink(), false);
+  } else {
+    assert.equal(fs.lstatSync(registered).isSymbolicLink(), true);
+    assert.ok(fs.realpathSync(registered).startsWith(fs.realpathSync(packageDir)));
+  }
+
+  // Update refreshes idempotently behind the same path.
+  code = runCli(['update', '--agent', 'opencode'], env, capture().io);
+  assert.equal(code, 0);
+  assert.ok(fs.existsSync(registered));
+});
+
+test('update --agent opencode preserves custom setting.json', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  assert.equal(runCli(['install', '--agent', 'opencode'], env, capture().io), 0);
+  const destination = path.join(home, '.config', 'opencode', 'tungnt-ai-skills');
+  const custom = '{"custom": "opencode"}';
+  fs.writeFileSync(path.join(destination, 'setting.json'), custom);
+  const code = runCli(['update', '--agent', 'opencode'], env, capture().io);
+  assert.equal(code, 0);
+  assert.equal(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'), custom);
+});
+
+test('opencode nativeConfigWrite schema: config path, pinned entry, guarded cleanup paths', () => {
+  const target = getTargetById('opencode');
+  assert.ok(target.nativeConfigWrite, 'nativeConfigWrite must be declared');
+  const home = tempDir();
+  const env = fakeEnv(home);
+  assert.equal(
+    target.nativeConfigWrite.configFile(env),
+    path.join(home, '.config', 'opencode', 'opencode.json')
+  );
+  assert.equal(
+    target.nativeConfigWrite.pluginEntry,
+    'tungnt-ai-skills@git+https://github.com/tungnt1405/tungnt-ai-skills-marketplace#main'
+  );
+  assert.deepEqual(
+    target.nativeConfigWrite.cleanupPaths.map((p) => p.path(env)),
+    [
+      path.join(home, '.config', 'opencode', 'plugins', 'tungnt-ai-skills.js'),
+      path.join(home, '.config', 'opencode', 'tungnt-ai-skills'),
+    ]
+  );
+  assert.deepEqual(
+    target.nativeConfigWrite.cleanupPaths.map((p) => p.expectedParent(env)),
+    [
+      path.join(home, '.config', 'opencode', 'plugins'),
+      path.join(home, '.config', 'opencode'),
+    ]
+  );
+  assert.equal(target.nativeConfigWrite.cleanupPaths[0].path(env), target.registerPluginFiles[0].destination(env));
+  assert.equal(target.nativeConfigWrite.cleanupPaths[1].path(env), target.defaultTarget(env));
+  const cleanEnv = { HOME: home, USERPROFILE: home };
+  assert.equal(
+    target.nativeConfigWrite.cachePackageDir(cleanEnv),
+    path.join(home, '.cache', 'opencode', 'node_modules', 'tungnt-ai-skills')
+  );
+  assert.equal(
+    target.nativeConfigWrite.cachePackageDir({ ...cleanEnv, XDG_CACHE_HOME: path.join(home, 'xdg-cache') }),
+    path.join(home, 'xdg-cache', 'opencode', 'node_modules', 'tungnt-ai-skills')
+  );
+});
+
+test('writeOpenCodeConfig creates, merges, and refuses invalid json', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('opencode');
+  const configFile = target.nativeConfigWrite.configFile(env);
+
+  // Creates missing file with minimal shape.
+  writeOpenCodeConfig(target, env);
+  let parsed = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+  assert.deepEqual(parsed.plugin, [target.nativeConfigWrite.pluginEntry]);
+
+  // Preserves unrelated keys; no duplicate entry on re-run.
+  fs.writeFileSync(
+    configFile,
+    JSON.stringify({ $schema: 'https://opencode.ai/config.json', model: 'x/y', plugin: ['other-plugin'] })
+  );
+  writeOpenCodeConfig(target, env);
+  parsed = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+  assert.deepEqual(parsed.plugin, ['other-plugin', target.nativeConfigWrite.pluginEntry]);
+  assert.equal(parsed.model, 'x/y');
+
+  // Invalid existing JSON fails without clobbering.
+  fs.writeFileSync(configFile, '{not json');
+  assert.throws(() => writeOpenCodeConfig(target, env));
+  assert.equal(fs.readFileSync(configFile, 'utf8'), '{not json');
+});
+
+test('install --agent opencode --native cleans copy artifacts then writes config', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  // Pre-seed copy-mode artifacts.
+  const pkgDir = path.join(home, '.config', 'opencode', 'tungnt-ai-skills');
+  fs.mkdirSync(path.join(pkgDir, 'skills'), { recursive: true });
+  fs.writeFileSync(path.join(pkgDir, 'marker.txt'), 'x');
+  const pluginsDir = path.join(home, '.config', 'opencode', 'plugins');
+  fs.mkdirSync(pluginsDir, { recursive: true });
+  fs.symlinkSync(path.join(pkgDir, 'marker.txt'), path.join(pluginsDir, 'tungnt-ai-skills.js'));
+
+  const out = capture();
+  const code = runCli(['install', '--agent', 'opencode', '--native'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(fs.existsSync(pkgDir), false, 'package dir removed');
+  assert.throws(() => fs.lstatSync(path.join(pluginsDir, 'tungnt-ai-skills.js')));
+  const parsed = JSON.parse(fs.readFileSync(path.join(home, '.config', 'opencode', 'opencode.json'), 'utf8'));
+  assert.deepEqual(parsed.plugin, [getTargetById('opencode').nativeConfigWrite.pluginEntry]);
+});
+
+test('opencode native config guards: bad roots, non-array plugin, dangling symlink cleanup', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const target = getTargetById('opencode');
+  const configFile = target.nativeConfigWrite.configFile(env);
+  fs.mkdirSync(path.dirname(configFile), { recursive: true });
+
+  for (const root of ['[1,2]', '"hello"', '42', 'null']) {
+    fs.writeFileSync(configFile, root);
+    assert.throws(() => writeOpenCodeConfig(target, env), /root must be a JSON object/);
+    assert.equal(fs.readFileSync(configFile, 'utf8'), root);
+  }
+
+  for (const content of [JSON.stringify({ plugin: 'string' }), JSON.stringify({ plugin: null })]) {
+    fs.writeFileSync(configFile, content);
+    assert.throws(() => writeOpenCodeConfig(target, env), /"plugin" is not an array/);
+    assert.equal(fs.readFileSync(configFile, 'utf8'), content);
+  }
+
+  fs.rmSync(configFile);
+  const pluginsDir = path.join(home, '.config', 'opencode', 'plugins');
+  fs.mkdirSync(pluginsDir, { recursive: true });
+  fs.symlinkSync(path.join(home, 'deleted-target.txt'), path.join(pluginsDir, 'tungnt-ai-skills.js'));
+  const danglingLink = path.join(pluginsDir, 'tungnt-ai-skills.js');
+  assert.equal(fs.existsSync(danglingLink), false);
+  const code = runCli(['install', '--agent', 'opencode', '--native'], env, capture().io);
+  assert.equal(code, 0);
+  assert.throws(() => fs.lstatSync(danglingLink));
+  const parsed = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+  assert.deepEqual(parsed.plugin, [target.nativeConfigWrite.pluginEntry]);
+});
+
+test('update --agent opencode --native refreshes entry once and clears only managed cache dir', () => {
+  const home = tempDir();
+  // cleanEnv instead of fakeEnv so ambient XDG_CACHE_HOME cannot redirect the cache root.
+  const cleanEnv = { HOME: home, USERPROFILE: home };
+  const installOut = capture();
+  assert.equal(
+    runCli(['install', '--agent', 'opencode', '--native'], cleanEnv, installOut.io),
+    0,
+    installOut.stderr(),
+  );
+  const nodeModules = path.join(home, '.cache', 'opencode', 'node_modules');
+  fs.mkdirSync(path.join(nodeModules, 'other-plugin'), { recursive: true });
+  fs.mkdirSync(path.join(nodeModules, 'tungnt-ai-skills'), { recursive: true });
+
+  const out = capture();
+  assert.equal(runCli(['update', '--agent', 'opencode', '--native'], cleanEnv, out.io), 0, out.stderr());
+  assert.ok(
+    out.stdout().includes(`Cleared plugin cache: ${path.join(nodeModules, 'tungnt-ai-skills')}`),
+    out.stdout(),
+  );
+  assert.equal(fs.existsSync(path.join(nodeModules, 'tungnt-ai-skills')), false);
+  assert.ok(fs.existsSync(path.join(nodeModules, 'other-plugin')), 'sibling cache untouched');
+
+  const parsed = JSON.parse(fs.readFileSync(path.join(home, '.config', 'opencode', 'opencode.json'), 'utf8'));
+  assert.equal(parsed.plugin.filter((p) => p.startsWith('tungnt-ai-skills')).length, 1);
+  assert.ok(parsed.plugin.includes(getTargetById('opencode').nativeConfigWrite.pluginEntry));
+});
+
+test('copy-mode warns when config entry already present but never mutates opencode.json', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  assert.equal(runCli(['install', '--agent', 'opencode', '--native'], env, capture().io), 0);
+  const configFile = path.join(home, '.config', 'opencode', 'opencode.json');
+  const before = fs.readFileSync(configFile, 'utf8');
+
+  const out = capture();
+  const code = runCli(['install', '--agent', 'opencode', '--force'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.ok(out.stderr().includes('already registers this plugin'), out.stderr());
+  assert.ok(
+    fs.existsSync(path.join(home, '.config', 'opencode', 'tungnt-ai-skills')),
+    'copy-mode artifacts created',
+  );
+  assert.equal(fs.readFileSync(configFile, 'utf8'), before, 'config untouched by copy-mode');
+});
+
+test('dry-run --native prints mode, config file, entry, cleanup paths without writing', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const configDir = path.join(home, '.config', 'opencode');
+  const configFile = path.join(configDir, 'opencode.json');
+
+  const out = capture();
+  const code = runCli(['install', '--agent', 'opencode', '--native', '--dry-run'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.ok(out.stdout().includes('Mode: native config write'), out.stdout());
+  assert.ok(out.stdout().includes('Config file:'), out.stdout());
+  assert.ok(out.stdout().includes('Plugin entry: tungnt-ai-skills@git+'), out.stdout());
+  assert.ok(out.stdout().includes('Cleanup:'), out.stdout());
+  assert.equal(fs.existsSync(configDir), false, 'dry-run must not create the opencode config dir');
+
+  fs.mkdirSync(configDir, { recursive: true });
+  const seeded = JSON.stringify({ plugin: [] });
+  fs.writeFileSync(configFile, seeded);
+
+  const updateOut = capture();
+  const updateCode = runCli(['update', '--agent', 'opencode', '--native', '--dry-run'], env, updateOut.io);
+  assert.equal(updateCode, 0, updateOut.stderr());
+  assert.ok(updateOut.stdout().includes('Mode: native config write'), updateOut.stdout());
+  assert.ok(updateOut.stdout().includes('Config file:'), updateOut.stdout());
+  assert.ok(updateOut.stdout().includes('Plugin entry: tungnt-ai-skills@git+'), updateOut.stdout());
+  assert.ok(updateOut.stdout().includes('Cleanup:'), updateOut.stdout());
+  assert.ok(updateOut.stdout().includes('Cleanup (cache):'), updateOut.stdout());
+  assert.equal(fs.readFileSync(configFile, 'utf8'), seeded, 'update dry-run must not write');
 });
 
 async function run() {

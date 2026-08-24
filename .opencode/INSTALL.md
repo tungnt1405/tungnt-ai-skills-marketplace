@@ -6,6 +6,14 @@
 
 ## Installation
 
+Recommended: one command via the shared installer (copies files; no config edit needed):
+
+```bash
+npm exec --yes --package=github:tungnt1405/tungnt-ai-skills-marketplace -- tungnt-ai-skills install --agent opencode
+```
+
+Details: [docs/README.opencode.md](../docs/README.opencode.md).
+
 Add `tungnt-ai-skills` to the `plugin` array in your `opencode.json` (global or project-level):
 
 ```json

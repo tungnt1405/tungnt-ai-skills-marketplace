@@ -274,6 +274,56 @@ export const TARGETS = [
     postInstallNotes: 'Restart Gemini CLI or reload extensions after installation.',
   },
   {
+    id: 'opencode',
+    displayName: 'OpenCode',
+    defaultTarget: (env = process.env) => joinHome(env, '.config', 'opencode', 'tungnt-ai-skills'),
+    expectedParent: (env = process.env) => joinHome(env, '.config', 'opencode'),
+    includedEntries: ['skills', REQUIRED_SETTINGS_FILE],
+    requiredFiles: [
+      ...REQUIRED_SKILL_FILES,
+      REQUIRED_SETTINGS_FILE,
+      '.opencode/plugins/tungnt-ai-skills.js',
+    ],
+    updateCacheDirs: [
+      {
+        destination: (env = process.env) => joinHome(env, '.config', 'opencode', 'tungnt-ai-skills'),
+        expectedParent: (env = process.env) => joinHome(env, '.config', 'opencode'),
+      },
+    ],
+    registerPluginFiles: [
+      {
+        source: '.opencode/plugins/tungnt-ai-skills.js',
+        destination: (env = process.env) =>
+          joinHome(env, '.config', 'opencode', 'plugins', 'tungnt-ai-skills.js'),
+        symlinkOnPosix: true,
+      },
+    ],
+    nativeConfigWrite: {
+      configFile: (env = process.env) => joinHome(env, '.config', 'opencode', 'opencode.json'),
+      pluginEntry:
+        'tungnt-ai-skills@git+https://github.com/tungnt1405/tungnt-ai-skills-marketplace#main',
+      cleanupPaths: [
+        {
+          path: (env = process.env) =>
+            joinHome(env, '.config', 'opencode', 'plugins', 'tungnt-ai-skills.js'),
+          expectedParent: (env = process.env) => joinHome(env, '.config', 'opencode', 'plugins'),
+        },
+        {
+          path: (env = process.env) => joinHome(env, '.config', 'opencode', 'tungnt-ai-skills'),
+          expectedParent: (env = process.env) => joinHome(env, '.config', 'opencode'),
+        },
+      ],
+      cachePackageDir: (env = process.env) =>
+        path.join(env.XDG_CACHE_HOME || joinHome(env, '.cache'), 'opencode', 'node_modules', PLUGIN_NAME),
+    },
+    nextSteps: [
+      'Restart OpenCode after installation.',
+      'Ask the agent to list skills; tungnt-ai-skills entries should appear.',
+    ],
+    postInstallNotes:
+      'Copy-mode install. Use --native to register through OpenCode config instead (opencode plugin add accepts npm registry packages only).',
+  },
+  {
     id: 'agy',
     displayName: 'Antigravity CLI',
     defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'antigravity-cli', 'plugins', PLUGIN_NAME),

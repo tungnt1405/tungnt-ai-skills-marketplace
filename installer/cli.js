@@ -11,9 +11,12 @@ import {
   copyExtraPackages,
   copyPackage,
   copySettingTemplate,
+  ensureInsideExpectedParent,
   getPackageRoot,
   listPlannedExtraCopies,
   listPlannedEntries,
+  pluginFileMode,
+  registerPluginFilesForTarget,
   removeExistingInstall,
   removeManagedPackageEntries,
   restoreSettingJson,
@@ -161,7 +164,14 @@ function install(args, env, io) {
     io.out(`\n[${target.id}] ${target.displayName}\n`);
     io.out(`Target: ${destination}\n`);
     if (options.dryRun) {
-      if (target.nativeCommands && options.native) {
+      if (options.native && target.nativeConfigWrite) {
+        io.out('Mode: native config write\n');
+        io.out(`Config file: ${target.nativeConfigWrite.configFile(env)}\n`);
+        io.out(`Plugin entry: ${target.nativeConfigWrite.pluginEntry}\n`);
+        for (const cleanup of target.nativeConfigWrite.cleanupPaths || []) {
+          io.out(`Cleanup: ${cleanup.path(env)}\n`);
+        }
+      } else if (target.nativeCommands && options.native) {
         const commands = nativeCommandsForInstall(target, options);
         io.out(options.force && target.updateCommands ? 'Mode: native update commands\n' : 'Mode: native marketplace commands\n');
         for (const command of commands) {
@@ -185,6 +195,15 @@ function install(args, env, io) {
         io.out('Mode: config files\n');
       } else {
         io.out(`Planned entries: ${listPlannedEntries(packageRoot, target).join(', ')}\n`);
+        for (const entry of target.registerPluginFiles || []) {
+          const stagedPath = path.join(target.defaultTarget(env), entry.source);
+          io.out(`Stage: ${entry.source} -> ${stagedPath}\n`);
+        }
+        try {
+          printRegisterPlan(target, env, io);
+        } catch (error) {
+          io.err(`[${target.id}] ${error.message}\n`);
+        }
       }
       if (target.marketplaceFile) {
         io.out(`Marketplace file: ${target.marketplaceFile(env)}\n`);
@@ -200,6 +219,14 @@ function install(args, env, io) {
       validateSource(packageRoot, target);
       if (options.dryRun) {
         io.out('Status: planned\n');
+        continue;
+      }
+      if (target.nativeConfigWrite && options.native) {
+        validateSource(packageRoot, target);
+        runNativeConfigInstall(target, env, io);
+        io.out('Mode: native config write\n');
+        io.out('Status: installed\n');
+        printNextSteps(target, io);
         continue;
       }
       if (target.nativeCommands) {
@@ -232,6 +259,7 @@ function install(args, env, io) {
         continue;
       }
       const expectedParent = target.expectedParent(env);
+      warnOpenCodeCoexistence(target, env, io);
       backupSettingJson(destination);
       try {
         if (target.installMode === 'merge') {
@@ -250,6 +278,7 @@ function install(args, env, io) {
         restoreSettingJson(destination);
       }
       copySettingTemplate(packageRoot, destination);
+      applyPluginRegistrations(target.id, packageRoot, target, env, io);
       if (target.marketplaceFile) {
         writeMarketplaceEntry(target.marketplaceFile(env), target.marketplaceEntry, target.marketplaceRoot);
       }
@@ -258,6 +287,7 @@ function install(args, env, io) {
       if (target.postInstallNotes) {
         io.out(`Note: ${target.postInstallNotes}\n`);
       }
+      printNextSteps(target, io);
     } catch (error) {
       failures.push({ target, error });
       io.err(`[${target.id}] ${error.message}\n`);
@@ -325,13 +355,24 @@ function update(args, env, io) {
       }
 
       if (options.dryRun) {
-        io.out('Mode: installer refresh\n');
-        io.out('Command: tungnt-ai-skills install');
-        if (target.id) {
-          io.out(` --agent ${target.id}`);
+        if (options.native && target.nativeConfigWrite) {
+          io.out('Mode: native config write\n');
+          io.out(`Config file: ${target.nativeConfigWrite.configFile(env)}\n`);
+          io.out(`Plugin entry: ${target.nativeConfigWrite.pluginEntry}\n`);
+          for (const cleanup of target.nativeConfigWrite.cleanupPaths || []) {
+            io.out(`Cleanup: ${cleanup.path(env)}\n`);
+          }
+          io.out(`Cleanup (cache): ${target.nativeConfigWrite.cachePackageDir(env)}\n`);
+        } else {
+          io.out('Mode: installer refresh\n');
+          io.out('Command: tungnt-ai-skills install');
+          if (target.id) {
+            io.out(` --agent ${target.id}`);
+          }
+          io.out(' --force\n');
+          printUpdateCachePlan(target, env, io);
+          printRegisterPlan(target, env, io);
         }
-        io.out(' --force\n');
-        printUpdateCachePlan(target, env, io);
         if (target.updateCommands) {
           io.out('Native update available with --native\n');
         }
@@ -348,6 +389,19 @@ function update(args, env, io) {
       };
       if (target.nativeCommands && !target.fallbackInstall) {
         throw new Error(`${target.displayName} does not declare an installer refresh fallback. Use update --agent ${target.id} --native.`);
+      }
+      if (target.nativeConfigWrite && options.native) {
+        validateSource(packageRoot, target);
+        writeOpenCodeConfig(target, env);
+        removeNativeCleanupPaths(target.nativeConfigWrite, env, io);
+        const cacheDir = target.nativeConfigWrite.cachePackageDir(env);
+        if (pathExistsStrict(cacheDir)) {
+          ensureInsideExpectedParent(cacheDir, path.dirname(cacheDir));
+          fs.rmSync(cacheDir, { recursive: true, force: true });
+          io.out(`Cleared plugin cache: ${cacheDir}\n`);
+        }
+        io.out('Status: updated\n');
+        continue;
       }
       cleanUpdateCaches(target, env, io);
       if (target.nativeCommands && target.fallbackInstall) {
@@ -374,6 +428,7 @@ function update(args, env, io) {
         restoreSettingJson(destination);
       }
       copySettingTemplate(packageRoot, destination);
+      applyPluginRegistrations(target.id, packageRoot, target, env, io);
       if (target.marketplaceFile) {
         writeMarketplaceEntry(target.marketplaceFile(env), target.marketplaceEntry, target.marketplaceRoot);
       }
@@ -534,6 +589,21 @@ function printUpdateCachePlan(target, env, io) {
   }
 }
 
+function printRegisterPlan(target, env, io) {
+  for (const entry of target.registerPluginFiles || []) {
+    const mode = pluginFileMode(entry);
+    io.out(`Register plugin (${mode}): ${entry.source} -> ${entry.destination(env)}\n`);
+  }
+}
+
+function applyPluginRegistrations(targetId, packageRoot, target, env, io) {
+  for (const registration of registerPluginFilesForTarget(packageRoot, target, env)) {
+    if (registration.warning) {
+      io.err(`[${targetId}] ${registration.warning}\n`);
+    }
+  }
+}
+
 function cleanUpdateCaches(target, env, io) {
   const activeDestinations = new Set();
   activeDestinations.add(target.defaultTarget(env));
@@ -591,6 +661,93 @@ function installPackageFallback(packageRoot, fallback, env, options) {
     writeMarketplaceEntry(fallback.marketplaceFile(env), fallback.marketplaceEntry, fallback.marketplaceRoot);
   }
   validateInstall(destination, fallback);
+}
+
+function pathExistsStrict(p) {
+  try {
+    fs.lstatSync(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function removeNativeCleanupPaths(nativeConfigWrite, env, io) {
+  for (const cleanup of nativeConfigWrite.cleanupPaths || []) {
+    const targetPath = cleanup.path(env);
+    ensureInsideExpectedParent(targetPath, cleanup.expectedParent(env));
+    if (!pathExistsStrict(targetPath)) {
+      continue;
+    }
+    fs.rmSync(targetPath, { recursive: true, force: true });
+    io.out(`Removed: ${targetPath}\n`);
+  }
+}
+
+function readAndMergeOpenCodeConfig(configFile, pluginEntry) {
+  let config = {};
+  if (pathExistsStrict(configFile)) {
+    let raw;
+    try {
+      raw = fs.readFileSync(configFile, 'utf8');
+    } catch (error) {
+      throw new Error(`Cannot read ${configFile}: ${error.message}`);
+    }
+    try {
+      config = JSON.parse(raw);
+    } catch (error) {
+      throw new Error(`Refusing to modify ${configFile}; it is not valid JSON (${error.message})`);
+    }
+    if (!isPlainObject(config)) {
+      throw new Error(`Refusing to modify ${configFile}; root must be a JSON object`);
+    }
+  }
+  if (!Array.isArray(config.plugin)) {
+    if (config.plugin !== undefined) {
+      throw new Error(`Refusing to modify ${configFile}; "plugin" is not an array`);
+    }
+    config.plugin = [];
+  }
+  if (!config.plugin.includes(pluginEntry)) {
+    config.plugin.push(pluginEntry);
+  }
+  return config;
+}
+
+function writeMergedOpenCodeConfig(configFile, config) {
+  fs.mkdirSync(path.dirname(configFile), { recursive: true });
+  fs.writeFileSync(`${configFile}.tmp`, `${JSON.stringify(config, null, 2)}\n`);
+  fs.renameSync(`${configFile}.tmp`, configFile);
+}
+
+export function writeOpenCodeConfig(target, env) {
+  const configFile = target.nativeConfigWrite.configFile(env);
+  const config = readAndMergeOpenCodeConfig(configFile, target.nativeConfigWrite.pluginEntry);
+  writeMergedOpenCodeConfig(configFile, config);
+}
+
+function runNativeConfigInstall(target, env, io) {
+  const configFile = target.nativeConfigWrite.configFile(env);
+  const config = readAndMergeOpenCodeConfig(configFile, target.nativeConfigWrite.pluginEntry);
+  removeNativeCleanupPaths(target.nativeConfigWrite, env, io);
+  writeMergedOpenCodeConfig(configFile, config);
+}
+
+function warnOpenCodeCoexistence(target, env, io) {
+  const entry = target.nativeConfigWrite?.pluginEntry;
+  if (!entry) {
+    return;
+  }
+  const configFile = target.nativeConfigWrite.configFile(env);
+  if (!pathExistsStrict(configFile)) {
+    return;
+  }
+  try {
+    const parsed = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+    if (Array.isArray(parsed.plugin) && parsed.plugin.includes(entry)) {
+      io.err(`[${target.id}] Warning: ${configFile} already registers this plugin; two mechanisms are active.\n`);
+    }
+  } catch {}
 }
 
 function writeCopilotSettings(filePath, fallback) {
