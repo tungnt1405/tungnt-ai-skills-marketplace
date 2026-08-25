@@ -326,6 +326,7 @@ export const TARGETS = [
   {
     id: 'agy',
     displayName: 'Antigravity CLI',
+    platform: 'win32',
     defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'antigravity-cli', 'plugins', PLUGIN_NAME),
     expectedParent: (env = process.env) => joinHome(env, '.gemini', 'antigravity-cli', 'plugins'),
     includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
@@ -352,6 +353,7 @@ export const TARGETS = [
   {
     id: 'antigravity',
     displayName: 'Google Antigravity',
+    platform: 'win32',
     defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins', PLUGIN_NAME),
     expectedParent: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins'),
     includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
@@ -379,6 +381,7 @@ export const TARGETS = [
   {
     id: 'antigravity-ide',
     displayName: 'Antigravity IDE',
+    platform: 'win32',
     defaultTarget: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins', PLUGIN_NAME),
     expectedParent: (env = process.env) => joinHome(env, '.gemini', 'config', 'plugins'),
     includedEntries: ANTIGRAVITY_PLUGIN_ENTRIES,
