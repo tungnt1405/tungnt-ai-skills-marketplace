@@ -1,6 +1,6 @@
 {
     "type": "module",
-    "version": "1.8.8",
+    "version": "1.8.9",
     "name": "tungnt-ai-skills",
     "main": ".opencode/plugins/superpowers.js",
     "bin": {

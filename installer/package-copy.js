@@ -181,8 +181,10 @@ function rewriteCommand(handler, pluginDir) {
   }
   const args = match[1] ? ` ${match[1]}` : '';
   const script = path.join(pluginDir, 'hooks', 'run-hook.cmd');
+  // Windows: plain path (no extra quotes - JSON string already handles escaping);
+  // POSIX: bash "path" format
   const command = process.platform === 'win32'
-    ? `"${script}"${args}`
+    ? `${script}${args}`
     : `bash "${script}"${args}`;
   return { ...handler, command };
 }
