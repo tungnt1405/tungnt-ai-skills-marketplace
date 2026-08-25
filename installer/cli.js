@@ -22,14 +22,16 @@ import {
   restoreSettingJson,
   validateInstall,
   validateSource,
+  writeGlobalHookManifest,
 } from './package-copy.js';
 
 const USAGE = `Usage:
-  tungnt-ai-skills install [--all] [--agent <id>] [--dry-run] [--force] [--native]
-  tungnt-ai-skills update [--all] [--agent <id>] [--dry-run] [--native]
+  tungnt-ai-skills install [--all] [--agent <id>] [--dry-run] [--force] [--native] [--debug]
+  tungnt-ai-skills update [--all] [--agent <id>] [--dry-run] [--native] [--debug]
   tungnt-ai-skills targets
 
-Supported agents: ${supportedTargetIds().join(', ')}`;
+Supported agents: ${supportedTargetIds().join(', ')}
+--debug enables hook debug logging (policy.hookDebug=true) in the installed setting.json; without it hooks stay silent.`;
 
 export function runCli(argv = process.argv.slice(2), env = process.env, io = defaultIo()) {
   const command = argv[0] || 'help';
@@ -58,6 +60,7 @@ function parseUpdateArgs(args) {
   const options = {
     all: false,
     agent: undefined,
+    debug: false,
     dryRun: false,
     native: false,
   };
@@ -72,6 +75,8 @@ function parseUpdateArgs(args) {
       }
       options.agent = args[index + 1];
       index += 1;
+    } else if (arg === '--debug') {
+      options.debug = true;
     } else if (arg === '--dry-run') {
       options.dryRun = true;
     } else if (arg === '--native') {
@@ -91,6 +96,7 @@ function parseInstallArgs(args) {
   const options = {
     all: false,
     agent: undefined,
+    debug: false,
     dryRun: false,
     force: false,
     native: false,
@@ -106,6 +112,8 @@ function parseInstallArgs(args) {
       }
       options.agent = args[index + 1];
       index += 1;
+    } else if (arg === '--debug') {
+      options.debug = true;
     } else if (arg === '--dry-run') {
       options.dryRun = true;
     } else if (arg === '--force') {
@@ -218,6 +226,9 @@ function install(args, env, io) {
     try {
       validateSource(packageRoot, target);
       if (options.dryRun) {
+        if (options.debug) {
+          io.out('Debug: --debug would enable policy.hookDebug in the installed setting.json\n');
+        }
         io.out('Status: planned\n');
         continue;
       }
@@ -278,7 +289,9 @@ function install(args, env, io) {
         restoreSettingJson(destination);
       }
       copySettingTemplate(packageRoot, destination);
+      applyHookDebugFlag(destination, options, io);
       applyPluginRegistrations(target.id, packageRoot, target, env, io);
+      reportGlobalHookManifest(writeGlobalHookManifest(packageRoot, target, env), io);
       if (target.marketplaceFile) {
         writeMarketplaceEntry(target.marketplaceFile(env), target.marketplaceEntry, target.marketplaceRoot);
       }
@@ -307,6 +320,33 @@ function nativeCommandsForInstall(target, options) {
     return target.updateCommands;
   }
   return target.nativeCommands;
+}
+
+function reportGlobalHookManifest(info, io) {
+  if (!info) {
+    return;
+  }
+  const suffix = info.merged ? ' (merged)' : '';
+  io.out(`Registered global Antigravity hooks: ${info.destination}${suffix}\n`);
+}
+
+function applyHookDebugFlag(destination, options, io) {
+  if (!options.debug) {
+    return;
+  }
+  const settingPath = path.join(destination, 'setting.json');
+  let parsed = {};
+  try {
+    parsed = JSON.parse(fs.readFileSync(settingPath, 'utf8'));
+  } catch {
+    parsed = {};
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    parsed = {};
+  }
+  parsed.policy = { ...(parsed.policy || {}), hookDebug: true };
+  fs.writeFileSync(settingPath, `${JSON.stringify(parsed, null, 2)}\n`);
+  io.out('Hook debug: enabled (policy.hookDebug=true)\n');
 }
 
 function update(args, env, io) {
@@ -428,7 +468,9 @@ function update(args, env, io) {
         restoreSettingJson(destination);
       }
       copySettingTemplate(packageRoot, destination);
+      applyHookDebugFlag(destination, options, io);
       applyPluginRegistrations(target.id, packageRoot, target, env, io);
+      reportGlobalHookManifest(writeGlobalHookManifest(packageRoot, target, env), io);
       if (target.marketplaceFile) {
         writeMarketplaceEntry(target.marketplaceFile(env), target.marketplaceEntry, target.marketplaceRoot);
       }

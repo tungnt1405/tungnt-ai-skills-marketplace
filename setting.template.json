@@ -2,6 +2,7 @@
   "policy": {
     "autoCommit": false,
     "autoTest": false,
+    "hookDebug": false,
     "dangerousCommands": {
       "blocked": [
         "rm -rf /",

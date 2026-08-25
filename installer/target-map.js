@@ -344,6 +344,9 @@ export const TARGETS = [
     requiredFiles: ANTIGRAVITY_PLUGIN_REQUIRED_FILES,
     installedRequiredFiles: ANTIGRAVITY_PLUGIN_INSTALLED_REQUIRED_FILES,
     rootHookManifestFile: ANTIGRAVITY_HOOK_MANIFEST_FILE,
+    globalHookManifest: {
+      destination: (env = process.env) => joinHome(env, '.gemini', 'config', 'hooks.json'),
+    },
     postInstallNotes: 'Restart Antigravity CLI or reload plugins after installation.',
   },
   {
@@ -368,6 +371,9 @@ export const TARGETS = [
     requiredFiles: ANTIGRAVITY_PLUGIN_REQUIRED_FILES,
     installedRequiredFiles: ANTIGRAVITY_PLUGIN_INSTALLED_REQUIRED_FILES,
     rootHookManifestFile: ANTIGRAVITY_HOOK_MANIFEST_FILE,
+    globalHookManifest: {
+      destination: (env = process.env) => joinHome(env, '.gemini', 'config', 'hooks.json'),
+    },
     postInstallNotes: 'Restart Antigravity or reload plugins after installation.',
   },
   {
@@ -391,6 +397,9 @@ export const TARGETS = [
     requiredFiles: ANTIGRAVITY_PLUGIN_REQUIRED_FILES,
     installedRequiredFiles: ANTIGRAVITY_PLUGIN_INSTALLED_REQUIRED_FILES,
     rootHookManifestFile: ANTIGRAVITY_HOOK_MANIFEST_FILE,
+    globalHookManifest: {
+      destination: (env = process.env) => joinHome(env, '.gemini', 'config', 'hooks.json'),
+    },
     postInstallNotes: 'Restart Antigravity IDE or reload plugins after installation.',
   },
   {

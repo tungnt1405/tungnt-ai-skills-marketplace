@@ -25,8 +25,9 @@ Nói rõ với người dùng: *"Nếu bạn để trống, hệ thống sẽ t�
 Các khóa cần cấu hình:
 1. **autoCommit**: `true` hoặc `false` (Mặc định: `false`)
 2. **autoTest**: `true` hoặc `false` (Mặc định: `false`)
-3. **dangerousCommands.blocked**: Danh sách lệnh shell bị chặn (Mặc định: `["rm -rf /", "rm -rf *", "mkfs", "dd", "chmod -R 777 /", "chown -R"]`)
-4. **sensitiveFiles.blocked**: Danh sách mẫu file nhạy cảm bị chặn (Mặc định: `["**/.env", "**/*.pem", "**/.ssh/id_*", "**/secrets.json"]`)
+3. **hookDebug**: `true` hoặc `false` (Mặc định: `false`). Khi bật, hook Antigravity sẽ ghi payload mỗi lần gọi vào log debug (`~/.gemini/tais-hook-debug.log`, đổi được bằng `TAIS_HOOK_DEBUG_LOG`). Cờ installer `--debug` cũng đặt khóa này thành `true` trong `setting.json` bản cài.
+4. **dangerousCommands.blocked**: Danh sách lệnh shell bị chặn (Mặc định: `["rm -rf /", "rm -rf *", "mkfs", "dd", "chmod -R 777 /", "chown -R"]`)
+5. **sensitiveFiles.blocked**: Danh sách mẫu file nhạy cảm bị chặn (Mặc định: `["**/.env", "**/*.pem", "**/.ssh/id_*", "**/secrets.json"]`)
 
 ## Bước 4: Ghi Cấu Hình
 Tạo hoặc cập nhật file `setting.json` mục tiêu sử dụng template JSON dưới đây. Thay thế các placeholder bằng lựa chọn của người dùng. Nếu người dùng không cung cấp đầu vào cho một khóa cụ thể, thay thế placeholder bằng giá trị mặc định trong Bước 3.
@@ -36,6 +37,7 @@ Tạo hoặc cập nhật file `setting.json` mục tiêu sử dụng template J
   "policy": {
     "autoCommit": <autoCommit_value>,
     "autoTest": <autoTest_value>,
+    "hookDebug": <hookDebug_value>,
     "dangerousCommands": {
       "blocked": [
         <blockedCommands_list>

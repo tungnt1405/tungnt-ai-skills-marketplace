@@ -112,6 +112,66 @@ function copySelectedRootHookManifest(packageRoot, destination, target = {}) {
   fs.copyFileSync(source, destinationFile);
 }
 
+export function writeGlobalHookManifest(packageRoot, target = {}, env = process.env) {
+  const manifest = target.globalHookManifest;
+  if (!manifest || !target.rootHookManifestFile) {
+    return null;
+  }
+  const sourcePath = path.join(packageRoot, target.rootHookManifestFile);
+  const group = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
+  const pluginDir = target.defaultTarget(env);
+  const rewritten = rewriteHookCommands(group, pluginDir);
+
+  const destinationFile = manifest.destination(env);
+  let merged = false;
+  let output = rewritten;
+  if (fs.existsSync(destinationFile)) {
+    try {
+      const existing = JSON.parse(fs.readFileSync(destinationFile, 'utf8'));
+      if (existing && typeof existing === 'object' && !Array.isArray(existing)) {
+        merged = Object.keys(rewritten).some((key) => Object.prototype.hasOwnProperty.call(existing, key));
+        output = { ...existing, ...rewritten };
+      }
+    } catch {
+      fs.copyFileSync(destinationFile, `${destinationFile}.bak`);
+    }
+  }
+
+  fs.mkdirSync(path.dirname(destinationFile), { recursive: true });
+  fs.writeFileSync(destinationFile, `${JSON.stringify(output, null, 2)}\n`);
+  return { destination: destinationFile, merged };
+}
+
+function rewriteHookCommands(group, pluginDir) {
+  return Object.fromEntries(
+    Object.entries(group).map(([groupName, events]) => [
+      groupName,
+      Object.fromEntries(
+        Object.entries(events || {}).map(([event, handlers]) => [
+          event,
+          Array.isArray(handlers)
+            ? handlers.map((handler) => {
+                if (typeof handler?.command !== 'string') {
+                  return handler;
+                }
+                const match = handler.command.match(/^(?:\.\/)?hooks\/run-hook\.cmd(?:\s+(.*))?$/);
+                if (!match) {
+                  return handler;
+                }
+                const args = match[1] ? ` ${match[1]}` : '';
+                const script = path.join(pluginDir, 'hooks', 'run-hook.cmd');
+                const command = process.platform === 'win32'
+                  ? `"${script}"${args}`
+                  : `bash "${script}"${args}`;
+                return { ...handler, command };
+              })
+            : handlers,
+        ])
+      ),
+    ])
+  );
+}
+
 function plannedEntries(packageRoot, target = {}) {
   const entries = target.includedEntries || INCLUDED_ENTRIES;
   return entries.filter((entry) => fs.existsSync(path.join(packageRoot, entry)));
