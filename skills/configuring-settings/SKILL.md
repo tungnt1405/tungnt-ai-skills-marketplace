@@ -25,8 +25,9 @@ Explicitly tell the user: *"Nếu bạn để trống, hệ thống sẽ tự đ
 The keys to configure are:
 1. **autoCommit**: `true` or `false` (Default: `false`)
 2. **autoTest**: `true` or `false` (Default: `false`)
-3. **dangerousCommands.blocked**: A list of blocked shell commands (Default: `["rm -rf /", "rm -rf *", "mkfs", "dd", "chmod -R 777 /", "chown -R"]`)
-4. **sensitiveFiles.blocked**: A list of blocked sensitive file patterns (Default: `["**/.env", "**/*.pem", "**/.ssh/id_*", "**/secrets.json"]`)
+3. **hookDebug**: `true` or `false` (Default: `false`). When enabled, Antigravity hooks append each invocation payload to a debug log (`~/.gemini/tais-hook-debug.log`, override with `TAIS_HOOK_DEBUG_LOG`). The installer flag `--debug` also sets this key to `true` in the installed `setting.json`.
+4. **dangerousCommands.blocked**: A list of blocked shell commands (Default: `["rm -rf /", "rm -rf *", "mkfs", "dd", "chmod -R 777 /", "chown -R"]`)
+5. **sensitiveFiles.blocked**: A list of blocked sensitive file patterns (Default: `["**/.env", "**/*.pem", "**/.ssh/id_*", "**/secrets.json"]`)
 
 ## Step 4: Write Configuration
 Create or update the target `setting.json` file using the JSON template below. Substitute the placeholders with the user's choices. If the user provided no input for a specific key, substitute the placeholder with the default values listed in Step 3.
@@ -36,6 +37,7 @@ Create or update the target `setting.json` file using the JSON template below. S
   "policy": {
     "autoCommit": <autoCommit_value>,
     "autoTest": <autoTest_value>,
+    "hookDebug": <hookDebug_value>,
     "dangerousCommands": {
       "blocked": [
         <blockedCommands_list>

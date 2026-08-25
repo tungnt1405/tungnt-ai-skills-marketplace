@@ -20,6 +20,10 @@ Antigravity discovers workspace plugins from `.agents/plugins/<plugin-name>/` or
 
 For global installs, the installer writes an Antigravity-native `hooks.json` at the plugin root. That hook uses `PreInvocation` to inject the `using-tungnt-ai-skills` bootstrap on the first model invocation in each session.
 
+Antigravity CLI (verified on v1.1.20) only dispatches hooks registered in `~/.gemini/config/hooks.json`; it ignores `hooks.json` inside plugin folders and workspace `.agents/hooks.json`. The installer therefore also registers the same hook group (with absolute script paths) into `~/.gemini/config/hooks.json`, merging with any foreign hook groups already present.
+
+Hook invocation logging is off by default (`policy.hookDebug=false`). Run the installer with `--debug` to enable it in the installed `setting.json`, or set `policy.hookDebug=true` manually; `TAIS_HOOK_DEBUG=1` overrides both per session.
+
 The installer also writes the default safe `setting.json` policy at the plugin root so the bootstrap can resolve explicit settings immediately.
 
 The canonical skills stay in the repository root `skills/` directory; there is no duplicated Antigravity-specific skills tree.

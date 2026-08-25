@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import {
   getAllTargets,
   getTargetById,
@@ -934,6 +935,175 @@ test('agy install writes the shared Antigravity root hooks manifest', () => {
 
   assert.equal(code, 0, out.stderr());
   assert.equal(command, 'hooks/run-hook.cmd antigravity-pre-invocation');
+});
+
+test('agy install registers absolute PreInvocation in global config hooks.json', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const out = capture();
+  const code = runCli(['install', '--agent', 'agy'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+
+  const globalHooksFile = path.join(home, '.gemini', 'config', 'hooks.json');
+  const hooks = JSON.parse(fs.readFileSync(globalHooksFile, 'utf8'));
+  const command = hooks['tungnt-ai-skills-bootstrap'].PreInvocation[0].command;
+  const expectedScript = path.join(
+    getTargetById('agy').defaultTarget(env),
+    'hooks',
+    'run-hook.cmd'
+  );
+
+  assert.equal(command, `bash "${expectedScript}" antigravity-pre-invocation`);
+  assert.equal(out.stdout().includes('Registered global Antigravity hooks'), true, out.stdout());
+});
+
+test('agy install without --debug keeps policy.hookDebug disabled', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const destination = getTargetById('agy').defaultTarget(env);
+  const out = capture();
+  const code = runCli(['install', '--agent', 'agy'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+
+  const setting = JSON.parse(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'));
+  assert.equal(setting.policy.hookDebug, false);
+  assert.equal(out.stdout().includes('Hook debug: enabled'), false, out.stdout());
+});
+
+test('install --debug enables policy.hookDebug in installed setting.json', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const destination = getTargetById('agy').defaultTarget(env);
+  const out = capture();
+  const code = runCli(['install', '--agent', 'agy', '--debug'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+
+  const setting = JSON.parse(fs.readFileSync(path.join(destination, 'setting.json'), 'utf8'));
+  assert.equal(setting.policy.hookDebug, true);
+  assert.equal(setting.policy.autoCommit, false);
+  assert.equal(out.stdout().includes('Hook debug: enabled (policy.hookDebug=true)'), true, out.stdout());
+});
+
+test('update --debug enables policy.hookDebug and preserves custom policy values', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const destination = getTargetById('agy').defaultTarget(env);
+
+  let out = capture();
+  let code = runCli(['install', '--agent', 'agy', '--force'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+
+  const settingPath = path.join(destination, 'setting.json');
+  fs.writeFileSync(settingPath, JSON.stringify({
+    policy: {
+      autoCommit: true,
+      autoTest: false,
+      hookDebug: false,
+      dangerousCommands: { blocked: ['rm -rf /'], askConfirmation: false },
+      sensitiveFiles: { blocked: [], askConfirmation: true },
+      installAndUpdate: { askUser: false },
+    },
+  }, null, 2));
+
+  out = capture();
+  code = runCli(['update', '--agent', 'agy', '--debug'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+
+  const setting = JSON.parse(fs.readFileSync(settingPath, 'utf8'));
+  assert.equal(setting.policy.hookDebug, true);
+  assert.equal(setting.policy.autoCommit, true, 'custom autoCommit must be preserved');
+  assert.deepEqual(setting.policy.dangerousCommands.blocked, ['rm -rf /']);
+});
+
+test('global config hooks.json merge preserves foreign hook groups on install and update', () => {
+  const home = tempDir();
+  const env = fakeEnv(home);
+  const globalHooksFile = path.join(home, '.gemini', 'config', 'hooks.json');
+  fs.mkdirSync(path.dirname(globalHooksFile), { recursive: true });
+  fs.writeFileSync(globalHooksFile, JSON.stringify({
+    'someone-elses-hooks': {
+      Stop: [{ type: 'command', command: '/bin/true' }],
+    },
+  }, null, 2));
+
+  let out = capture();
+  let code = runCli(['install', '--agent', 'agy'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+
+  let hooks = JSON.parse(fs.readFileSync(globalHooksFile, 'utf8'));
+  assert.deepEqual(hooks['someone-elses-hooks'].Stop[0].command, '/bin/true');
+  assert.notEqual(hooks['tungnt-ai-skills-bootstrap'], undefined);
+
+  code = runCli(['update', '--agent', 'agy'], env, out.io);
+  assert.equal(code, 0, out.stderr());
+
+  hooks = JSON.parse(fs.readFileSync(globalHooksFile, 'utf8'));
+  assert.deepEqual(hooks['someone-elses-hooks'].Stop[0].command, '/bin/true');
+  assert.equal(hooks['tungnt-ai-skills-bootstrap'].PreInvocation.length, 1);
+});
+
+test('antigravity pre-invocation bootstraps once per conversation then reminds', function () {
+  if (process.platform === 'win32') {
+    this.skip();
+  }
+  const hookPath = path.join(PACKAGE_ROOT, 'hooks', 'antigravity-pre-invocation');
+  const stateDir = tempDir();
+  const runHook = (payload) => spawnSync('bash', [hookPath], {
+    input: JSON.stringify(payload),
+    encoding: 'utf8',
+    env: { ...process.env, TAIS_HOOK_STATE_DIR: stateDir },
+  });
+
+  const bootstrapRun = runHook({ invocationNum: 0, conversationId: 'conv-a' });
+  assert.equal(bootstrapRun.status, 0, bootstrapRun.stderr);
+  assert.equal(bootstrapRun.stdout.includes('EXTREMELY_IMPORTANT'), true, bootstrapRun.stdout);
+  assert.equal(bootstrapRun.stdout.includes('"injectSteps"'), true, bootstrapRun.stdout);
+
+  const reminderRun = runHook({ invocationNum: 0, conversationId: 'conv-a' });
+  assert.equal(reminderRun.status, 0, reminderRun.stderr);
+  assert.equal(reminderRun.stdout.includes('EXTREMELY_IMPORTANT'), false, reminderRun.stdout);
+  assert.equal(reminderRun.stdout.includes('MUST call the Skill tool'), true, reminderRun.stdout);
+
+  const midTurnRun = runHook({ invocationNum: 1, conversationId: 'conv-a' });
+  assert.equal(midTurnRun.status, 0, midTurnRun.stderr);
+  assert.deepEqual(JSON.parse(midTurnRun.stdout), {});
+
+  const newConversationRun = runHook({ invocationNum: 0, conversationId: 'conv-b' });
+  assert.equal(newConversationRun.status, 0, newConversationRun.stderr);
+  assert.equal(newConversationRun.stdout.includes('EXTREMELY_IMPORTANT'), true, newConversationRun.stdout);
+
+  const stateFile = path.join(stateDir, 'bootstrap-state.txt');
+  const state = fs.readFileSync(stateFile, 'utf8');
+  assert.equal(state.includes('conv-a='), true, state);
+  assert.equal(state.includes('conv-b='), true, state);
+});
+
+test('antigravity pre-invocation enables debug logging via policy.hookDebug', function () {
+  if (process.platform === 'win32') {
+    this.skip();
+  }
+  const hookPath = path.join(PACKAGE_ROOT, 'hooks', 'antigravity-pre-invocation');
+  const stateDir = tempDir();
+  const workspace = tempDir();
+  const logFile = path.join(workspace, 'hook-debug.log');
+  fs.mkdirSync(path.join(workspace, 'tais'), { recursive: true });
+
+  const runHook = () => spawnSync('bash', [hookPath], {
+    input: JSON.stringify({ invocationNum: 0, conversationId: 'conv-dbg', workspacePaths: [workspace] }),
+    encoding: 'utf8',
+    env: { ...process.env, TAIS_HOOK_STATE_DIR: stateDir, TAIS_HOOK_DEBUG_LOG: logFile },
+  });
+
+  runHook();
+  assert.equal(fs.existsSync(logFile), false, 'debug must stay off without policy or env');
+
+  fs.writeFileSync(
+    path.join(workspace, 'tais', 'setting.json'),
+    JSON.stringify({ policy: { hookDebug: true } })
+  );
+  runHook();
+  const logged = fs.readFileSync(logFile, 'utf8');
+  assert.equal(logged.includes('"conversationId":"conv-dbg"'), true, logged);
 });
 
 test('update --agent codex clears installed plugin cache before refreshing fallback', () => {

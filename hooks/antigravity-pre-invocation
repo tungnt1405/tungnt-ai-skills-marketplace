@@ -1,20 +1,91 @@
 #!/usr/bin/env bash
-# PreInvocation hook for Antigravity one-shot tungnt-ai-skills bootstrap.
+# PreInvocation hook for Antigravity tungnt-ai-skills bootstrap.
+#
+# Verified Antigravity CLI semantics (v1.1.20):
+# - PreInvocation fires before EVERY model invocation.
+# - invocationNum resets to 0 on each user turn and increments for follow-up
+#   model calls within the same turn.
+# - injectSteps ephemeralMessage output is appended to the trajectory.
+#
+# Strategy:
+# - invocationNum > 0: mid-turn continuation, context already present -> {}.
+# - invocationNum = 0 and unseen conversationId: full one-shot bootstrap.
+# - invocationNum = 0 and known conversationId: short per-turn reminder.
 
 set -euo pipefail
 
 stdin_payload="$(cat || true)"
-invocation_num="$(printf '%s' "$stdin_payload" | sed -n 's/.*"invocationNum"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' | head -n 1)"
-
-if [ -n "$invocation_num" ] && [ "$invocation_num" -gt 1 ]; then
-  # Antigravity has no UserPromptSubmit event; PreInvocation is the per-turn
-  # hook, so remind on every invocation after the first full bootstrap.
-  printf '{\n  "injectSteps": [\n    {\n      "ephemeralMessage": "Before responding or taking action, you MUST call the Skill tool to load using-tungnt-ai-skills and follow its routing rules. Then invoke whichever skill it selects."\n    }\n  ]\n}\n'
-  exit 0
-fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Debug logging is off by default. Enabled when:
+# - TAIS_HOOK_DEBUG env var is set, or
+# - policy.hookDebug=true in workspace tais/setting.json or plugin setting.json.
+hook_debug_enabled() {
+  if [ -n "${TAIS_HOOK_DEBUG:-}" ]; then
+    return 0
+  fi
+  local workspace_path candidate
+  workspace_path="$(printf '%s' "$stdin_payload" | sed -n 's/.*"workspacePaths"[[:space:]]*:[[:space:]]*\[[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
+  for candidate in \
+    "${workspace_path:+${workspace_path}/tais/setting.json}" \
+    "${PLUGIN_ROOT}/tais/setting.json" \
+    "${PLUGIN_ROOT}/setting.json"; do
+    [ -n "$candidate" ] || continue
+    [ -f "$candidate" ] || continue
+    if grep -Eq '"hookDebug"[[:space:]]*:[[:space:]]*true' "$candidate"; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+if hook_debug_enabled; then
+  printf '[%s] PreInvocation payload: %s\n' "$(date -Is)" "$stdin_payload" >> "${TAIS_HOOK_DEBUG_LOG:-$HOME/.gemini/tais-hook-debug.log}"
+fi
+
+invocation_num="$(printf '%s' "$stdin_payload" | sed -n 's/.*"invocationNum"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' | head -n 1)"
+conversation_id="$(printf '%s' "$stdin_payload" | sed -n 's/.*"conversationId"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
+
+if [ -n "$invocation_num" ] && [ "$invocation_num" -gt 0 ]; then
+  printf '{}\n'
+  exit 0
+fi
+
+state_dir="${TAIS_HOOK_STATE_DIR:-$HOME/.gemini/tungnt-ai-skills}"
+state_file="${state_dir}/bootstrap-state.txt"
+
+seen_conversation() {
+  [ -n "$conversation_id" ] || return 1
+  [ -f "$state_file" ] || return 1
+  grep -q "^${conversation_id}=" "$state_file"
+}
+
+record_conversation() {
+  [ -n "$conversation_id" ] || return 0
+  mkdir -p "$state_dir"
+  local now cutoff
+  now="$(date +%s)"
+  cutoff=$((now - 604800))
+  {
+    if [ -f "$state_file" ]; then
+      awk -F= -v cut="$cutoff" '$2 >= cut' "$state_file" || true
+    fi
+    printf '%s=%s\n' "$conversation_id" "$now"
+  } | tail -n 200 > "${state_file}.tmp"
+  mv "${state_file}.tmp" "$state_file"
+}
+
+reminder_message='Before responding or taking action, you MUST call the Skill tool to load using-tungnt-ai-skills and follow its routing rules. Then invoke whichever skill it selects.'
+
+if seen_conversation; then
+  printf '{\n  "injectSteps": [\n    {\n      "ephemeralMessage": "%s"\n    }\n  ]\n}\n' "$reminder_message"
+  exit 0
+fi
+
+record_conversation
+
 bootstrap_file="${PLUGIN_ROOT}/skills/using-tungnt-ai-skills/SKILL.md"
 
 bootstrap_content="$(cat "$bootstrap_file" 2>&1 || echo "Error reading using-tungnt-ai-skills skill")"
@@ -34,7 +105,7 @@ You have tungnt-ai-skills.
 
 Below is the full content of your bootstrap skill (using-tungnt-ai-skills). Read it before responding or taking action. Follow its routing rules and use the relevant Antigravity skill/plugin mechanism for any additional skills.
 
-This injected context appears only on the first invocation and does not persist. On every later turn you will receive a short reminder: respond to it by calling the Skill tool to load using-tungnt-ai-skills again before taking action.
+This injected context appears only on the first model invocation of a session. On later turns you will receive a short reminder: respond to it by calling the Skill tool to load using-tungnt-ai-skills again before taking action.
 
 ${bootstrap_content}
 </EXTREMELY_IMPORTANT>"
