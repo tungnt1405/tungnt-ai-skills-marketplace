@@ -120,7 +120,8 @@ export function writeGlobalHookManifest(packageRoot, target = {}, env = process.
   const sourcePath = path.join(packageRoot, target.rootHookManifestFile);
   const group = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
   const pluginDir = target.defaultTarget(env);
-  const rewritten = rewriteHookCommands(group, pluginDir);
+  const targetPlatform = target.platform || process.platform;
+  const rewritten = rewriteHookCommands(group, pluginDir, targetPlatform);
 
   const destinationFile = manifest.destination(env);
   let merged = false;
@@ -142,7 +143,7 @@ export function writeGlobalHookManifest(packageRoot, target = {}, env = process.
   return { destination: destinationFile, merged };
 }
 
-function rewriteHookCommands(group, pluginDir) {
+function rewriteHookCommands(group, pluginDir, targetPlatform) {
   return Object.fromEntries(
     Object.entries(group).map(([groupName, events]) => [
       groupName,
@@ -153,13 +154,13 @@ function rewriteHookCommands(group, pluginDir) {
             ? handlers.map((handler) => {
                 // Direct command handlers (PreInvocation, PostInvocation, Stop)
                 if (typeof handler?.command === 'string') {
-                  return rewriteCommand(handler, pluginDir);
+                  return rewriteCommand(handler, pluginDir, targetPlatform);
                 }
                 // Nested hooks array handlers (PreToolUse, PostToolUse): {matcher, hooks: [...]}
                 if (handler && Array.isArray(handler.hooks)) {
                   return {
                     ...handler,
-                    hooks: handler.hooks.map((h) => rewriteCommand(h, pluginDir)),
+                    hooks: handler.hooks.map((h) => rewriteCommand(h, pluginDir, targetPlatform)),
                   };
                 }
                 return handler;
@@ -171,7 +172,7 @@ function rewriteHookCommands(group, pluginDir) {
   );
 }
 
-function rewriteCommand(handler, pluginDir) {
+function rewriteCommand(handler, pluginDir, targetPlatform) {
   if (typeof handler?.command !== 'string') {
     return handler;
   }
@@ -180,12 +181,25 @@ function rewriteCommand(handler, pluginDir) {
     return handler;
   }
   const args = match[1] ? ` ${match[1]}` : '';
-  const script = path.join(pluginDir, 'hooks', 'run-hook.cmd');
-  // Windows: plain path (no extra quotes - JSON string already handles escaping);
-  // POSIX: bash "path" format
-  const command = process.platform === 'win32'
-    ? `${script}${args}`
-    : `bash "${script}"${args}`;
+  const isWindows = targetPlatform === 'win32';
+  let command;
+  if (isWindows) {
+    // On Windows, use %USERPROFILE% which expands to the user's home directory.
+    // Standard Antigravity CLI plugin locations on Windows:
+    // %USERPROFILE%\.gemini\antigravity-cli\plugins\tungnt-ai-skills\hooks\run-hook.cmd (agy)
+    // %USERPROFILE%\.gemini\config\plugins\tungnt-ai-skills\hooks\run-hook.cmd (antigravity/antigravity-ide)
+    const pluginName = 'tungnt-ai-skills';
+    const isAgy = pluginDir.includes('antigravity-cli');
+    const pluginSubPath = isAgy
+      ? '.gemini\\antigravity-cli\\plugins'
+      : '.gemini\\config\\plugins';
+    const script = `%USERPROFILE%\\${pluginSubPath}\\${pluginName}\\hooks\\run-hook.cmd`;
+    command = `${script}${args}`;
+  } else {
+    // POSIX: bash "path" format
+    const script = path.join(pluginDir, 'hooks', 'run-hook.cmd');
+    command = `bash "${script}"${args}`;
+  }
   return { ...handler, command };
 }
 
