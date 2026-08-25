@@ -64,7 +64,34 @@ if ($conversationId -and (Test-Path $stateFile)) {
 }
 
 if ($seen) {
-    $reminder = 'Before responding or taking action, you MUST call the Skill tool to load using-tungnt-ai-skills and follow its routing rules. Then invoke whichever skill it selects.'
+    $reminder = @'
+Before responding or taking action, you MUST call the Skill tool to load using-tungnt-ai-skills and follow its routing rules.
+
+Skill tool usage:
+  Skill name: using-tungnt-ai-skills
+  This loads the bootstrap skill which routes to the right workflow skill.
+
+Routing rules (from using-tungnt-ai-skills):
+1. User instructions win
+2. tungnt-ai-skills skills take priority
+3. Default assistant behavior last
+
+Process skills (choose one):
+- investigation: bug tracing, incident analysis
+- quick-dev: trivial, low-risk changes (<30 min)
+- brainstorming: design exploration before creative work
+- writing-plans: turn specs into implementation plans
+- executing-plans: execute written plans with checkpoints
+- requesting-code-review / receiving-code-review
+- finishing-a-development-branch: verify DoD, handle merge
+
+Domain skills (support brainstorming):
+- api-design: REST/HTTP API contracts
+- security-and-hardening: auth, secrets, OWASP, DevSecOps
+- ui-ux-pro-max: design intelligence, design systems
+
+Then invoke whichever skill it selects.
+'@
     @{
         injectSteps = @(
             @{ ephemeralMessage = $reminder }
