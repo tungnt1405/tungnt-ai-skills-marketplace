@@ -151,25 +151,40 @@ function rewriteHookCommands(group, pluginDir) {
           event,
           Array.isArray(handlers)
             ? handlers.map((handler) => {
-                if (typeof handler?.command !== 'string') {
-                  return handler;
+                // Direct command handlers (PreInvocation, PostInvocation, Stop)
+                if (typeof handler?.command === 'string') {
+                  return rewriteCommand(handler, pluginDir);
                 }
-                const match = handler.command.match(/^(?:\.\/)?hooks\/run-hook\.cmd(?:\s+(.*))?$/);
-                if (!match) {
-                  return handler;
+                // Nested hooks array handlers (PreToolUse, PostToolUse): {matcher, hooks: [...]}
+                if (handler && Array.isArray(handler.hooks)) {
+                  return {
+                    ...handler,
+                    hooks: handler.hooks.map((h) => rewriteCommand(h, pluginDir)),
+                  };
                 }
-                const args = match[1] ? ` ${match[1]}` : '';
-                const script = path.join(pluginDir, 'hooks', 'run-hook.cmd');
-                const command = process.platform === 'win32'
-                  ? `"${script}"${args}`
-                  : `bash "${script}"${args}`;
-                return { ...handler, command };
+                return handler;
               })
             : handlers,
         ])
       ),
     ])
   );
+}
+
+function rewriteCommand(handler, pluginDir) {
+  if (typeof handler?.command !== 'string') {
+    return handler;
+  }
+  const match = handler.command.match(/^(?:\.\/)?hooks\/run-hook\.cmd(?:\s+(.*))?$/);
+  if (!match) {
+    return handler;
+  }
+  const args = match[1] ? ` ${match[1]}` : '';
+  const script = path.join(pluginDir, 'hooks', 'run-hook.cmd');
+  const command = process.platform === 'win32'
+    ? `"${script}"${args}`
+    : `bash "${script}"${args}`;
+  return { ...handler, command };
 }
 
 function plannedEntries(packageRoot, target = {}) {
