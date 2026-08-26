@@ -176,7 +176,9 @@ function rewriteCommand(handler, pluginDir, targetPlatform) {
   if (typeof handler?.command !== 'string') {
     return handler;
   }
-  const match = handler.command.match(/^(?:\.\/)?hooks\/run-hook\.cmd(?:\s+(.*))?$/);
+  // Match relative paths (hooks/run-hook.cmd or hooks\run-hook.cmd) 
+  // or full Windows paths (%USERPROFILE%\...\hooks\run-hook.cmd)
+  const match = handler.command.match(/^(?:(?:\.\/)?hooks[\/\\]run-hook\.cmd|(?:%USERPROFILE%|[A-Za-z]:)[^ ]*?hooks[\/\\]run-hook\.cmd)(?:\s+(.*))?$/);
   if (!match) {
     return handler;
   }
