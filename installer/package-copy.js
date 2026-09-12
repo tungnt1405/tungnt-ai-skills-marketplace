@@ -109,7 +109,13 @@ function copySelectedRootHookManifest(packageRoot, destination, target = {}) {
   const source = path.join(packageRoot, target.rootHookManifestFile);
   const destinationFile = path.join(destination, 'hooks.json');
   fs.mkdirSync(path.dirname(destinationFile), { recursive: true });
-  fs.copyFileSync(source, destinationFile);
+  if (process.platform === 'linux' && target.globalHookManifest) {
+    const group = JSON.parse(fs.readFileSync(source, 'utf8'));
+    const rewritten = rewriteHookCommands(group, destination, 'linux');
+    fs.writeFileSync(destinationFile, `${JSON.stringify(rewritten, null, 2)}\n`);
+  } else {
+    fs.copyFileSync(source, destinationFile);
+  }
 }
 
 export function writeGlobalHookManifest(packageRoot, target = {}, env = process.env) {
@@ -120,7 +126,9 @@ export function writeGlobalHookManifest(packageRoot, target = {}, env = process.
   const sourcePath = path.join(packageRoot, target.rootHookManifestFile);
   const group = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
   const pluginDir = target.defaultTarget(env);
-  const targetPlatform = target.platform || process.platform;
+  const targetPlatform = process.platform === 'linux'
+    ? 'linux'
+    : target.platform || process.platform;
   const rewritten = rewriteHookCommands(group, pluginDir, targetPlatform);
 
   const destinationFile = manifest.destination(env);

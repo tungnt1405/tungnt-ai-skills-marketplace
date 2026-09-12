@@ -459,7 +459,10 @@ test('antigravity hook manifest uses documented PreInvocation injectSteps shape'
   assert.equal(Array.isArray(hook.PreInvocation), true);
   assert.equal(hook.PreInvocation.length, 1);
   assert.equal(entry.type, 'command');
-  assert.equal(entry.command, 'hooks/run-hook.cmd antigravity-pre-invocation');
+  assert.equal(
+    entry.command,
+    '%USERPROFILE%\\.gemini\\config\\plugins\\tungnt-ai-skills\\hooks\\run-hook.cmd antigravity-pre-invocation',
+  );
   assert.equal(entry.timeout, 10);
 });
 
@@ -862,6 +865,34 @@ test('install --agent antigravity-all --dry-run plans all Antigravity plugin lay
   assert.equal(out.stdout().includes(path.join(home, '.gemini', 'config', 'plugins', 'tungnt-ai-skills')), true);
 });
 
+test('antigravity-all install/update produce POSIX hooks and no duplicate handlers on Linux', () => {
+  if (process.platform !== 'linux') return;
+  const home = path.join(tempDir(), 'agg home');
+  const env = fakeEnv(home);
+  const out = capture();
+  assert.equal(runCli(['install', '--agent', 'antigravity-all'], env, out.io), 0, out.stderr());
+
+  for (const manifest of [
+    path.join(home, '.gemini', 'antigravity-cli', 'plugins', 'tungnt-ai-skills', 'hooks.json'),
+    path.join(home, '.gemini', 'config', 'plugins', 'tungnt-ai-skills', 'hooks.json'),
+  ]) {
+    const manifestParsed = JSON.parse(fs.readFileSync(manifest, 'utf8'));
+    const command = manifestParsed['tungnt-ai-skills-bootstrap'].PreInvocation[0].command;
+    assert.ok(command.startsWith('bash '), command);
+    assert.ok(!command.includes('%USERPROFILE%'), command);
+  }
+
+  const globalHooksFile = path.join(home, '.gemini', 'config', 'hooks.json');
+  const expectedCommand = `bash "${path.join(getTargetById('antigravity-ide').defaultTarget(env), 'hooks', 'run-hook.cmd')}" antigravity-pre-invocation`;
+  let globalHooks = JSON.parse(fs.readFileSync(globalHooksFile, 'utf8'));
+  assert.equal(globalHooks['tungnt-ai-skills-bootstrap'].PreInvocation[0].command, expectedCommand);
+
+  assert.equal(runCli(['update', '--agent', 'antigravity-all'], env, out.io), 0, out.stderr());
+  globalHooks = JSON.parse(fs.readFileSync(globalHooksFile, 'utf8'));
+  assert.equal(globalHooks['tungnt-ai-skills-bootstrap'].PreInvocation.length, 1);
+  assert.equal(globalHooks['tungnt-ai-skills-bootstrap'].PreInvocation[0].command, expectedCommand);
+});
+
 test('unknown agent exits non-zero', () => {
   const out = capture();
   const code = runCli(['install', '--agent', 'nope'], fakeEnv(tempDir()), out.io);
@@ -934,7 +965,9 @@ test('agy install writes the shared Antigravity root hooks manifest', () => {
   const command = hooks['tungnt-ai-skills-bootstrap'].PreInvocation[0].command;
 
   assert.equal(code, 0, out.stderr());
-  assert.equal(command, 'hooks/run-hook.cmd antigravity-pre-invocation');
+  assert.equal(command, process.platform === 'linux'
+    ? `bash "${path.join(destination, 'hooks', 'run-hook.cmd')}" antigravity-pre-invocation`
+    : '%USERPROFILE%\\.gemini\\config\\plugins\\tungnt-ai-skills\\hooks\\run-hook.cmd antigravity-pre-invocation');
 });
 
 test('agy install registers absolute PreInvocation in global config hooks.json', () => {
@@ -953,7 +986,9 @@ test('agy install registers absolute PreInvocation in global config hooks.json',
     'run-hook.cmd'
   );
 
-  assert.equal(command, `bash "${expectedScript}" antigravity-pre-invocation`);
+  assert.equal(command, process.platform === 'linux'
+    ? `bash "${expectedScript}" antigravity-pre-invocation`
+    : '%USERPROFILE%\\.gemini\\antigravity-cli\\plugins\\tungnt-ai-skills\\hooks\\run-hook.cmd antigravity-pre-invocation');
   assert.equal(out.stdout().includes('Registered global Antigravity hooks'), true, out.stdout());
 });
 
@@ -1040,6 +1075,47 @@ test('global config hooks.json merge preserves foreign hook groups on install an
   hooks = JSON.parse(fs.readFileSync(globalHooksFile, 'utf8'));
   assert.deepEqual(hooks['someone-elses-hooks'].Stop[0].command, '/bin/true');
   assert.equal(hooks['tungnt-ai-skills-bootstrap'].PreInvocation.length, 1);
+});
+
+test('linux install/update rewrites Antigravity hook commands to bash with spaces in HOME', () => {
+  if (process.platform !== 'linux') return;
+  for (const id of ['agy', 'antigravity', 'antigravity-ide']) {
+    const home = path.join(tempDir(), 'home with spaces');
+    const env = fakeEnv(home);
+    const out = capture();
+    const target = getTargetById(id);
+    const plugin = target.defaultTarget(env);
+    const globalFile = path.join(home, '.gemini', 'config', 'hooks.json');
+    const localFile = path.join(plugin, 'hooks.json');
+    const old = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'hooks/hooks.antigravity.json'), 'utf8'));
+    const foreign = { Stop: [] };
+    assert.equal(runCli(['install', '--agent', id], env, out.io), 0, out.stderr());
+    for (const args of [null, ['install', '--agent', id, '--force'], ['update', '--agent', id]]) {
+      if (args) {
+        fs.writeFileSync(localFile, JSON.stringify(old));
+        fs.writeFileSync(globalFile, JSON.stringify({ foreign, ...old }));
+        assert.equal(runCli(args, env, out.io), 0, out.stderr());
+      }
+      for (const file of [localFile, globalFile]) {
+        const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
+        const group = manifest['tungnt-ai-skills-bootstrap'];
+        for (const [command, payload, expected] of [
+          [group.PreInvocation[0].command, { invocationNum: 1 }, {}],
+          [group.PreToolUse[0].hooks[0].command, { toolCall: {} }, { decision: 'allow' }],
+        ]) {
+          assert.ok(command.startsWith('bash '), command);
+          assert.ok(command.includes(plugin), command);
+          assert.ok(!command.includes('%USERPROFILE%'), command);
+          const result = spawnSync('sh', ['-c', command], {
+            env, input: JSON.stringify(payload), encoding: 'utf8', timeout: 10000,
+          });
+          assert.equal(result.status, 0, result.stderr);
+          assert.deepEqual(JSON.parse(result.stdout), expected);
+        }
+        if (args && file === globalFile) assert.deepEqual(manifest.foreign, foreign);
+      }
+    }
+  }
 });
 
 test('antigravity pre-invocation bootstraps once per conversation then reminds', function () {
