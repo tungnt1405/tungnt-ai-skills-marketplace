@@ -78,5 +78,27 @@ else
     exit 1
 fi
 
+echo "Test 7: Checking package entry and compatibility exports..."
+node --input-type=module <<'NODE'
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+const root = process.env.REPO_ROOT;
+const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+const canonicalPath = '.opencode/plugins/tungnt-ai-skills.js';
+assert.equal(pkg.main, canonicalPath);
+const canonical = await import(pathToFileURL(path.join(root, canonicalPath)).href);
+const entry = await import(pathToFileURL(path.join(root, pkg.main)).href);
+const legacy = await import(pathToFileURL(path.join(root, '.opencode/plugins/superpowers.js')).href);
+assert.equal(typeof canonical.TungntAiSkillsPlugin, 'function');
+assert.equal(entry.TungntAiSkillsPlugin, canonical.TungntAiSkillsPlugin);
+assert.equal(canonical.SuperpowersPlugin, canonical.TungntAiSkillsPlugin);
+assert.equal(legacy.TungntAiSkillsPlugin, canonical.TungntAiSkillsPlugin);
+assert.equal(legacy.SuperpowersPlugin, canonical.TungntAiSkillsPlugin);
+console.log('  [PASS] Canonical package entry and compatibility exports');
+NODE
+
 echo ""
 echo "=== All plugin loading tests passed ==="
