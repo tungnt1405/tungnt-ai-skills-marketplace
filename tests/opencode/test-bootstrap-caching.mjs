@@ -29,7 +29,7 @@ fs.readFileSync = function (...args) {
 };
 
 const mod = await import(pathToFileURL(pluginPath).href);
-const pluginFactory = mod.TungntAiSkillsPlugin || mod.SuperpowersPlugin;
+const pluginFactory = mod.TungntAiSkillsPlugin;
 const plugin = await pluginFactory({ client: {}, directory: '.' });
 const transform = plugin['experimental.chat.messages.transform'];
 

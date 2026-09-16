@@ -8,6 +8,12 @@ This repository ships a native OpenCode plugin plus the canonical skills tree:
 skills/                                 # canonical skills tree
 ```
 
+The package `main` points directly to `.opencode/plugins/tungnt-ai-skills.js`,
+which exports `TungntAiSkillsPlugin`. The legacy `.opencode/plugins/superpowers.js`
+entry and `SuperpowersPlugin` export remain available for compatibility and refer
+to the same implementation. Use the canonical file and export for new integrations.
+Keep the legacy cleanup paths in the migration instructions when removing older installs.
+
 The plugin does two things:
 
 1. Registers the repository's `skills/` directory in OpenCode's `skills.paths`, so every bundled skill is discovered natively by OpenCode's `skill` tool.

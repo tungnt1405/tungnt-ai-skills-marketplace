@@ -108,4 +108,5 @@ ${toolMapping}
   };
 };
 
+// Compatibility alias for consumers using the legacy export name.
 export const SuperpowersPlugin = TungntAiSkillsPlugin;
