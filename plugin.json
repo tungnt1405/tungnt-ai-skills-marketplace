@@ -1,6 +1,6 @@
 {
   "name": "tungnt-ai-skills",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Planning, TDD, debugging, and delivery workflows for coding agents.",
   "author": {
     "name": "Tungnt1405",
@@ -19,10 +19,5 @@
     "ui-ux",
     "design-system",
     "antigravity"
-  ],
-  "source": "./",
-  "skills": "./skills/",
-  "hooks": "./hooks/hooks-copilot.json",
-  "category": "Coding",
-  "settings": "setting.json"
+  ]
 }
