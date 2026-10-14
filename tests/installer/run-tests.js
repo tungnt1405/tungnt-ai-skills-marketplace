@@ -393,12 +393,18 @@ test('install --agent copilot imports marketplace settings by default', () => {
 });
 
 test('plugin manifests select hooks for their harness', () => {
-  const manifest = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'plugin.json'), 'utf8'));
+  const copilotManifest = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, '.github', 'plugin', 'plugin.json'), 'utf8'));
   const claudeManifest = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, '.claude-plugin', 'plugin.json'), 'utf8'));
+  const antigravityManifest = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'plugin.json'), 'utf8'));
 
-  assert.equal(manifest.skills, './skills/');
-  assert.equal(manifest.hooks, './hooks/hooks-copilot.json');
+  assert.equal(copilotManifest.skills, 'skills/');
+  assert.equal(copilotManifest.hooks, 'hooks/hooks-copilot.json');
   assert.equal(Object.hasOwn(claudeManifest, 'hooks'), false);
+  assert.equal(Object.hasOwn(antigravityManifest, 'skills'), false);
+  assert.equal(Object.hasOwn(antigravityManifest, 'hooks'), false);
+  assert.equal(Object.hasOwn(antigravityManifest, 'source'), false);
+  assert.equal(Object.hasOwn(antigravityManifest, 'category'), false);
+  assert.equal(Object.hasOwn(antigravityManifest, 'settings'), false);
 });
 
 test('copilot hook manifest uses documented sessionStart command shape', () => {
@@ -1134,11 +1140,16 @@ test('antigravity pre-invocation bootstraps once per conversation then reminds',
   assert.equal(bootstrapRun.status, 0, bootstrapRun.stderr);
   assert.equal(bootstrapRun.stdout.includes('EXTREMELY_IMPORTANT'), true, bootstrapRun.stdout);
   assert.equal(bootstrapRun.stdout.includes('"injectSteps"'), true, bootstrapRun.stdout);
+  assert.doesNotThrow(() => JSON.parse(bootstrapRun.stdout));
 
   const reminderRun = runHook({ invocationNum: 0, conversationId: 'conv-a' });
   assert.equal(reminderRun.status, 0, reminderRun.stderr);
   assert.equal(reminderRun.stdout.includes('EXTREMELY_IMPORTANT'), false, reminderRun.stdout);
   assert.equal(reminderRun.stdout.includes('MUST call the Skill tool'), true, reminderRun.stdout);
+  assert.doesNotThrow(() => JSON.parse(reminderRun.stdout));
+  const reminderJson = JSON.parse(reminderRun.stdout);
+  assert.equal(Array.isArray(reminderJson.injectSteps), true);
+  assert.equal(reminderJson.injectSteps[0].ephemeralMessage.includes('MUST call the Skill tool'), true);
 
   const midTurnRun = runHook({ invocationNum: 1, conversationId: 'conv-a' });
   assert.equal(midTurnRun.status, 0, midTurnRun.stderr);
