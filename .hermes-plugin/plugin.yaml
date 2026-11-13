@@ -1,0 +1,6 @@
+name: tungnt-ai-skills
+version: 7.0.2
+description: tungnt-ai-skills skills and workflow bootstrap for Hermes Agent
+author: obra
+provides_hooks:
+  - pre_llm_call

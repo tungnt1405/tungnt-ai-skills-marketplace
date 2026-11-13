@@ -1,36 +1,45 @@
 # Cross-Platform Polyglot Hooks for Claude Code
 
-Claude Code plugins need hooks that work on Windows, macOS, and Linux. This
-repository uses one generic dispatcher, `hooks/run-hook.cmd`, for extensionless
-Bash hook scripts.
+Claude Code plugins need hooks that work on Windows, macOS, and Linux. This document describes the single generic dispatcher pattern used in `hooks/run-hook.cmd`.
 
-> `hooks/run-hook.cmd` is the authoritative implementation. If this document and
-> the code differ, follow the code.
+> **Authoritative source:** `hooks/run-hook.cmd` is the canonical implementation. When this document and the code diverge, trust the code.
 
-## Why the dispatcher exists
+## The Problem
 
-Claude Code may run hooks through Bash, PowerShell, or CMD depending on the
-platform and installed tools. A quoted executable path followed by an argument
-can be parsed incorrectly by PowerShell or CMD, especially when the plugin path
-contains spaces or characters such as parentheses.
+Claude Code runs hook commands through a shell:
+- **macOS/Linux**: bash or sh
+- **Windows with Git Bash installed**: Git Bash
+- **Windows without Git Bash**: PowerShell (older versions used CMD.exe)
 
-The manifest therefore declares `"shell": "bash"`. Claude Code 2.1.81 and newer
-use Git Bash for the command; older versions ignore the unknown field.
+Neither Windows fallback shell can parse our command string: PowerShell treats
+a leading quoted path as a string expression and errors on the next bareword,
+and CMD.exe's `/c` quoting rules strip the outer quotes when the path contains
+a metacharacter such as `(`. Our hooks therefore declare `"shell": "bash"`
+(supported since Claude Code 2.1.81; older versions ignore the key), which
+forces the Git Bash route and, when Git Bash is absent, produces an actionable
+"install Git for Windows" error instead of a shell parser failure.
 
-Hook scripts remain extensionless (`session-start`, not `session-start.sh`) so
-Claude Code's Windows `.sh` auto-detection does not rewrite the dispatcher
-command.
+This creates several challenges:
 
-## Files
+1. **Script execution**: Windows CMD can't execute `.sh` files directly
+2. **Path format**: Windows uses backslashes (`C:\path`), Unix uses forward slashes (`/path`)
+3. **Environment variables**: `$VAR` syntax doesn't work in CMD
+4. **`.sh` auto-prepend**: Claude Code on Windows automatically prepends `bash` to any command that contains `.sh` in its path — this interferes with the dispatcher if scripts have extensions
+
+## The Solution: Extensionless Scripts + Single Generic Dispatcher
+
+The repo uses one generic `run-hook.cmd` dispatcher for all hooks. Hook scripts are **extensionless** (`session-start`, not `session-start.sh`). This is deliberate: it prevents Claude Code's Windows auto-detection from prepending `bash` to the dispatcher command and breaking it.
+
+### File Structure
 
 ```text
 hooks/
-├── hooks.json       # Calls run-hook.cmd with a script name
-├── run-hook.cmd     # Generic CMD/Bash polyglot dispatcher
-└── session-start    # Actual extensionless Bash hook
+├── hooks.json          # Points to run-hook.cmd with extensionless script name
+├── run-hook.cmd        # Cross-platform dispatcher (the polyglot wrapper)
+└── session-start       # Actual hook logic — extensionless bash script
 ```
 
-## Manifest
+### hooks.json
 
 ```json
 {
@@ -42,6 +51,7 @@ hooks/
           {
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd\" session-start",
+            "powershell": "& \"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd\" session-start",
             "shell": "bash",
             "async": false
           }
@@ -52,70 +62,114 @@ hooks/
 }
 ```
 
-The dispatcher path is quoted because `${CLAUDE_PLUGIN_ROOT}` may contain
-spaces. `session-start` is passed separately as the hook script name.
+The path is quoted because `${CLAUDE_PLUGIN_ROOT}` may contain spaces.
 
-## What `run-hook.cmd` supports
+### The `powershell` key
 
-On Windows, the dispatcher:
+GitHub Copilot (the CLI and VS Code) on Windows runs hook commands through
+PowerShell regardless of the `shell` key (#2189), where a leading quoted path
+parses as a string expression and the trailing bareword is an error
+("Unexpected token 'session-start'"). Copilot uses the `powershell` key
+instead of `command` when it is present, and it gives the same dispatch with
+the `&` call operator. Claude Code ignores the key.
 
-1. Rejects calls without a script name.
-2. Resolves scripts relative to its own `hooks/` directory.
-3. Tries Git Bash from `C:\Program Files\Git\bin\bash.exe`.
-4. Tries `C:\Program Files (x86)\Git\bin\bash.exe`.
-5. Falls back to `bash` on `PATH` for custom Git Bash, MSYS2, or Cygwin installs.
-6. Forwards arguments `%2` through `%9` to the selected hook.
-7. Exits successfully when Bash is unavailable, leaving the plugin usable
-   without SessionStart context injection.
+## How `run-hook.cmd` Works at a High Level
 
-On Unix, the CMD block becomes a no-op heredoc. The dispatcher resolves its own
-directory, shifts off the script name, and forwards all remaining arguments to
-the extensionless Bash hook.
+`run-hook.cmd` is a polyglot script: Windows treats the first block as batch
+commands, while Unix shells treat that block as a no-op heredoc and continue
+after it.
 
-## Adding another hook
+Do not copy an implementation from this document. Read `hooks/run-hook.cmd`
+directly when changing the dispatcher, and run `tests/hooks/test-session-start.sh`
+afterward.
 
-Create an extensionless Bash script in `hooks/`, then pass its filename to the
-same dispatcher:
+### How it works on Windows (CMD.exe)
 
-```json
-{
-  "type": "command",
-  "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd\" validate-bash",
-  "shell": "bash"
+1. The batch section validates the script name and resolves the hook directory
+   from the dispatcher's own location.
+2. It tries bash in four places, in order:
+   - `C:\Program Files\Git\bin\bash.exe`
+   - `C:\Program Files (x86)\Git\bin\bash.exe`
+   - `%LOCALAPPDATA%\Programs\Git\bin\bash.exe` (a per-user Git for Windows
+     install), only when `LOCALAPPDATA` is set
+   - `bash` on `PATH` (MSYS2, Cygwin, or a non-default Git install), found by
+     running `%SystemRoot%\System32\where.exe $PATH:bash`, so neither `where`
+     nor `bash` is taken from the current directory. The WSL launchers
+     (`bash.exe` in `System32`, `Sysnative`, or
+     `%LOCALAPPDATA%\Microsoft\WindowsApps`) and extensionless matches are
+     skipped, since the launchers fail when no Linux distro is installed.
+3. If bash is found, it runs the named extensionless hook script from the hooks
+   directory and exits with the script's exit code.
+4. If no bash is found, the dispatcher exits `0` silently — the plugin
+   continues working, it just skips the hook.
+5. `exit /b` stops CMD before it reaches the Unix section.
+
+### How it works on Unix (bash/sh)
+
+1. `: << 'CMDBLOCK'` opens a heredoc on a no-op command.
+2. The entire CMD batch block is consumed by the heredoc and ignored.
+3. After `CMDBLOCK`, bash resolves the script directory and `exec`s the named
+   extensionless script directly.
+
+### Key design decisions
+
+| Decision | Why |
+|----------|-----|
+| Extensionless scripts | Prevents Claude Code's Windows `.sh`-auto-prepend from interfering with the dispatcher command |
+| No `-l` (login shell) | Not needed; hook scripts should be self-contained and not depend on login-shell PATH setup |
+| No `cygpath` | Bash receives the Windows path directly and handles it correctly; `cygpath` was needed by the old `-c "..."` invocation pattern, not by direct exec |
+| Silent exit on no-bash | Avoids breaking the plugin for users who don't have Git for Windows; hook context injection is skipped gracefully |
+
+## Writing Cross-Platform Hook Scripts
+
+Your hook logic goes in the extensionless script file. A few portable patterns:
+
+### Do
+- Use pure bash builtins when possible
+- Use `$(command)` instead of backticks
+- Quote all variable expansions: `"$VAR"`
+
+### Avoid
+- Relying on PATH-dependent tools without fallbacks (the hook runs without `-l`, so login-shell PATH is not set)
+- Giving scripts a `.sh` extension — this triggers Claude Code's Windows auto-prepend
+
+### Example: JSON escaping without external tools
+
+```bash
+escape_for_json() {
+    local input="$1"
+    local output=""
+    local i char
+    for (( i=0; i<${#input}; i++ )); do
+        char="${input:$i:1}"
+        case "$char" in
+            $'\\') output+='\\' ;;
+            '"') output+='\"' ;;
+            $'\n') output+='\n' ;;
+            $'\r') output+='\r' ;;
+            $'\t') output+='\t' ;;
+            *) output+="$char" ;;
+        esac
+    done
+    printf '%s' "$output"
 }
 ```
 
-Do not add a dedicated `.cmd` wrapper for each hook.
-
-## Portable hook scripts
-
-- Prefer Bash builtins and self-contained scripts.
-- Quote variable expansions such as `"$value"`.
-- Use `$(command)` instead of backticks.
-- Do not rely on login-shell PATH initialization.
-- Keep hook filenames extensionless.
-
 ## Troubleshooting
 
-### Bash is unavailable
+### "bash is not recognized"
 
-Install Git for Windows in a standard location or make `bash` available on
-`PATH`. Without Bash, the Windows dispatcher exits successfully and skips the
-hook.
+CMD couldn't find bash in any of the four locations the dispatcher tries. The dispatcher exits silently (0) rather than erroring, so the hook is skipped. Install Git for Windows (system-wide or per-user) or ensure a non-WSL `bash` is on `PATH`.
 
-### Hook works on Unix but not Windows
+### Hook runs on Unix but does nothing on Windows
 
-Confirm that `hooks.json` passes an extensionless script name, for example
-`run-hook.cmd session-start`, and that the script exists beside the dispatcher.
+Check that the script filename is **extensionless** in `hooks.json`. A command like `run-hook.cmd session-start.sh` can trigger Claude Code's `.sh` auto-detection and bypass the intended CMD dispatcher path, or just try to run a non-existent `session-start.sh` script.
 
-### Hook does not fire
+### Hook doesn't fire at all
 
-Confirm that the matcher is one Claude Code emits. This repository uses
-`startup|resume|clear|compact` for SessionStart.
+Verify the `matcher` in `hooks.json` matches the event type your harness emits. Claude Code uses `startup|resume|clear|compact` (or `startup|clear|compact`); Cursor uses `sessionStart`. Check `hooks-cursor.json` for the Cursor variant.
 
-## Upstream reference
+## Related Issues
 
-This implementation follows the Superpowers generic dispatcher pattern:
-
-- [Polyglot hooks documentation](https://github.com/obra/superpowers/blob/main/docs/windows/polyglot-hooks.md)
-- [`run-hook.cmd`](https://github.com/obra/superpowers/blob/main/hooks/run-hook.cmd)
+- [anthropics/claude-code#9758](https://github.com/anthropics/claude-code/issues/9758) — `.sh` scripts open in editor on Windows
+- [anthropics/claude-code#3417](https://github.com/anthropics/claude-code/issues/3417) — Hooks don't work on Windows

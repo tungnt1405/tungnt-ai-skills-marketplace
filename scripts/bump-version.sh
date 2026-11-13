@@ -21,69 +21,94 @@ fi
 
 # --- helpers ---
 
-node_json() {
-  node - "$@"
-}
-
 # Read a dotted field path from a JSON file.
 # Handles both simple ("version") and nested ("plugins.0.version") paths.
 read_json_field() {
   local file="$1" field="$2"
-  node_json "$file" "$field" <<'NODE'
-const fs = require('node:fs');
-const [file, field] = process.argv.slice(2);
-let value = JSON.parse(fs.readFileSync(file, 'utf8'));
-for (const key of field.split('.')) {
-  value = value?.[/^\d+$/.test(key) ? Number(key) : key];
-}
-if (value === undefined) process.exit(1);
-process.stdout.write(String(value));
-NODE
+  # Convert dot-path to jq path: "plugins.0.version" -> .plugins[0].version
+  local jq_path
+  jq_path=$(echo "$field" | sed -E 's/\.([0-9]+)/[\1]/g' | sed 's/^/./' | sed 's/\.\././g')
+  jq -r "$jq_path" "$file"
 }
 
-# Write a dotted field path in a JSON file, preserving indentation width.
+# Write a dotted field path in a JSON file, preserving formatting.
 write_json_field() {
   local file="$1" field="$2" value="$3"
+  local jq_path
+  jq_path=$(echo "$field" | sed -E 's/\.([0-9]+)/[\1]/g' | sed 's/^/./' | sed 's/\.\././g')
   local tmp="${file}.tmp"
-  node_json "$file" "$field" "$value" <<'NODE' > "$tmp"
-const fs = require('node:fs');
-const [file, field, nextValue] = process.argv.slice(2);
-const source = fs.readFileSync(file, 'utf8');
-const indent = source.match(/\n(\s+)\"/)?.[1].length ?? 2;
-const data = JSON.parse(source);
-const parts = field.split('.');
-let target = data;
-for (const key of parts.slice(0, -1)) {
-  target = target[/^\d+$/.test(key) ? Number(key) : key];
+  jq "$jq_path = \"$value\"" "$file" > "$tmp" && mv "$tmp" "$file"
 }
-const last = parts.at(-1);
-target[/^\d+$/.test(last) ? Number(last) : last] = nextValue;
-process.stdout.write(`${JSON.stringify(data, null, indent)}\n`);
-NODE
-  mv "$tmp" "$file"
+
+require_tool() {
+  command -v "$1" >/dev/null 2>&1 || {
+    echo "error: required tool '$1' is not on PATH" >&2
+    return 1
+  }
+}
+
+read_yaml_field() {
+  local file="$1" field="$2"
+  require_tool yq || return 1
+  FIELD="$field" yq -er '.[strenv(FIELD)] | select(tag == "!!str")' "$file"
+}
+
+write_yaml_field() {
+  local file="$1" field="$2" value="$3"
+  FIELD="$field" VALUE="$value" \
+    yq -i '.[strenv(FIELD)] = strenv(VALUE)' "$file"
+}
+
+read_manifest_field() {
+  local file="$1"
+
+  case "$file" in
+    *.json) read_json_field "$@" ;;
+    *.yaml) read_yaml_field "$@" ;;
+    *)
+      echo "error: unsupported manifest format: $file" >&2
+      return 1
+      ;;
+  esac
+}
+
+write_manifest_field() {
+  local file="$1"
+
+  case "$file" in
+    *.json) write_json_field "$@" ;;
+    *.yaml) write_yaml_field "$@" ;;
+    *)
+      echo "error: unsupported manifest format: $file" >&2
+      return 1
+      ;;
+  esac
 }
 
 # Read the list of declared files from config.
 # Outputs lines of "path<TAB>field"
 declared_files() {
-  node_json "$CONFIG" <<'NODE'
-const fs = require('node:fs');
-const config = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-for (const file of config.files) {
-  console.log(`${file.path}\t${file.field}`);
+  jq -r '.files[] | "\(.path)\t\(.field)"' "$CONFIG"
 }
-NODE
+
+preflight_manifests() {
+  local path field fullpath
+
+  require_tool jq || return 1
+  while IFS=$'\t' read -r path field; do
+    fullpath="$REPO_ROOT/$path"
+    [[ -f "$fullpath" ]] || continue
+
+    if ! read_manifest_field "$fullpath" "$field" >/dev/null; then
+      echo "error: cannot read declared manifest: $path ($field)" >&2
+      return 1
+    fi
+  done < <(declared_files)
 }
 
 # Read the audit exclude patterns from config.
 audit_excludes() {
-  node_json "$CONFIG" <<'NODE'
-const fs = require('node:fs');
-const config = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-for (const pattern of config.audit?.exclude ?? []) {
-  console.log(pattern);
-}
-NODE
+  jq -r '.audit.exclude[]' "$CONFIG" 2>/dev/null
 }
 
 # --- commands ---
@@ -103,17 +128,12 @@ cmd_check() {
       continue
     fi
     local ver
-    ver=$(read_json_field "$fullpath" "$field")
+    ver=$(read_manifest_field "$fullpath" "$field")
     printf "  %-45s  %s\n" "$path ($field)" "$ver"
     versions+=("$ver")
   done < <(declared_files)
 
   echo ""
-
-  if [[ "${#versions[@]}" -eq 0 ]]; then
-    echo "error: no declared version files found" >&2
-    return 1
-  fi
 
   # Check if all versions match
   local unique
@@ -141,10 +161,7 @@ cmd_audit() {
   current_version=$(
     while IFS=$'\t' read -r path field; do
       local fullpath="$REPO_ROOT/$path"
-      if [[ -f "$fullpath" ]]; then
-        read_json_field "$fullpath" "$field"
-        echo
-      fi
+      [[ -f "$fullpath" ]] && read_manifest_field "$fullpath" "$field"
     done < <(declared_files) | sort | uniq -c | sort -rn | head -1 | awk '{print $2}'
   )
 
@@ -171,7 +188,9 @@ cmd_audit() {
     declared_paths+=("$path")
   done < <(declared_files)
 
-  # Grep for the version string
+  # Grep for the version string, but not inside a longer number such as an
+  # IP address; a "v" prefix or surrounding quotes still match.
+  local version_pattern="(^|[^0-9.])${current_version//./\\.}([^0-9]|$)"
   local found_undeclared=0
   while IFS= read -r match; do
     local match_file
@@ -195,7 +214,7 @@ cmd_audit() {
       fi
       echo "  $match"
     fi
-  done < <(grep -rn "${exclude_args[@]}" -F "$current_version" "$REPO_ROOT" 2>/dev/null || true)
+  done < <(grep -rnE "${exclude_args[@]}" "$version_pattern" "$REPO_ROOT" 2>/dev/null || true)
 
   if [[ "$found_undeclared" -eq 0 ]]; then
     echo "No undeclared files contain the version string. All clear."
@@ -215,6 +234,8 @@ cmd_bump() {
     exit 1
   fi
 
+  preflight_manifests
+
   echo "Bumping all declared files to $new_version..."
   echo ""
 
@@ -225,8 +246,8 @@ cmd_bump() {
       continue
     fi
     local old_ver
-    old_ver=$(read_json_field "$fullpath" "$field")
-    write_json_field "$fullpath" "$field" "$new_version"
+    old_ver=$(read_manifest_field "$fullpath" "$field")
+    write_manifest_field "$fullpath" "$field" "$new_version"
     printf "  %-45s  %s -> %s\n" "$path ($field)" "$old_ver" "$new_version"
   done < <(declared_files)
 

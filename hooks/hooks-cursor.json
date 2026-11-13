@@ -3,12 +3,7 @@
   "hooks": {
     "sessionStart": [
       {
-        "command": "./hooks/session-start.cmd"
-      }
-    ],
-    "beforeSubmitPrompt": [
-      {
-        "command": "./hooks/run-hook.cmd user-prompt-submit"
+        "command": "./hooks/run-hook.cmd session-start"
       }
     ]
   }

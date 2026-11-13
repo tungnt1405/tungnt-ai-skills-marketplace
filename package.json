@@ -2,9 +2,26 @@
     "type": "module",
     "version": "1.2.3",
     "name": "tungnt-ai-skills",
+    "description": "tungnt-ai-skills skills and runtime bootstrap for coding agents",
     "main": ".opencode/plugins/tungnt-ai-skills.js",
     "bin": {
         "tungnt-ai-skills": "./bin/tungnt-ai-skills.js"
+    },
+    "keywords": [
+        "pi-package",
+        "skills",
+        "tdd",
+        "debugging",
+        "collaboration",
+        "workflow"
+    ],
+    "pi": {
+        "extensions": [
+            "./.pi/extensions/tungnt-ai-skills.ts"
+        ],
+        "skills": [
+            "./skills"
+        ]
     },
     "scripts": {
         "test:installer": "node tests/installer/run-tests.js",
