@@ -1,21 +1,31 @@
 ---
 name: using-tungnt-ai-skills
-description: Use when starting any conversation to load the bootstrap rules for this fork and decide which skill or collection to use first
+description: Use when starting any conversation - establishes how to find and use skills, requiring skill invocation before ANY response including clarifying questions
 ---
 
 <SUBAGENT-STOP>
-If you were dispatched as a subagent to execute a specific task, skip this skill.
+If you were dispatched as a subagent to execute a specific task, ignore this skill.
 </SUBAGENT-STOP>
 
 <EXTREMELY-IMPORTANT>
-If you think there is even a 1% chance a skill in this repo might apply, YOU MUST invoke the relevant skill before responding or taking action.
+If you think there is even a 1% chance a skill in this repo might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
 
-If a skill applies, use it. Do not rely on memory of older workflow copies from before this fork.
+IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+
+This is not negotiable. You cannot rationalize your way out of this. Do not rely on memory of older workflow copies from before this fork.
 </EXTREMELY-IMPORTANT>
+
+## The Rule
+
+**Invoke relevant or requested skills BEFORE any response or action** — including clarifying questions, exploring the codebase, or checking files. If it turns out wrong for the situation, you don't have to use it.
+
+**Before entering plan mode:** if you haven't already brainstormed, invoke the `brainstorming` skill first.
+
+Then announce "Using [skill] to [purpose]" and follow the skill exactly. If it has a checklist, create a todo per item.
 
 ## Instruction Priority
 
-These skills guide workflow, but user instructions still win:
+User instructions (CLAUDE.md, AGENTS.md, GEMINI.md, etc., direct requests) take precedence over skills, which in turn override default behavior. Only skip skill workflows or instructions when your human partner has explicitly told you to.
 
 1. User instructions in the current conversation or repo docs
 2. `tungnt-ai-skills` skills
@@ -48,6 +58,39 @@ MUST remember the policies when executing, ALWAYS PRIORITIZE following `tais/set
 - Never mutate `setting.json` unless the user explicitly asks.
 - Pass relevant policy values to subagents when dispatching them (they skip bootstrap).
 
+## Skill Priority
+
+When multiple skills apply, process skills come first — they set the approach, then domain/implementation skills carry it out. `brainstorming` and `investigation` are `tungnt-ai-skills`'s most common process skills, but the rule holds for any of them.
+
+- "Let's build X" → `brainstorming` first, then domain/implementation skills.
+- "Fix this bug" → `investigation` first, then domain skills.
+
+When multiple skills may apply, use this order:
+
+1. Bootstrap with `using-tungnt-ai-skills`
+2. Choose a process skill that determines approach and gates
+3. Choose a domain skill that supplies evidence, constraints, or implementation guidance inside that process
+
+## Red Flags
+
+These thoughts mean STOP—you're rationalizing:
+
+| Thought | Reality |
+|---------|---------|
+| "This is just a simple question" | Questions are tasks. Check for skills. |
+| "I need more context first" | Skill check comes BEFORE clarifying questions. |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
+| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
+| "Let me gather information first" | Skills tell you HOW to gather information. |
+| "This doesn't need a formal skill" | If a skill exists, use it. |
+| "I remember this skill" | Skills evolve. Read current version. |
+| "This doesn't count as a task" | Action = task. Check for skills. |
+| "The skill is overkill" | Simple things become complex. Use it. |
+| "I'll just do this one thing first" | Check BEFORE doing anything. |
+| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
+| "The domain skill has a checklist, so I can implement now" | Domain skills do not bypass the process workflow. |
+
 ## What This Fork Contains
 
 This fork is a curated workflow skillset with its own structure and naming.
@@ -61,7 +104,7 @@ Process skills choose the workflow and enforce gates. Exactly one process path s
 - `investigation`
   Purpose: evidence-graded debugging, incident tracing, and code-area exploration before fixes or plans.
 - `quick-dev`
-  Purpose: fast path for low-risk, easily verifiable code changes that need the brainstorming pipeline to define changes and do not require full planning
+  Purpose: fast path for low-risk, easily verifiable code changes that need the brainstorming pipeline to define changes and do not require full planning.
 - `brainstorming`
   Purpose: design exploration and approval gate before creative work or behavior changes.
 - `writing-plans`
@@ -96,9 +139,9 @@ Manual domain utility skills run only when the user explicitly invokes them. The
 - `prompt-leverage`
   Purpose: manually upgrade, clarify, template, or apply raw prompts. Use only when `skill:prompt-leverage` requires direct prompt improvement. If the user requests `apply`, restart normal workflow selection after producing the upgraded prompt.
 - `ba-spec`
-  Purpose: manually generate BA feature specifications from business input, Figma links/screenshots, documents, tickets, meeting notes, or change requests in the conversation language unless the user explicitly asks otherwise. Use only when the user explicitly invokes `ba-spec` or `ba spec` or `skill:ba-spec`; it must not auto-run during install, session bootstrap, or generic BA/spec requests, and it does not implement production code. ONLY ACTIVATE manually when directly using `/ba-spec`, for other cases DO NOT ACTIVATE
+  Purpose: manually generate BA feature specifications from business input, Figma links/screenshots, documents, tickets, meeting notes, or change requests in the conversation language unless the user explicitly asks otherwise. Use only when the user explicitly invokes `ba-spec` or `ba spec` or `skill:ba-spec`; it must not auto-run during install, session bootstrap, or generic BA/spec requests, and it does not implement production code. ONLY ACTIVATE manually when directly using `/ba-spec`, for other cases DO NOT ACTIVATE.
 - `figma-to-code`
-  Purpose: manually convert one selected Figma frame/component/instance into frontend code. Use only when the user explicitly invokes `figma-to-code` or `figma to code` or `skill:figma-to-code`, asks to implement UI code from Figma, or when active `ba-spec` work needs Figma implementation guidance; it must not auto-run for BA-only specs or Figma evidence logs. ONLY ACTIVATE manually when directly using `/figma-to-code` or invoked by (`/brainstorming` or `/ba-spec`) to get reference results, for other cases DO NOT ACTIVATE
+  Purpose: manually convert one selected Figma frame/component/instance into frontend code. Use only when the user explicitly invokes `figma-to-code` or `figma to code` or `skill:figma-to-code`, asks to implement UI code from Figma, or when active `ba-spec` work needs Figma implementation guidance; it must not auto-run for BA-only specs or Figma evidence logs. ONLY ACTIVATE manually when directly using `/figma-to-code` or invoked by (`/brainstorming` or `/ba-spec`) to get reference results, for other cases DO NOT ACTIVATE.
 
 Treat these skills as domain skills and only activate manually when the user explicitly uses/invokes the skill directly; these skills serve as domain-specific supplements for what the skill supports. When activating these skills, except for `skill:prompt-leverage` which serves as a basis for brainstorming to implement requirements, planning, analysis, and evaluation. For the remaining domain skills, once completed, stop without further processing to conclude the domain skill and inform the user.
 
@@ -133,35 +176,16 @@ In other environments, use the platform's documented skill-loading mechanism.
 
 ## Platform Adaptation
 
-Some skills use Claude Code tool names in their instructions. For platform-specific tool mapping:
+If your harness appears here, read its reference file for special instructions:
 
+- Claude Code: `skills/using-tungnt-ai-skills/references/claude-code-tools.md`
 - Copilot CLI: `skills/using-tungnt-ai-skills/references/copilot-tools.md`
 - Codex: `skills/using-tungnt-ai-skills/references/codex-tools.md`
 - Gemini CLI: `skills/using-tungnt-ai-skills/references/gemini-tools.md`
-
-## The Rule
-
-Invoke relevant or requested skills before any meaningful response or action, including exploratory steps when a skill collection clearly applies.
-
-The selected process skill controls the workflow. Domain skills may add constraints, evidence, examples, checklists, or review lenses, but they do not satisfy or bypass `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development`, `investigation`, review, or `writing-skills` gates.
-
-Examples:
-
-- Planning or decomposition work: check the root workflow skills in `skills/`
-- Brainstorming or structured ideation: check the root workflow skills in `skills/`
-- Prompt upgrade request: use `prompt-leverage` only if the user explicitly asks for prompt leverage, prompt improvement, prompt clarification, prompt templating, or `skill:prompt-leverage`
-- Generate project documentation according to BA standards: use `ba-spec` only when the user explicitly requests generating clear BA standard documents, project transfer documents, document templates, or standardizing project documents.
-- Slice interface according to Figma: use `figma-to-code` only when the user requests slicing according to a specific Figma URL, slicing according to a Figma template, or making it match Figma exact.
-
-If no skill clearly applies, continue normally following the process: `brainstorming` -> `writing-plans` -> `executing-plans`/ `subagent-driven-development` -> `finishing-a-development-branch`.
-
-## Recommended Selection Order
-
-When multiple skills may apply, use this order:
-
-1. Bootstrap with `using-tungnt-ai-skills`
-2. Choose a process skill that determines approach and gates
-3. Choose a domain skill that supplies evidence, constraints, or implementation guidance inside that process
+- Pi: `skills/using-tungnt-ai-skills/references/pi-tools.md`
+- Antigravity: `skills/using-tungnt-ai-skills/references/antigravity-tools.md`
+- Hermes Agent: `skills/using-tungnt-ai-skills/references/hermes-tools.md`
+- Muse: `skills/using-tungnt-ai-skills/references/muse-tools.md`
 
 ## Ambiguous Project Triage
 
@@ -188,42 +212,10 @@ After selecting the process skill, scan the user request, approved plan, current
 
 Domain routing examples:
 
-- "Tests auth middleware are failing because user A can read user B's resource" -> process `investigation`, then lens `security-and-hardening`.
-- "Add REST endpoint to create invoice with idempotency and paginated list" -> process `brainstorming`, then lens `api-design`; add `security-and-hardening` if money, auth, tenant, or PII behavior is involved.
-- "Review auth diff before merge" -> process `requesting-code-review`, then lens `security-and-hardening`.
-- "Build permissions dashboard with roles, invites, and audit log" -> process `brainstorming`, then lenses `ui-ux-pro-max` and `security-and-hardening`.
-
-Examples:
-
-- "Design an endpoint"
-  Use `brainstorming` first for new behavior, then use `api-design` inside that design workflow. Use `writing-plans` only after the design/spec gate is satisfied.
-- "Add auth, CORS, or payment handling"
-  Use `brainstorming` first unless `quick-dev` clearly passes. Use `security-and-hardening` as a domain lens inside the selected workflow.
-- "Create or update a skill"
-  Use `writing-skills`; domain skills cannot replace the RED/GREEN skill-testing gate.
-- "Plan a feature"
-  First check `writing-plans`.
-- "Brainstorm a solution"
-  First check `brainstorming`.
-- "Investigate why this fails" / "trace this bug" / "explain this unfamiliar code path"
-  Use `investigation` before proposing fixes.
-- "Make this tiny fix" / "small tweak in one file"
-  Use `quick-dev` only when its scope gate is satisfied. If the work is creative, ambiguous, or changes broader behavior, `brainstorming` remains mandatory before `writing-plans`.
-- "Build a landing page" / "Design a dashboard UI" / "Improve UI/UX"
-  Use `brainstorming` for requirement discovery and design approval when the work is creative or changes behavior. During that design work, use `ui-ux-pro-max` to generate UI/UX evidence and design-system recommendations. Do not let `ui-ux-pro-max` replace the brainstorming gate or change the next step from `writing-plans`.
-
-## Red Flags
-
-These usually mean you are skipping the repo's workflow discipline:
-
-- "This is simple, I do not need a skill"
-- "I will inspect files first and decide later"
-- "I remember how an older version handled this"
-- "The folder name looks close enough"
-- "The domain skill has a checklist, so I can implement now"
-- "Security/API/UI guidance is enough; no need for the process workflow"
-
-Stop and load the matching current skill instead.
+- "Tests auth middleware are failing because user A can read user B's resource" → process `investigation`, then lens `security-and-hardening`.
+- "Add REST endpoint to create invoice with idempotency and paginated list" → process `brainstorming`, then lens `api-design`; add `security-and-hardening` if money, auth, tenant, or PII behavior is involved.
+- "Review auth diff before merge" → process `requesting-code-review`, then lens `security-and-hardening`.
+- "Build permissions dashboard with roles, invites, and audit log" → process `brainstorming`, then lenses `ui-ux-pro-max` and `security-and-hardening`.
 
 ## Naming Notes
 

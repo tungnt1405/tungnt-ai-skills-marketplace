@@ -21,69 +21,166 @@ fi
 
 # --- helpers ---
 
-node_json() {
-  node - "$@"
-}
-
 # Read a dotted field path from a JSON file.
 # Handles both simple ("version") and nested ("plugins.0.version") paths.
 read_json_field() {
   local file="$1" field="$2"
-  node_json "$file" "$field" <<'NODE'
-const fs = require('node:fs');
-const [file, field] = process.argv.slice(2);
-let value = JSON.parse(fs.readFileSync(file, 'utf8'));
-for (const key of field.split('.')) {
-  value = value?.[/^\d+$/.test(key) ? Number(key) : key];
-}
-if (value === undefined) process.exit(1);
-process.stdout.write(String(value));
-NODE
+  python3 - "$file" "$field" <<'PY'
+import json, sys
+
+path, field = sys.argv[1], sys.argv[2]
+try:
+    node = json.load(open(path, encoding="utf-8"))
+    for part in field.split("."):
+        node = node[int(part)] if isinstance(node, list) else node[part]
+except (OSError, ValueError, KeyError, IndexError) as exc:
+    sys.exit(f"error: cannot read {field} from {path}: {exc}")
+if not isinstance(node, str):
+    sys.exit(f"error: {field} is not a string in {path}")
+print(node)
+PY
 }
 
-# Write a dotted field path in a JSON file, preserving indentation width.
+# Write a dotted field path in a JSON file.
 write_json_field() {
   local file="$1" field="$2" value="$3"
   local tmp="${file}.tmp"
-  node_json "$file" "$field" "$value" <<'NODE' > "$tmp"
-const fs = require('node:fs');
-const [file, field, nextValue] = process.argv.slice(2);
-const source = fs.readFileSync(file, 'utf8');
-const indent = source.match(/\n(\s+)\"/)?.[1].length ?? 2;
-const data = JSON.parse(source);
-const parts = field.split('.');
-let target = data;
-for (const key of parts.slice(0, -1)) {
-  target = target[/^\d+$/.test(key) ? Number(key) : key];
-}
-const last = parts.at(-1);
-target[/^\d+$/.test(last) ? Number(last) : last] = nextValue;
-process.stdout.write(`${JSON.stringify(data, null, indent)}\n`);
-NODE
+  python3 - "$file" "$tmp" "$field" "$value" <<'PY'
+import json, re, sys
+
+path, tmp, field, value = sys.argv[1:5]
+try:
+    raw = open(path, encoding="utf-8").read()
+    data = json.loads(raw)
+    # Preserve the file's existing indentation instead of forcing 2 spaces.
+    match = re.search(r"\n([ \t]+)[^\s]", raw)
+    indent = len(match.group(1)) if match else 2
+    node = data
+    parts = field.split(".")
+    for part in parts[:-1]:
+        node = node[int(part)] if isinstance(node, list) else node[part]
+    last = parts[-1]
+    if isinstance(node, list):
+        node[int(last)] = value
+    else:
+        node[last] = value
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(data, fh, indent=indent, ensure_ascii=False)
+        fh.write("\n")
+except (OSError, ValueError, KeyError, IndexError) as exc:
+    sys.exit(f"error: cannot write {field} to {path}: {exc}")
+PY
   mv "$tmp" "$file"
+}
+
+# ponytail: flat top-level scalar keys only — the only YAML manifests declared
+# are flat. Nested YAML would need PyYAML or yq.
+read_yaml_field() {
+  local file="$1" field="$2"
+  python3 - "$file" "$field" <<'PY'
+import re, sys
+
+path, field = sys.argv[1], sys.argv[2]
+try:
+    lines = open(path, encoding="utf-8").read().splitlines()
+except OSError as exc:
+    sys.exit(f"error: cannot read {path}: {exc}")
+pattern = re.compile(r"^" + re.escape(field) + r":\s*(.*?)\s*$")
+for line in lines:
+    match = pattern.match(line)
+    if not match:
+        continue
+    raw = match.group(1)
+    if raw[:1] in ("'", '"') and raw[:1] == raw[-1:]:
+        print(raw[1:-1])
+        sys.exit(0)
+    if raw == "" or raw in ("null", "~", "true", "false") or re.fullmatch(r"-?\d+(\.\d+)?", raw):
+        sys.exit(f"error: {field} is not a string in {path}")
+    print(raw)
+    sys.exit(0)
+sys.exit(f"error: {field} not found in {path}")
+PY
+}
+
+write_yaml_field() {
+  local file="$1" field="$2" value="$3"
+  python3 - "$file" "$field" "$value" <<'PY'
+import re, sys
+
+path, field, value = sys.argv[1:4]
+try:
+    text = open(path, encoding="utf-8").read()
+except OSError as exc:
+    sys.exit(f"error: cannot read {path}: {exc}")
+new_text, count = re.subn(
+    r"(?m)^" + re.escape(field) + r":.*$", f"{field}: {value}", text, count=1
+)
+if not count:
+    sys.exit(f"error: {field} not found in {path}")
+with open(path, "w", encoding="utf-8") as fh:
+    fh.write(new_text)
+PY
+}
+
+read_manifest_field() {
+  local file="$1"
+
+  case "$file" in
+    *.json) read_json_field "$@" ;;
+    *.yaml) read_yaml_field "$@" ;;
+    *)
+      echo "error: unsupported manifest format: $file" >&2
+      return 1
+      ;;
+  esac
+}
+
+write_manifest_field() {
+  local file="$1"
+
+  case "$file" in
+    *.json) write_json_field "$@" ;;
+    *.yaml) write_yaml_field "$@" ;;
+    *)
+      echo "error: unsupported manifest format: $file" >&2
+      return 1
+      ;;
+  esac
 }
 
 # Read the list of declared files from config.
 # Outputs lines of "path<TAB>field"
 declared_files() {
-  node_json "$CONFIG" <<'NODE'
-const fs = require('node:fs');
-const config = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-for (const file of config.files) {
-  console.log(`${file.path}\t${file.field}`);
+  python3 - "$CONFIG" <<'PY'
+import json, sys
+
+for entry in json.load(open(sys.argv[1], encoding="utf-8"))["files"]:
+    print(f"{entry['path']}\t{entry['field']}")
+PY
 }
-NODE
+
+preflight_manifests() {
+  local path field fullpath
+
+  while IFS=$'\t' read -r path field; do
+    fullpath="$REPO_ROOT/$path"
+    [[ -f "$fullpath" ]] || continue
+
+    if ! read_manifest_field "$fullpath" "$field" >/dev/null; then
+      echo "error: cannot read declared manifest: $path ($field)" >&2
+      return 1
+    fi
+  done < <(declared_files)
 }
 
 # Read the audit exclude patterns from config.
 audit_excludes() {
-  node_json "$CONFIG" <<'NODE'
-const fs = require('node:fs');
-const config = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-for (const pattern of config.audit?.exclude ?? []) {
-  console.log(pattern);
-}
-NODE
+  python3 - "$CONFIG" <<'PY' 2>/dev/null
+import json, sys
+
+for pattern in json.load(open(sys.argv[1], encoding="utf-8")).get("audit", {}).get("exclude", []):
+    print(pattern)
+PY
 }
 
 # --- commands ---
@@ -103,7 +200,7 @@ cmd_check() {
       continue
     fi
     local ver
-    ver=$(read_json_field "$fullpath" "$field")
+    ver=$(read_manifest_field "$fullpath" "$field")
     printf "  %-45s  %s\n" "$path ($field)" "$ver"
     versions+=("$ver")
   done < <(declared_files)
@@ -111,7 +208,7 @@ cmd_check() {
   echo ""
 
   if [[ "${#versions[@]}" -eq 0 ]]; then
-    echo "error: no declared version files found" >&2
+    echo "error: could not read any declared manifest versions" >&2
     return 1
   fi
 
@@ -141,10 +238,7 @@ cmd_audit() {
   current_version=$(
     while IFS=$'\t' read -r path field; do
       local fullpath="$REPO_ROOT/$path"
-      if [[ -f "$fullpath" ]]; then
-        read_json_field "$fullpath" "$field"
-        echo
-      fi
+      [[ -f "$fullpath" ]] && read_manifest_field "$fullpath" "$field"
     done < <(declared_files) | sort | uniq -c | sort -rn | head -1 | awk '{print $2}'
   )
 
@@ -163,7 +257,7 @@ cmd_audit() {
   done < <(audit_excludes)
 
   # Also always exclude binary files and .git
-  exclude_args+=("--exclude-dir=.git" "--exclude-dir=node_modules" "--binary-files=without-match")
+  exclude_args+=("--exclude-dir=.git" "--exclude-dir=node_modules" "--exclude=package-lock.json" "--binary-files=without-match")
 
   # Get list of declared paths for comparison
   local -a declared_paths=()
@@ -171,7 +265,9 @@ cmd_audit() {
     declared_paths+=("$path")
   done < <(declared_files)
 
-  # Grep for the version string
+  # Grep for the version string, but not inside a longer number such as an
+  # IP address; a "v" prefix or surrounding quotes still match.
+  local version_pattern="(^|[^0-9.])${current_version//./\\.}([^0-9]|$)"
   local found_undeclared=0
   while IFS= read -r match; do
     local match_file
@@ -195,7 +291,7 @@ cmd_audit() {
       fi
       echo "  $match"
     fi
-  done < <(grep -rn "${exclude_args[@]}" -F "$current_version" "$REPO_ROOT" 2>/dev/null || true)
+  done < <(grep -rnE "${exclude_args[@]}" "$version_pattern" "$REPO_ROOT" 2>/dev/null || true)
 
   if [[ "$found_undeclared" -eq 0 ]]; then
     echo "No undeclared files contain the version string. All clear."
@@ -215,6 +311,8 @@ cmd_bump() {
     exit 1
   fi
 
+  preflight_manifests
+
   echo "Bumping all declared files to $new_version..."
   echo ""
 
@@ -225,8 +323,8 @@ cmd_bump() {
       continue
     fi
     local old_ver
-    old_ver=$(read_json_field "$fullpath" "$field")
-    write_json_field "$fullpath" "$field" "$new_version"
+    old_ver=$(read_manifest_field "$fullpath" "$field")
+    write_manifest_field "$fullpath" "$field" "$new_version"
     printf "  %-45s  %s -> %s\n" "$path ($field)" "$old_ver" "$new_version"
   done < <(declared_files)
 
@@ -237,6 +335,11 @@ cmd_bump() {
 }
 
 # --- main ---
+
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "error: required tool 'python3' is not on PATH" >&2
+  exit 1
+fi
 
 case "${1:-}" in
   --check)
