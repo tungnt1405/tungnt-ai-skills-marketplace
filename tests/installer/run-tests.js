@@ -415,6 +415,39 @@ test('update --agent copilot --native falls back when the native command exits 1
   );
 });
 
+test('native commands skip an unusable PATH candidate and use the next one', () => {
+  const home = tempDir();
+  const unusable = tempDir();
+  const working = tempDir();
+  const logFile = path.join(home, 'commands.log');
+  const out = capture();
+  const isWindows = process.platform === 'win32';
+  const name = isWindows ? 'copilot.cmd' : 'copilot';
+
+  fs.writeFileSync(path.join(unusable, name), isWindows ? '@echo off\r\nexit /b 127\r\n' : '#!/bin/sh\nexit 127\n');
+  fs.writeFileSync(
+    path.join(working, name),
+    isWindows
+      ? '@echo off\r\necho %*>>"%TEST_COMMAND_LOG%"\r\nexit /b 0\r\n'
+      : '#!/bin/sh\necho "$*" >> "$TEST_COMMAND_LOG"\nexit 0\n',
+  );
+  if (!isWindows) {
+    fs.chmodSync(path.join(unusable, name), 0o755);
+    fs.chmodSync(path.join(working, name), 0o755);
+  }
+
+  const env = {
+    ...fakeEnv(home),
+    PATH: `${unusable}${path.delimiter}${working}`,
+    TEST_COMMAND_LOG: logFile,
+  };
+  const code = runCli(['update', '--agent', 'copilot', '--native'], env, out.io);
+
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stderr().includes('native commands unavailable'), false);
+  assert.equal(fs.readFileSync(logFile, 'utf8').includes('plugin marketplace update'), true);
+});
+
 test('plugin manifests select hooks for their harness', () => {
   const copilotManifest = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, '.github', 'plugin', 'plugin.json'), 'utf8'));
   const claudeManifest = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, '.claude-plugin', 'plugin.json'), 'utf8'));
