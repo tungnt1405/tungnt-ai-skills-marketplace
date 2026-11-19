@@ -128,9 +128,6 @@ Domain skills add specialized judgment inside the selected workflow. They are ne
 - `security-and-hardening`
   Purpose: application security and DevSecOps judgment when implementing for brainstorming, planning, execution, or application security review.
   TRIGGER: only activate when the user explicitly invokes the skill manually or `brainstorming` invokes it; ABSOLUTELY do not self-activate from other skills or select from bootstrap to activate.
-- `ui-ux-pro-max`
-  Purpose: design intelligence for UI/UX work. Use in UI design, review, or implementation to query design databases and generate design-system evidence. This is a domain skill, not a process skill.
-  TRIGGER: only activate when the user explicitly invokes the skill manually or `brainstorming` invokes it; ABSOLUTELY do not self-activate from other skills or select from bootstrap to activate.
 
 ### Manual Utility Skills
 
@@ -195,10 +192,10 @@ When the user's description is vague, broad, or mixes several concerns, do a sho
 2. **Classify the work shape.** Is this a bug investigation, tiny edit, new behavior, approved plan, code review, skill authoring, or finish/merge task?
 3. **Choose the process skill.** Process choice comes from the work shape, not from the domain. If still unclear, use `brainstorming` for new behavior or ask one concise clarification.
 4. **Scan domain signals.** After process selection, use the domain lens routing table below.
-5. **Name the priority.** If multiple lenses match, use the one tied to the highest risk first: security/data loss > public API contract > UI/UX.
+5. **Name the priority.** If multiple lenses match, use the one tied to the highest risk first: security/data loss > public API contract.
 6. Additional lenses are secondary.
 
-Do not use domain signals as permission to skip the process workflow. "Auth dashboard" means `brainstorming` first, then `security-and-hardening` and `ui-ux-pro-max` as lenses.
+Do not use domain signals as permission to skip the process workflow. "Auth dashboard" means `brainstorming` first, then `security-and-hardening` as a lens.
 
 ## Domain Lens Routing
 
@@ -208,14 +205,12 @@ After selecting the process skill, scan the user request, approved plan, current
 | --- | --- |
 | REST, HTTP, endpoint, route, controller, request schema, response schema, error shape, pagination, filtering, sorting, idempotency, versioning, backward compatibility, SDK contract | `api-design` |
 | auth, authentication, authorization, session, cookie, CORS, CSRF, secrets, PII, payment, tenant isolation, file upload, webhook, SSRF, dependency audit, supply chain, OWASP, DevSecOps, LLM output, tool permissions | `security-and-hardening` |
-| UI, UX, dashboard, layout, component, form, table, mobile screen, web app screen, design system, visual hierarchy, responsive behavior, accessibility, interaction pattern | `ui-ux-pro-max` |
 
 Domain routing examples:
 
 - "Tests auth middleware are failing because user A can read user B's resource" → process `investigation`, then lens `security-and-hardening`.
 - "Add REST endpoint to create invoice with idempotency and paginated list" → process `brainstorming`, then lens `api-design`; add `security-and-hardening` if money, auth, tenant, or PII behavior is involved.
 - "Review auth diff before merge" → process `requesting-code-review`, then lens `security-and-hardening`.
-- "Build permissions dashboard with roles, invites, and audit log" → process `brainstorming`, then lenses `ui-ux-pro-max` and `security-and-hardening`.
 
 ## Naming Notes
 

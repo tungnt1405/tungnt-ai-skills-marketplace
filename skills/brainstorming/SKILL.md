@@ -136,13 +136,6 @@ When the design touches specialized areas, integrate the following domain skills
 - If missing information or Figma content issues are detected, analyze the root cause, fix them, then call `skills/figma-to-code` again to check. Repeat up to 3 times maximum.
 - If after 3 times it is still not resolved, mandatory stop `brainstorming` and notify: "Encountering Figma slicing issues: along with the list of issues being encountered for the user to decide the next step."
 
-**UI/UX Design:**
-- Use `skills/ui-ux-pro-max` as a checking tool to verify whether the UI/UX design is natural and friendly or not.
-- Wait for `skills/ui-ux-pro-max` to respond, then perform the next steps according to the exact instructions from this skill.
-- If bad experience, interface errors, or experience/interface vulnerabilities are detected, analyze the root cause, fix them, then call `skills/ui-ux-pro-max` again to check. Repeat up to 3 times maximum.
-- If after 3 times it is still not resolved, mandatory stop `brainstorming` and notify: "Encountering UI/UX design issues: along with the list of issues being encountered for the user to decide the next step."
-- ABSOLUTELY must not continue if tried 3 times and still not resolved. Must stop to notify and wait for user confirmation.
-
 ## Size the Work
 
 Once you understand what they want and they've picked an approach, say how big the work is in plain words. They can override it.
