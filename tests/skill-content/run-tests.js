@@ -301,4 +301,30 @@ assertIncludes(brainstorming, 'tais/setting.json', 'brainstorming tais setting r
 assertIncludes(quickDev, 'Micro-Brainstorm Preflight', 'quick-dev micro-brainstorm section');
 assertIncludes(quickDev, 'Skip preflight ONLY WHEN', 'quick-dev preflight skip condition');
 
+// Phase 6: Third-party skill dispatch
+const dispatch = read('skills/third-party-skill-dispatch/SKILL.md');
+assert.equal(frontmatterName(dispatch), 'third-party-skill-dispatch', 'dispatch frontmatter name');
+assertIncludes(dispatch, 'policy.thirdPartySkills.allowed', 'dispatch allowlist key');
+assertIncludes(dispatch, 'is not authorized for third-party dispatch', 'dispatch refusal message');
+assertIncludes(dispatch, 'policy.thirdPartySkills.denied', 'dispatch deny list key');
+assertIncludes(dispatch, 'is denied by policy.thirdPartySkills.denied', 'dispatch deny refusal message');
+assertIncludes(dispatch, 'Deny wins over allow', 'dispatch deny precedence');
+assertIncludes(dispatch, 'is allowed but not installed', 'dispatch missing install message');
+assertIncludes(dispatch, 'bash scripts/find-skill.sh <name>', 'dispatch find script step');
+assertIncludes(dispatch, '`allowed` defaults to empty', 'dispatch empty allowlist default');
+assert.equal(exists('skills/third-party-skill-dispatch/scripts/find-skill.sh'), true, 'find-skill.sh must exist');
+assertIncludes(dispatch, 'Gate names a parent skill', 'dispatch gate routing');
+assertIncludes(dispatch, 'Show the rewritten prompt', 'dispatch prompt visibility');
+assertIncludes(bootstrap, '- `third-party-skill-dispatch`', 'bootstrap dispatch utility');
+assertIncludes(bootstrap, 'policy.thirdPartySkills.allowed', 'bootstrap dispatch allowlist policy');
+for (const settingsFile of ['setting.json', 'setting.template.json']) {
+  assertIncludes(read(settingsFile), '"thirdPartySkills"', `${settingsFile} dispatch allowlist`);
+  assertIncludes(read(settingsFile), '"denied"', `${settingsFile} dispatch deny list`);
+  assert.deepEqual(
+    JSON.parse(read(settingsFile)).policy.thirdPartySkills.allowed,
+    [],
+    `${settingsFile} dispatch allowlist must default to empty`,
+  );
+}
+
 console.log('skill content tests passed');

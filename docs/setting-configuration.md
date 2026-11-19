@@ -40,6 +40,10 @@ To customize per project, simply create a `tais/` directory and place `setting.j
     },
     "installAndUpdate": {
       "askUser": true
+    },
+    "thirdPartySkills": {
+      "allowed": [],
+      "denied": []
     }
   }
 }
@@ -67,3 +71,8 @@ Manages access to sensitive files:
 
 ### 5. `installAndUpdate` (object)
 - **`askUser` (boolean)**: When `true`, AI must ask the user before installing or updating dependencies.
+
+### 6. `thirdPartySkills` (object)
+Controls which named skills `third-party-skill-dispatch` may run when the user says "dùng/sử dụng `<skill>` để ..." or "use `<skill>` to ...".
+- **`allowed` (array)**: Skill names authorized for dispatch. Defaults to `[]` — nothing is dispatched until you add names in the global plugin `setting.json` or in `tais/setting.json` of a project. A skill outside this list is refused with the exact setting key to edit; an authorized skill that is not installed is refused with install instructions. `["*"]` authorizes every installed skill.
+- **`denied` (array)**: Skill names refused for dispatch before any prompt is written or any skill file is read. Deny wins over allow, including `"allowed": ["*"]`. The refusal asks the user for another approach or a deny-list edit.

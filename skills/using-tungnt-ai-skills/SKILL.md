@@ -46,6 +46,8 @@ Before taking actions, read `tais/setting.json` at the project root if available
 | `policy.sensitiveFiles.blocked` | Do not read or write files matching these patterns. |
 | `policy.sensitiveFiles.askConfirmation` | When `true`: ask the user before touching sensitive files. |
 | `policy.installAndUpdate.askUser` | When `true`: ask the user before installing or updating dependencies. |
+| `policy.thirdPartySkills.allowed` | Only these skill names may be dispatched by `third-party-skill-dispatch`; anything else is refused with install/allowlist guidance. Defaults to empty, so nothing dispatches until the user configures it globally or in `tais/setting.json`. `["*"]` allows every installed skill. |
+| `policy.thirdPartySkills.denied` | These skill names are refused by `third-party-skill-dispatch` before any prompt is written. Deny wins over allow, including `["*"]`. |
 
 MUST remember the policies when executing, ALWAYS PRIORITIZE following `tais/setting.json` in the current workspace if available or `setting.json` at the plugin root to get policies.
 
@@ -133,6 +135,8 @@ Domain skills add specialized judgment inside the selected workflow. They are ne
 
 Manual domain utility skills run only when the user explicitly invokes them. They do not select a workflow and must not auto-trigger on vague, complex, or underspecified requests.
 
+- `third-party-skill-dispatch`
+  Purpose: handle "dùng/sử dụng <skill> để/làm <task>" and "use <skill> to <task>" requests. Checks `policy.thirdPartySkills.allowed`, reads the named skill's installed `SKILL.md`, rewrites the raw ask into that skill's input contract through `prompt-leverage`, then routes through any activation gate the target declares.
 - `prompt-leverage`
   Purpose: manually upgrade, clarify, template, or apply raw prompts. Use only when `skill:prompt-leverage` requires direct prompt improvement. If the user requests `apply`, restart normal workflow selection after producing the upgraded prompt.
 - `ba-spec`
