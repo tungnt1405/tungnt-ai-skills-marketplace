@@ -25,6 +25,10 @@
     },
     "installAndUpdate": {
       "askUser": true
+    },
+    "thirdPartySkills": {
+      "allowed": [],
+      "denied": []
     }
   }
 }
