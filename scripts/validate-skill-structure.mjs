@@ -12,9 +12,6 @@ const domainSkills = {
   'security-and-hardening': {
     description: 'Use when the brainstorming skill is activated and invokes this skill; the skill is a supporting lens for brainstorming when help is needed with security decisions and system hardening.',
   },
-  'ui-ux-pro-max': {
-    description: 'Use when the brainstorming skill is activated and invokes this skill; the skill is a supporting lens for brainstorming evaluation, design, and edits when designing UI/UX',
-  },
 };
 
 function read(relativePath) {
@@ -81,11 +78,8 @@ for (const required of [
   '`api-design`',
   'auth, authentication, authorization',
   '`security-and-hardening`',
-  'UI, UX, dashboard',
-  '`ui-ux-pro-max`',
   'Tests auth middleware are failing',
   'Add REST endpoint to create invoice',
-  'Build permissions dashboard',
 ]) {
   assert.equal(
     bootstrap.includes(required),
