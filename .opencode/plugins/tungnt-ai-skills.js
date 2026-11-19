@@ -1,9 +1,10 @@
 /**
  * tungnt-ai-skills plugin for OpenCode.ai
  *
- * V2 module contract (`default { id, setup }`, OpenCode >= 1.18.30): registers
- * the bundled skills through `skill.transform` and injects the bootstrap
- * context through the `context`, `compaction` and `generate` hooks.
+ * OpenCode 1.18.30 loads `default { id, server }`, where `server` returns the
+ * classic hooks (`config`, `experimental.chat.messages.transform`). Newer V2
+ * hosts load `default { id, setup }` and register skills through
+ * `skill.transform`. Both contracts are exported so either host works.
  */
 
 import path from 'path';
@@ -115,8 +116,36 @@ const partsOf = (message) => {
 const isBootstrapPart = (part) =>
   part?.type === 'text' && typeof part.text === 'string' && part.text.startsWith(MARKER);
 
+// Classic OpenCode contract (<= 1.18.30): the host calls `server()` and merges
+// the returned hooks. Skills are registered by mutating the merged config.
+export const TungntAiSkillsPlugin = async () => ({
+  config: async (config) => {
+    config.skills = config.skills || {};
+    config.skills.paths = config.skills.paths || [];
+    if (!config.skills.paths.includes(SKILLS_DIR)) {
+      config.skills.paths.push(SKILLS_DIR);
+    }
+  },
+
+  'experimental.chat.messages.transform': async (_input, output) => {
+    const bootstrap = getBootstrapContent();
+    const messages = output?.messages;
+    if (!bootstrap || !Array.isArray(messages) || messages.length === 0) return;
+
+    const firstUser = messages.find((message) => message?.info?.role === 'user');
+    const parts = firstUser?.parts;
+    if (!Array.isArray(parts) || parts.length === 0) return;
+    if (parts.some((part) => part?.type === 'text' && typeof part.text === 'string' && part.text.startsWith(MARKER))) {
+      return;
+    }
+
+    parts.unshift({ ...parts[0], type: 'text', text: bootstrap });
+  },
+});
+
 export default {
   id: 'tungnt-ai-skills',
+  server: TungntAiSkillsPlugin,
 
   setup: async (ctx) => {
     await ctx.skill.transform(async (draft) => {
