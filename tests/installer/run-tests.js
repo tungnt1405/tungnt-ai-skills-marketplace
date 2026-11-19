@@ -1452,7 +1452,7 @@ test('registerPluginFilesForTarget: copies when symlinkOnPosix is false', () => 
   assert.equal(results.length, 1);
   assert.equal(results[0].mode, 'copy');
   assert.equal(fs.lstatSync(dest).isSymbolicLink(), false);
-  assert.ok(fs.readFileSync(dest, 'utf8').includes('TungntAiSkillsPlugin'));
+  assert.ok(fs.readFileSync(dest, 'utf8').includes("id: 'tungnt-ai-skills'"));
 });
 
 test('registerPluginFilesForTarget: symlinks into the package and replaces planted entries', () => {

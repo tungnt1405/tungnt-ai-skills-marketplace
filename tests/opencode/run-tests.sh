@@ -47,7 +47,7 @@ while [[ $# -gt 0 ]]; do
             echo "  test-bootstrap-caching.sh  Verify bootstrap content caching"
             echo "  test-session-bootstrap.sh  Verify session classification and lookup recovery"
             echo "  test-hook-registration.sh  Verify V2 bootstrap registers on context, compaction, generate"
-            echo "  test-skill-registration.sh  Verify V2 skill registration contract (2.0.4 path field)"
+            echo "  test-skill-registration.sh  Verify V2 skill registration contract (path field)"
             echo "  test-tools.sh           Test use_skill and find_skills tools (integration)"
             echo "  test-priority.sh        Test skill priority resolution (integration)"
             exit 0

@@ -317,11 +317,12 @@ export const TARGETS = [
         path.join(env.XDG_CACHE_HOME || joinHome(env, '.cache'), 'opencode', 'node_modules', PLUGIN_NAME),
     },
     nextSteps: [
+      'Confirm `opencode --version` reports 1.18.30 or later; older builds fail with PluginModule.LoadError and register no skills.',
       'Restart OpenCode after installation.',
       'Ask the agent to list skills; tungnt-ai-skills entries should appear.',
     ],
     postInstallNotes:
-      'Copy-mode install. Use --native to register through OpenCode config instead (opencode plugin add accepts npm registry packages only).',
+      'Requires OpenCode >= 1.18.30 (V2 plugin contract); upgrade first if older. Copy-mode install. Use --native to register through OpenCode config instead (opencode plugin add accepts npm registry packages only).',
   },
   {
     id: 'agy',

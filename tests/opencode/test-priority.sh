@@ -20,18 +20,18 @@ trap cleanup_test_env EXIT
 # Create same skill "priority-test" in all three locations with different markers
 echo "Setting up priority test fixtures..."
 
-# 1. Create in superpowers location (lowest priority)
-mkdir -p "$SUPERPOWERS_SKILLS_DIR/priority-test"
-cat > "$SUPERPOWERS_SKILLS_DIR/priority-test/SKILL.md" <<'EOF'
+# 1. Create in tungnt-ai-skills location (lowest priority)
+mkdir -p "$TAIS_SKILLS_DIR/priority-test"
+cat > "$TAIS_SKILLS_DIR/priority-test/SKILL.md" <<'EOF'
 ---
 name: priority-test
-description: Superpowers version of priority test skill
+description: tungnt-ai-skills version of priority test skill
 ---
-# Priority Test Skill (Superpowers Version)
+# Priority Test Skill (tungnt-ai-skills Version)
 
-This is the SUPERPOWERS version of the priority test skill.
+This is the TUNGNT_AI_SKILLS version of the priority test skill.
 
-PRIORITY_MARKER_SUPERPOWERS_VERSION
+PRIORITY_MARKER_TAIS_VERSION
 EOF
 
 # 2. Create in personal location (medium priority)
@@ -68,10 +68,10 @@ echo "  Created priority-test skill in all three locations"
 echo ""
 echo "Test 1: Verifying test fixtures..."
 
-if [ -f "$SUPERPOWERS_SKILLS_DIR/priority-test/SKILL.md" ]; then
-    echo "  [PASS] Superpowers version exists"
+if [ -f "$TAIS_SKILLS_DIR/priority-test/SKILL.md" ]; then
+    echo "  [PASS] tungnt-ai-skills version exists"
 else
-    echo "  [FAIL] Superpowers version missing"
+    echo "  [FAIL] tungnt-ai-skills version missing"
     exit 1
 fi
 
@@ -178,7 +178,7 @@ run_opencode output "$HOME" "Call the skill tool with name \"priority-test\". Sh
 describe_priority_result \
     "$output" \
     "PRIORITY_MARKER_PERSONAL_VERSION" \
-    "PRIORITY_MARKER_SUPERPOWERS_VERSION" \
+    "PRIORITY_MARKER_TAIS_VERSION" \
     "Personal version loaded for duplicate native skill name" \
     "Current OpenCode behavior loaded bundled tungnt-ai-skills version instead of personal version"
 
@@ -191,7 +191,7 @@ run_opencode output "$TEST_HOME/test-project" "Call the skill tool with name \"p
 describe_priority_result \
     "$output" \
     "PRIORITY_MARKER_PROJECT_VERSION" \
-    "PRIORITY_MARKER_SUPERPOWERS_VERSION" \
+    "PRIORITY_MARKER_TAIS_VERSION" \
     "Project version loaded for duplicate native skill name" \
     "Current OpenCode behavior loaded bundled tungnt-ai-skills version instead of project version"
 
@@ -199,8 +199,8 @@ describe_priority_result \
 echo ""
 echo "Test 4: Testing non-colliding tungnt-ai-skills skill remains available..."
 
-mkdir -p "$SUPERPOWERS_SKILLS_DIR/tungnt-ai-skills-only-test"
-cat > "$SUPERPOWERS_SKILLS_DIR/tungnt-ai-skills-only-test/SKILL.md" <<'EOF'
+mkdir -p "$TAIS_SKILLS_DIR/tungnt-ai-skills-only-test"
+cat > "$TAIS_SKILLS_DIR/tungnt-ai-skills-only-test/SKILL.md" <<'EOF'
 ---
 name: tungnt-ai-skills-only-test
 description: tungnt-ai-skills-only priority test skill
