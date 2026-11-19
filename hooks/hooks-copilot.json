@@ -4,16 +4,16 @@
     "sessionStart": [
       {
         "type": "command",
-        "bash": "root=\"${COPILOT_PLUGIN_ROOT:-${TUNGNT_AI_SKILLS_PLUGIN_ROOT:-$HOME/.copilot/installed-plugins/tungnt-ai-skills-marketplace/tungnt-ai-skills}}\"; bash \"$root/hooks/session-start\"",
-        "powershell": "$root = $env:COPILOT_PLUGIN_ROOT; if (-not $root) { $root = $env:TUNGNT_AI_SKILLS_PLUGIN_ROOT }; if (-not $root) { $homeDir = if ($env:USERPROFILE) { $env:USERPROFILE } else { $env:HOME }; $root = Join-Path $homeDir '.copilot\\installed-plugins\\tungnt-ai-skills-marketplace\\tungnt-ai-skills' }; & (Join-Path $root 'hooks\\session-start.ps1')",
+        "bash": "root=\"${COPILOT_PLUGIN_ROOT:-${TUNGNT_AI_SKILLS_PLUGIN_ROOT:-$HOME/.copilot/installed-plugins/tungnt-ai-skills-marketplace/tungnt-ai-skills}}\"; bash \"$root/hooks/run-hook.cmd\" session-start",
+        "powershell": "$root = $env:COPILOT_PLUGIN_ROOT; if (-not $root) { $root = $env:TUNGNT_AI_SKILLS_PLUGIN_ROOT }; if (-not $root) { $homeDir = if ($env:USERPROFILE) { $env:USERPROFILE } else { $env:HOME }; $root = Join-Path $homeDir '.copilot\\installed-plugins\\tungnt-ai-skills-marketplace\\tungnt-ai-skills' }; & \"$root\\hooks\\run-hook.cmd\" session-start",
         "timeoutSec": 30
       }
     ],
     "userPromptSubmitted": [
       {
         "type": "command",
-        "bash": "root=\"${COPILOT_PLUGIN_ROOT:-${TUNGNT_AI_SKILLS_PLUGIN_ROOT:-$HOME/.copilot/installed-plugins/tungnt-ai-skills-marketplace/tungnt-ai-skills}}\"; bash \"$root/hooks/user-prompt-submit\"",
-        "powershell": "$root = $env:COPILOT_PLUGIN_ROOT; if (-not $root) { $root = $env:TUNGNT_AI_SKILLS_PLUGIN_ROOT }; if (-not $root) { $homeDir = if ($env:USERPROFILE) { $env:USERPROFILE } else { $env:HOME }; $root = Join-Path $homeDir '.copilot\\installed-plugins\\tungnt-ai-skills-marketplace\\tungnt-ai-skills' }; & (Join-Path $root 'hooks\\user-prompt-submit.ps1')",
+        "bash": "root=\"${COPILOT_PLUGIN_ROOT:-${TUNGNT_AI_SKILLS_PLUGIN_ROOT:-$HOME/.copilot/installed-plugins/tungnt-ai-skills-marketplace/tungnt-ai-skills}}\"; bash \"$root/hooks/run-hook.cmd\" user-prompt-submit",
+        "powershell": "$root = $env:COPILOT_PLUGIN_ROOT; if (-not $root) { $root = $env:TUNGNT_AI_SKILLS_PLUGIN_ROOT }; if (-not $root) { $homeDir = if ($env:USERPROFILE) { $env:USERPROFILE } else { $env:HOME }; $root = Join-Path $homeDir '.copilot\\installed-plugins\\tungnt-ai-skills-marketplace\\tungnt-ai-skills' }; & \"$root\\hooks\\run-hook.cmd\" user-prompt-submit",
         "timeoutSec": 10
       }
     ]

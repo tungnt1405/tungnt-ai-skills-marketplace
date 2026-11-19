@@ -307,6 +307,8 @@ function install(args, env, io) {
     }
   }
 
+  warnMissingGitBash(env, io);
+
   if (failures.length > 0) {
     io.err(`\nFailed agents: ${failures.map((failure) => failure.target.id).join(', ')}\n`);
     return 1;
@@ -482,6 +484,8 @@ function update(args, env, io) {
     }
   }
 
+  warnMissingGitBash(env, io);
+
   if (failures.length > 0) {
     io.err(`\nFailed agents: ${failures.map((failure) => failure.target.id).join(', ')}\n`);
     return 1;
@@ -592,6 +596,36 @@ function isExecutable(filePath) {
   } catch {
     return false;
   }
+}
+
+const GIT_BASH_HELP = [
+  'Windows hooks are skipped: Git Bash was not found.',
+  'Install Git for Windows: winget install Git.Git (or https://git-scm.com/download/win), then restart your agent.',
+  'Until then, start each session manually with /tungnt-ai-skills:using-tungnt-ai-skills',
+].join('\n');
+
+export function warnMissingGitBash(env = process.env, io = defaultIo(), platform = process.platform) {
+  if (platform !== 'win32') {
+    return false;
+  }
+
+  const candidates = [];
+  if (env.ProgramFiles) {
+    candidates.push(path.join(env.ProgramFiles, 'Git', 'bin', 'bash.exe'));
+  }
+  if (env['ProgramFiles(x86)']) {
+    candidates.push(path.join(env['ProgramFiles(x86)'], 'Git', 'bin', 'bash.exe'));
+  }
+  if (env.LOCALAPPDATA) {
+    candidates.push(path.join(env.LOCALAPPDATA, 'Programs', 'Git', 'bin', 'bash.exe'));
+  }
+
+  if (candidates.some(isExecutable) || findExecutable('bash', env)) {
+    return false;
+  }
+
+  io.err(`${GIT_BASH_HELP}\n`);
+  return true;
 }
 
 function printFallbackPlan(packageRoot, fallback, env, io) {

@@ -57,7 +57,7 @@ To customize per project, simply create a `tais/` directory and place `setting.j
 
 ### 2. `autoTest` (boolean)
 - **`true`**: Allows AI to proactively run project test commands (e.g., `npm test`) to verify code before reporting completion.
-- **`false` (Default)**: AI disables auto-testing. If you want tests run, AI must ask for permission (prevents unexpected long-running test suites).
+- **`false` (Default)**: AI disables auto-testing. If you want tests run, AI must ask for permission (prevents unexpected long-running test suites). It also must not install dependencies or create new test files unless you agree.
 
 ### 3. `dangerousCommands` (object)
 Manages sensitive shell operations:

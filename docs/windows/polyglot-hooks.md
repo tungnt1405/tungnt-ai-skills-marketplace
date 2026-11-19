@@ -73,6 +73,10 @@ parses as a string expression and the trailing bareword is an error
 instead of `command` when it is present, and it gives the same dispatch with
 the `&` call operator. Claude Code ignores the key.
 
+There are no per-hook `.cmd` or `.ps1` copies. Every manifest — Claude,
+Copilot, Cursor, Antigravity — routes through `run-hook.cmd`, so the Windows
+and Unix paths share one implementation of each hook.
+
 ## How `run-hook.cmd` Works at a High Level
 
 `run-hook.cmd` is a polyglot script: Windows treats the first block as batch
@@ -100,8 +104,10 @@ afterward.
      skipped, since the launchers fail when no Linux distro is installed.
 3. If bash is found, it runs the named extensionless hook script from the hooks
    directory and exits with the script's exit code.
-4. If no bash is found, the dispatcher exits `0` silently — the plugin
-   continues working, it just skips the hook.
+4. If no bash is found, the dispatcher exits `0` silently and the hook is
+   skipped. The plugin keeps working, but no bootstrap context is injected;
+   the user starts sessions manually with
+   `/tungnt-ai-skills:using-tungnt-ai-skills`.
 5. `exit /b` stops CMD before it reaches the Unix section.
 
 ### How it works on Unix (bash/sh)
@@ -159,7 +165,11 @@ escape_for_json() {
 
 ### "bash is not recognized"
 
-CMD couldn't find bash in any of the four locations the dispatcher tries. The dispatcher exits silently (0) rather than erroring, so the hook is skipped. Install Git for Windows (system-wide or per-user) or ensure a non-WSL `bash` is on `PATH`.
+CMD couldn't find bash in any of the four locations the dispatcher tries, so
+the hook is skipped silently (exit 0). Install Git for Windows with
+`winget install Git.Git` and restart the agent, or ensure a non-WSL `bash` is
+on `PATH`. Without it, start each session with
+`/tungnt-ai-skills:using-tungnt-ai-skills`.
 
 ### Hook runs on Unix but does nothing on Windows
 

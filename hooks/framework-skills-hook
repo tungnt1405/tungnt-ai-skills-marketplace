@@ -51,7 +51,7 @@ else
 fi
 
 if [ "$AUTO_TEST" = "false" ] || [ "$AUTO_TEST" = "null" ]; then
-    AUTO_TEST_MSG="- Auto-Test is DISABLED: DO NOT automatically run tests at the end of a task unless requested."
+    AUTO_TEST_MSG="- Auto-Test is DISABLED: DO NOT automatically run tests, install dependencies, or create test files at the end of a task unless the user agrees."
 else
     AUTO_TEST_MSG="- Auto-Test is ENABLED: You may automatically run tests at the end of a task."
 fi

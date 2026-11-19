@@ -45,7 +45,7 @@ If any Definition-of-Done item fails, stop and fix it before continuing.
 ### Step 2: Verify Tests
 
 **Check Auto-Test Policy:**
-If `policy.autoTest` is disabled, skip this step entirely and proceed to Step 3 without running any tests.
+If `policy.autoTest` is disabled, skip this step entirely and proceed to Step 3 without running any tests, installing dependencies, or creating test files.
 If `policy.autoTest` is enabled, proceed with the verification:
 
 **Before presenting options, verify tests pass:**

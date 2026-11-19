@@ -21,8 +21,6 @@ const ANTIGRAVITY_PLUGIN_REQUIRED_FILES = [
   REQUIRED_SETTINGS_FILE,
   'hooks/run-hook.cmd',
   'hooks/antigravity-pre-invocation',
-  'hooks/antigravity-pre-invocation.cmd',
-  'hooks/antigravity-pre-invocation.ps1',
   'hooks/hooks.antigravity.json',
   ...REQUIRED_SKILL_FILES,
 ];
@@ -33,8 +31,6 @@ const ANTIGRAVITY_PLUGIN_INSTALLED_REQUIRED_FILES = [
   'hooks/hooks.json',
   'hooks/run-hook.cmd',
   'hooks/antigravity-pre-invocation',
-  'hooks/antigravity-pre-invocation.cmd',
-  'hooks/antigravity-pre-invocation.ps1',
   ...REQUIRED_SKILL_FILES,
 ];
 
@@ -110,8 +106,6 @@ export const TARGETS = [
         '.claude-plugin/plugin.json',
         'hooks/session-start',
         'hooks/run-hook.cmd',
-        'hooks/session-start.cmd',
-        'hooks/session-start.ps1',
         'hooks/hooks.json',
       ],
     },
@@ -201,8 +195,6 @@ export const TARGETS = [
       ...REQUIRED_SKILL_FILES,
       'hooks/session-start',
       'hooks/run-hook.cmd',
-      'hooks/session-start.cmd',
-      'hooks/session-start.ps1',
     ],
     nativeCommands: [
       ['copilot', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
@@ -245,8 +237,6 @@ export const TARGETS = [
         ...REQUIRED_SKILL_FILES,
         'hooks/session-start',
         'hooks/run-hook.cmd',
-        'hooks/session-start.cmd',
-        'hooks/session-start.ps1',
       ],
     },
     updateCacheDirs: [
