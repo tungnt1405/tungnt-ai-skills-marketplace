@@ -1,5 +1,5 @@
 name: tungnt-ai-skills
-version: 2.0.5
+version: 2.0.6
 description: tungnt-ai-skills skills and workflow bootstrap for Hermes Agent
 author: obra
 provides_hooks:
