@@ -248,25 +248,37 @@ function install(args, env, io) {
           if (missingCommand) {
             throw new Error(`Native command not found: ${missingCommand}`);
           }
-          runNativeCommands(commandTarget, env, io);
-          io.out(options.force && target.updateCommands ? 'Status: updated\n' : 'Status: installed\n');
-          if (target.postInstallNotes) {
-            io.out(`Note: ${target.postInstallNotes}\n`);
+          let unavailable;
+          try {
+            runNativeCommands(commandTarget, env, io);
+            io.out(options.force && target.updateCommands ? 'Status: updated\n' : 'Status: installed\n');
+            if (target.postInstallNotes) {
+              io.out(`Note: ${target.postInstallNotes}\n`);
+            }
+            if (target.printNextStepsAfterNative) {
+              printNextSteps(target, io);
+            }
+            continue;
+          } catch (error) {
+            if (!nativeUnavailable(error)) {
+              throw error;
+            }
+            unavailable = error;
           }
-          if (target.printNextStepsAfterNative) {
-            printNextSteps(target, io);
-          }
-        } else {
           if (!target.fallbackInstall) {
-            throw new Error(`${target.displayName} requires --native; no manual marketplace setup is declared.`);
+            throw unavailable;
           }
-          runFallbackInstall(packageRoot, target.fallbackInstall, env, options);
-          if (target.packageFallback) {
-            installPackageFallback(packageRoot, target.packageFallback, env, options);
-          }
-          io.out('Status: marketplace configured\n');
-          printNextSteps(target, io);
+          io.err(`Note: ${target.displayName} native commands unavailable (${unavailable.message}); using installer fallback.\n`);
         }
+        if (!target.fallbackInstall) {
+          throw new Error(`${target.displayName} requires --native; no manual marketplace setup is declared.`);
+        }
+        runFallbackInstall(packageRoot, target.fallbackInstall, env, options);
+        if (target.packageFallback) {
+          installPackageFallback(packageRoot, target.packageFallback, env, options);
+        }
+        io.out('Status: marketplace configured\n');
+        printNextSteps(target, io);
         continue;
       }
       const expectedParent = target.expectedParent(env);
@@ -391,9 +403,21 @@ function update(args, env, io) {
         if (missingCommand) {
           throw new Error(`Native command not found: ${missingCommand}`);
         }
-        runNativeCommands({ ...target, nativeCommands: target.updateCommands }, env, io);
-        io.out('Status: updated\n');
-        continue;
+        let unavailable;
+        try {
+          runNativeCommands({ ...target, nativeCommands: target.updateCommands }, env, io);
+          io.out('Status: updated\n');
+          continue;
+        } catch (error) {
+          if (!nativeUnavailable(error)) {
+            throw error;
+          }
+          unavailable = error;
+        }
+        if (!target.fallbackInstall) {
+          throw unavailable;
+        }
+        io.err(`Note: ${target.displayName} native commands unavailable (${unavailable.message}); using installer fallback.\n`);
       }
 
       if (options.dryRun) {
@@ -521,6 +545,20 @@ function runNativeCommands(target, env, io = defaultIo()) {
       throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
     }
   }
+}
+
+// Exit 127 means the shell could not run the command (missing binary or a
+// shim that refuses to run, e.g. the VS Code Copilot wrapper outside a server).
+// Treat it as "native unavailable" so the installer can fall back instead of
+// reporting the agent as failed.
+function nativeUnavailable(error) {
+  if (!error) {
+    return false;
+  }
+  if (error.code === 'ENOENT') {
+    return true;
+  }
+  return /exited with 127$/.test(error.message || '');
 }
 
 function ignorableNativeFailure(target, command, result) {

@@ -392,6 +392,29 @@ test('install --agent copilot imports marketplace settings by default', () => {
   });
 });
 
+test('update --agent copilot --native falls back when the native command exits 127', () => {
+  const home = tempDir();
+  const bin = tempDir();
+  const out = capture();
+  const executable = path.join(bin, process.platform === 'win32' ? 'copilot.cmd' : 'copilot');
+  fs.writeFileSync(
+    executable,
+    process.platform === 'win32' ? '@echo off\r\nexit /b 127\r\n' : '#!/bin/sh\nexit 127\n',
+  );
+  if (process.platform !== 'win32') {
+    fs.chmodSync(executable, 0o755);
+  }
+
+  const code = runCli(['update', '--agent', 'copilot', '--native'], { ...fakeEnv(home), PATH: bin }, out.io);
+  assert.equal(code, 0, out.stderr());
+  assert.equal(out.stderr().includes('native commands unavailable'), true);
+  assert.equal(out.stdout().includes('Status: updated'), true);
+  assert.equal(
+    fs.existsSync(path.join(home, '.copilot', 'installed-plugins', 'tungnt-ai-skills-marketplace', 'tungnt-ai-skills', 'plugin.json')),
+    true,
+  );
+});
+
 test('plugin manifests select hooks for their harness', () => {
   const copilotManifest = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, '.github', 'plugin', 'plugin.json'), 'utf8'));
   const claudeManifest = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, '.claude-plugin', 'plugin.json'), 'utf8'));
