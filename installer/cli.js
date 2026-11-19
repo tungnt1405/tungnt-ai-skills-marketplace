@@ -520,13 +520,27 @@ function update(args, env, io) {
 
 function runNativeCommands(target, env, io = defaultIo()) {
   for (const [command, ...args] of target.nativeCommands) {
-    const executable = findExecutable(command, env) || command;
-    const spawn = nativeSpawnCommand(executable, args, env);
-    const result = spawnSync(spawn.command, spawn.args, {
-      env,
-      encoding: 'utf8',
-      stdio: ['inherit', 'pipe', 'pipe'],
-    });
+    const candidates = findExecutableCandidates(command, env);
+    if (candidates.length === 0) {
+      candidates.push(command);
+    }
+
+    let result;
+    for (const executable of candidates) {
+      const spawn = nativeSpawnCommand(executable, args, env);
+      result = spawnSync(spawn.command, spawn.args, {
+        env,
+        encoding: 'utf8',
+        stdio: ['inherit', 'pipe', 'pipe'],
+      });
+      // Skip a candidate that cannot run (missing binary or a shim that
+      // refuses, e.g. the VS Code Copilot wrapper outside a server) so a later
+      // PATH entry can serve the command.
+      if (!result.error && result.status !== 127) {
+        break;
+      }
+    }
+
     if (result.stdout) {
       io.out(result.stdout);
     }
@@ -545,6 +559,28 @@ function runNativeCommands(target, env, io = defaultIo()) {
       throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
     }
   }
+}
+
+function findExecutableCandidates(command, env) {
+  if (command.includes(path.sep)) {
+    return isExecutable(command) ? [command] : [];
+  }
+
+  const pathValue = env.PATH || '';
+  const extensions = process.platform === 'win32' && !path.extname(command)
+    ? (env.PATHEXT || '.EXE;.CMD;.BAT;.COM').split(';')
+    : [''];
+
+  const candidates = [];
+  for (const directory of pathValue.split(path.delimiter).filter(Boolean)) {
+    for (const extension of extensions) {
+      const candidate = path.join(directory, `${command}${extension}`);
+      if (isExecutable(candidate)) {
+        candidates.push(candidate);
+      }
+    }
+  }
+  return candidates;
 }
 
 // Exit 127 means the shell could not run the command (missing binary or a
