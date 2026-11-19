@@ -10,7 +10,7 @@ Before taking actions, read `tais/setting.json` at the project root if available
 | Key | Effect |
 | --- | --- |
 | `policy.autoCommit` | When `false`: do not auto-commit — leave changes for the user. |
-| `policy.autoTest` | When `false`: do not auto-run tests unless the user asks. |
+| `policy.autoTest` | When `false`: do not auto-run tests, install dependencies, or create test files unless the user agrees. |
 | `policy.dangerousCommands.blocked` | Never execute commands in this list. |
 | `policy.dangerousCommands.askConfirmation` | When `true`: ask the user before running any destructive command. |
 | `policy.sensitiveFiles.blocked` | Do not read or write files matching these patterns. |

@@ -1,3 +1,4 @@
-// Compatibility entry for consumers using the legacy plugin path.
-export { TungntAiSkillsPlugin, SuperpowersPlugin, V1_MAPPING, V2_MAPPING, default } from './tungnt-ai-skills.js';
-
+// Legacy plugin path alias. Kept so an existing
+// `plugins: [".../superpowers.js"]` entry still resolves; the implementation
+// lives in ./tungnt-ai-skills.js.
+export { default, V2_MAPPING } from './tungnt-ai-skills.js';

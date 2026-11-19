@@ -35,7 +35,7 @@ stop and ask.
 Before dispatching the first implementer, check previously saved policies (if any); if not found or not remembered, MUST read `tais/setting.json` in the current workspace if available (fallback: `setting.json` at plugin root). Subagents skip bootstrap, so the controller must pass relevant policies in every implementation prompt:
 
 - **`policy.autoCommit`**: When `false`, tell implementer to skip commits — leave changes uncommitted.
-- **`policy.autoTest`**: When `false`, tell implementer to skip running tests unless explicitly requested.
+- **`policy.autoTest`**: When `false`, tell implementer to skip running tests, installing dependencies, and creating test files unless explicitly requested.
 - **`policy.dangerousCommands.blocked`**: Pass blocked command list so implementer avoids them.
 - **`policy.sensitiveFiles.blocked`**: Pass blocked file patterns so implementer avoids them.
 

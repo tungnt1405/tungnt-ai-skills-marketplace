@@ -1,112 +1,211 @@
 /**
  * tungnt-ai-skills plugin for OpenCode.ai
  *
- * Injects the tungnt-ai-skills bootstrap context via prompt transform.
- * Auto-registers the bundled skills directory via config hook.
+ * V2 module contract (`default { id, setup }`, OpenCode >= 1.18.30): registers
+ * the bundled skills through `skill.transform` and injects the bootstrap
+ * context through the `context`, `compaction` and `generate` hooks.
  */
 
 import path from 'path';
 import fs from 'fs';
-import os from 'os';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const extractAndStripFrontmatter = (content) => {
-  const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-  if (!match) return { frontmatter: {}, content };
+const SKILLS_DIR = path.resolve(__dirname, '../../skills');
+const BOOTSTRAP_SKILL_PATH = path.join(SKILLS_DIR, 'using-tungnt-ai-skills', 'SKILL.md');
+const MARKER = `<EXTREMELY_IMPORTANT>
+You have tungnt-ai-skills.`;
+const CLASSIFICATION_LIMIT = 512;
 
-  const frontmatterStr = match[1];
-  const body = match[2];
-  const frontmatter = {};
-
-  for (const line of frontmatterStr.split('\n')) {
-    const colonIdx = line.indexOf(':');
-    if (colonIdx > 0) {
-      const key = line.slice(0, colonIdx).trim();
-      const value = line.slice(colonIdx + 1).trim().replace(/^["']|["']$/g, '');
-      frontmatter[key] = value;
-    }
-  }
-
-  return { frontmatter, content: body };
-};
-
-const normalizePath = (p, homeDir) => {
-  if (!p || typeof p !== 'string') return null;
-  let normalized = p.trim();
-  if (!normalized) return null;
-  if (normalized.startsWith('~/')) {
-    normalized = path.join(homeDir, normalized.slice(2));
-  } else if (normalized === '~') {
-    normalized = homeDir;
-  }
-  return path.resolve(normalized);
-};
-
-let bootstrapCache = undefined;
-
-export const TungntAiSkillsPlugin = async () => {
-  const homeDir = os.homedir();
-  const skillsDir = path.resolve(__dirname, '../../skills');
-  const envConfigDir = normalizePath(process.env.OPENCODE_CONFIG_DIR, homeDir);
-  const configDir = envConfigDir || path.join(homeDir, '.config/opencode');
-
-  const getBootstrapContent = () => {
-    if (bootstrapCache !== undefined) return bootstrapCache;
-
-    const skillPath = path.join(skillsDir, 'using-tungnt-ai-skills', 'SKILL.md');
-    if (!fs.existsSync(skillPath)) {
-      bootstrapCache = null;
-      return null;
-    }
-
-    const fullContent = fs.readFileSync(skillPath, 'utf8');
-    const { content } = extractAndStripFrontmatter(fullContent);
-
-    const toolMapping = `**Tool Mapping for OpenCode:**
+export const V2_MAPPING = `**Tool Mapping for OpenCode (V2):**
 When skills reference tools you don't have, substitute OpenCode equivalents:
-- \`TodoWrite\` -> \`todowrite\`
-- \`Task\` tool with subagents -> Use OpenCode's subagent system (@mention)
-- \`Skill\` tool -> OpenCode's native \`skill\` tool
-- \`Read\`, \`Write\`, \`Edit\`, \`Bash\` -> Your native tools
+- "Create a todo" / "mark it complete in the todo list" -> V2 has no todo tool; track the plan in a markdown file instead
+- \`Subagent (general-purpose):\` -> \`subagent\` with \`agent: "general"\` (or \`agent: "explore"\` for codebase exploration); pass \`sessionID\` to continue a previous subagent
+- "Invoke a skill" -> OpenCode's native \`skill\` tool, with the skill directory name as its \`id\` parameter
+- "Read a file" -> \`read\`
+- "Create a file" / "edit a file" / "delete a file" -> \`patch\` with \`patchText\` when available; otherwise \`write\` to create or overwrite a file, \`edit\` for targeted changes, and \`shell\` for deletion
+- "Run a shell command" -> \`shell\` (\`command\`, \`workdir\`, \`timeout\`, \`background\`)
+- "Search file contents" / "find files by name" -> \`grep\`, \`glob\`
+- "Fetch a URL" -> \`webfetch\`
+- "Search the web" -> \`websearch\`
 
-Use OpenCode's native \`skill\` tool to list and load skills.`;
+Skills refer to each other as \`superpowers:<name>\`. OpenCode registers bare ids, so drop the \`superpowers:\` prefix: \`superpowers:brainstorming\` → \`skill\` with \`id: "brainstorming"\`.`;
 
-    bootstrapCache = `<EXTREMELY_IMPORTANT>
-You have tungnt-ai-skills.
+const FRONTMATTER = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
+
+const isOpenValue = (lines) => {
+  const first = lines[0];
+  if (first === '>' || first === '|') return true;
+  const quote = first[0];
+  if (quote !== '"' && quote !== "'") return false;
+  const joined = lines.join(' ').trim();
+  return joined.length < 2 || !joined.endsWith(quote);
+};
+
+const foldValue = (lines) => {
+  if (lines[0] === '>' || lines[0] === '|') {
+    return lines.slice(1).join(' ').trim();
+  }
+  const quote = lines[0][0];
+  let value = lines.join(' ').trim();
+  if (quote === '"' || quote === "'") {
+    if (value.startsWith(quote)) value = value.slice(1);
+    if (value.endsWith(quote)) value = value.slice(0, -1);
+  }
+  return value.trim();
+};
+
+const parseFrontmatter = (block) => {
+  const fields = {};
+  const lines = block.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+    if (!match) continue;
+    const valueLines = [match[2]];
+    while (isOpenValue(valueLines) && i + 1 < lines.length && /^\s+\S/.test(lines[i + 1])) {
+      valueLines.push(lines[++i].trim());
+    }
+    fields[match[1]] = foldValue(valueLines);
+  }
+  return fields;
+};
+
+const extractAndStripFrontmatter = (content) => {
+  const match = content.match(FRONTMATTER);
+  if (!match) return { frontmatter: {}, content };
+  return { frontmatter: parseFrontmatter(match[1]), content: match[2] };
+};
+
+let bootstrapCache;
+
+const getBootstrapContent = () => {
+  if (bootstrapCache !== undefined) return bootstrapCache;
+  if (!fs.existsSync(BOOTSTRAP_SKILL_PATH)) {
+    bootstrapCache = null;
+    return null;
+  }
+  const { content } = extractAndStripFrontmatter(fs.readFileSync(BOOTSTRAP_SKILL_PATH, 'utf8'));
+  bootstrapCache = `${MARKER}
 
 **IMPORTANT: The using-tungnt-ai-skills skill content is included below. It is ALREADY LOADED - you are currently following it. Do NOT use the skill tool to load "using-tungnt-ai-skills" again - that would be redundant.**
 
 ${content}
 
-${toolMapping}
+${V2_MAPPING}
 </EXTREMELY_IMPORTANT>`;
-
-    return bootstrapCache;
-  };
-
-  return {
-    config: async (config) => {
-      config.skills = config.skills || {};
-      config.skills.paths = config.skills.paths || [];
-      if (!config.skills.paths.includes(skillsDir)) {
-        config.skills.paths.push(skillsDir);
-      }
-    },
-
-    'experimental.chat.messages.transform': async (_input, output) => {
-      const bootstrap = getBootstrapContent();
-      if (!bootstrap || !output.messages.length) return;
-      const firstUser = output.messages.find((m) => m.info.role === 'user');
-      if (!firstUser || !firstUser.parts.length) return;
-      if (firstUser.parts.some((p) => p.type === 'text' && p.text.includes('EXTREMELY_IMPORTANT'))) return;
-
-      const ref = firstUser.parts[0];
-      firstUser.parts.unshift({ ...ref, type: 'text', text: bootstrap });
-    },
-  };
+  return bootstrapCache;
 };
 
-// Compatibility alias for consumers using the legacy export name.
-export const SuperpowersPlugin = TungntAiSkillsPlugin;
+const listSkillIds = () => {
+  if (!fs.existsSync(SKILLS_DIR)) return [];
+  return fs
+    .readdirSync(SKILLS_DIR, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.'))
+    .map((entry) => entry.name)
+    .sort();
+};
+
+const partsOf = (message) => {
+  if (Array.isArray(message.content)) return message.content;
+  if (Array.isArray(message.parts)) return message.parts;
+  return [];
+};
+
+const isBootstrapPart = (part) =>
+  part?.type === 'text' && typeof part.text === 'string' && part.text.startsWith(MARKER);
+
+export default {
+  id: 'tungnt-ai-skills',
+
+  setup: async (ctx) => {
+    await ctx.skill.transform(async (draft) => {
+      for (const id of listSkillIds()) {
+        const skillPath = path.join(SKILLS_DIR, id, 'SKILL.md');
+        if (!fs.existsSync(skillPath)) continue;
+
+        let parsed;
+        try {
+          parsed = extractAndStripFrontmatter(fs.readFileSync(skillPath, 'utf8'));
+        } catch {
+          continue;
+        }
+
+        const skill = {
+          id,
+          name: parsed.frontmatter.name || id,
+          path: skillPath,
+          content: parsed.content,
+        };
+        if (parsed.frontmatter.description) {
+          skill.description = parsed.frontmatter.description;
+        }
+
+        try {
+          await draft.add(skill);
+        } catch {
+          // One rejected skill must not abort the remaining registrations.
+        }
+      }
+    });
+
+    const classifications = new Map();
+
+    // 'child' for a subagent session, 'root' when the bootstrap belongs.
+    // A failed or inconsistent lookup is 'root' and is never cached, so the
+    // next request classifies again instead of silencing the session forever.
+    const classify = async (sessionID) => {
+      const cached = classifications.get(sessionID);
+      if (cached) return cached;
+
+      let session;
+      try {
+        session = await ctx.session.get({ sessionID });
+      } catch {
+        session = undefined;
+      }
+      if (!session || typeof session !== 'object' || session.id !== sessionID) return 'root';
+
+      const { parentID } = session;
+      if (parentID !== undefined && parentID !== null && typeof parentID !== 'string') {
+        return 'root';
+      }
+
+      const kind = typeof parentID === 'string' ? 'child' : 'root';
+      classifications.set(sessionID, kind);
+      while (classifications.size > CLASSIFICATION_LIMIT) {
+        classifications.delete(classifications.keys().next().value);
+      }
+      return kind;
+    };
+
+    const handler = async (event) => {
+      const bootstrap = getBootstrapContent();
+      if (!bootstrap) return;
+
+      if (event?.sessionID && (await classify(event.sessionID)) === 'child') return;
+
+      const messages = event?.messages;
+      if (!Array.isArray(messages) || messages.length === 0) return;
+      if (messages.some((message) => partsOf(message).some(isBootstrapPart))) {
+        return;
+      }
+
+      const userMessage = messages.find(
+        (message) => message.role === 'user' && Array.isArray(message.content)
+      );
+      if (userMessage) {
+        userMessage.content.unshift({ type: 'text', text: bootstrap });
+        return;
+      }
+
+      // Compaction checkpoints carry no user message: append one after it and
+      // leave the checkpoint and the system prompt untouched.
+      messages.push({ role: 'user', content: [{ type: 'text', text: bootstrap }] });
+    };
+
+    await ctx.session.hook('context', handler);
+    await ctx.session.hook('compaction', handler);
+    await ctx.session.hook('generate', handler);
+  },
+};

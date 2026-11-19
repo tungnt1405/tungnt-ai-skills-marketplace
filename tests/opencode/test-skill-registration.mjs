@@ -3,10 +3,10 @@ import os from 'os';
 import path from 'path';
 import { pathToFileURL } from 'url';
 
-// Verifies the V2 skill registration payload matches OpenCode 2.0.4's
+// Verifies the V2 skill registration payload matches the host's
 // Skill.Info contract (packages/schema/src/skill.ts):
 //   { id, name, description?, autoinvoke?, path, content }
-// Upstream commit 199aabe9e2 (first released in v2.0.4) renamed the required
+// Upstream commit 199aabe9e2 renamed the required
 // file field `location` -> `path`. A wrong field name makes draft.add()
 // throw inside the host's transform rebuild, which asynchronously disables
 // the whole plugin ("Plugin disabled after skill.transform failed") and
@@ -52,14 +52,14 @@ for (const skill of added) {
   } else if (!fs.existsSync(skill.path)) {
     failures.push(`skill "${skill.id}": path does not exist on disk: ${skill.path}`);
   }
-  // Stale 2.0.3-era fields must not leak into the payload: the host strips
+  // Fields from the older schema must not leak into the payload: the host strips
   // unknown keys, but keeping them would silently mask a future regression
   // to a schema that no longer accepts `path`.
   if ('location' in skill) {
-    failures.push(`skill "${skill.id}": payload still carries the pre-2.0.4 field "location"`);
+    failures.push(`skill "${skill.id}": payload still carries the retired field "location"`);
   }
   if ('slash' in skill) {
-    failures.push(`skill "${skill.id}": payload carries "slash", removed from Skill.Info in 2.0.4`);
+    failures.push(`skill "${skill.id}": payload carries "slash", removed from Skill.Info`);
   }
   if (typeof skill.id !== 'string' || skill.id.length === 0) failures.push(`skill payload missing non-empty "id"`);
   if (typeof skill.name !== 'string' || skill.name.length === 0) failures.push(`skill "${skill.id}" missing non-empty "name"`);

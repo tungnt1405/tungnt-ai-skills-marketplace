@@ -21,8 +21,6 @@ const ANTIGRAVITY_PLUGIN_REQUIRED_FILES = [
   REQUIRED_SETTINGS_FILE,
   'hooks/run-hook.cmd',
   'hooks/antigravity-pre-invocation',
-  'hooks/antigravity-pre-invocation.cmd',
-  'hooks/antigravity-pre-invocation.ps1',
   'hooks/hooks.antigravity.json',
   ...REQUIRED_SKILL_FILES,
 ];
@@ -33,8 +31,6 @@ const ANTIGRAVITY_PLUGIN_INSTALLED_REQUIRED_FILES = [
   'hooks/hooks.json',
   'hooks/run-hook.cmd',
   'hooks/antigravity-pre-invocation',
-  'hooks/antigravity-pre-invocation.cmd',
-  'hooks/antigravity-pre-invocation.ps1',
   ...REQUIRED_SKILL_FILES,
 ];
 
@@ -110,8 +106,6 @@ export const TARGETS = [
         '.claude-plugin/plugin.json',
         'hooks/session-start',
         'hooks/run-hook.cmd',
-        'hooks/session-start.cmd',
-        'hooks/session-start.ps1',
         'hooks/hooks.json',
       ],
     },
@@ -201,8 +195,6 @@ export const TARGETS = [
       ...REQUIRED_SKILL_FILES,
       'hooks/session-start',
       'hooks/run-hook.cmd',
-      'hooks/session-start.cmd',
-      'hooks/session-start.ps1',
     ],
     nativeCommands: [
       ['copilot', 'plugin', 'marketplace', 'add', 'tungnt1405/tungnt-ai-skills-marketplace'],
@@ -245,8 +237,6 @@ export const TARGETS = [
         ...REQUIRED_SKILL_FILES,
         'hooks/session-start',
         'hooks/run-hook.cmd',
-        'hooks/session-start.cmd',
-        'hooks/session-start.ps1',
       ],
     },
     updateCacheDirs: [
@@ -317,11 +307,12 @@ export const TARGETS = [
         path.join(env.XDG_CACHE_HOME || joinHome(env, '.cache'), 'opencode', 'node_modules', PLUGIN_NAME),
     },
     nextSteps: [
+      'Confirm `opencode --version` reports 1.18.30 or later; older builds fail with PluginModule.LoadError and register no skills.',
       'Restart OpenCode after installation.',
       'Ask the agent to list skills; tungnt-ai-skills entries should appear.',
     ],
     postInstallNotes:
-      'Copy-mode install. Use --native to register through OpenCode config instead (opencode plugin add accepts npm registry packages only).',
+      'Requires OpenCode >= 1.18.30 (V2 plugin contract); upgrade first if older. Copy-mode install. Use --native to register through OpenCode config instead (opencode plugin add accepts npm registry packages only).',
   },
   {
     id: 'agy',

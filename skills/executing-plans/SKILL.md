@@ -44,7 +44,7 @@ those, stop and ask.
 
 ## Settings Compliance
 
-Before starting execution, check previously saved policies (if any); if not found or not remembered, MUST read `tais/setting.json` in the current workspace if available (fallback: `setting.json` at plugin root). Respect `policy.autoCommit`: when `false`, do not auto-commit — leave changes for the user. Respect `policy.autoTest`: when `false`, do not auto-run tests unless the user requests.
+Before starting execution, check previously saved policies (if any); if not found or not remembered, MUST read `tais/setting.json` in the current workspace if available (fallback: `setting.json` at plugin root). Respect `policy.autoCommit`: when `false`, do not auto-commit — leave changes for the user. Respect `policy.autoTest`: when `false`, do not auto-run tests, install dependencies, or create test files unless the user requests.
 
 MUST remember policies when executing, ALWAYS PRIORITIZE following `tais/setting.json` in the current workspace if available or `setting.json` at the plugin root to get policies.
 

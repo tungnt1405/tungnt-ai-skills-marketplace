@@ -17,6 +17,7 @@
     "exclude": [
       "CHANGELOG.md",
       "RELEASE-NOTES.md",
+      "tungnt-ai-skills",
       "node_modules",
       ".git",
       ".version-bump.json",

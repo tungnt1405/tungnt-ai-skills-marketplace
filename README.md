@@ -117,6 +117,33 @@ automatically loads `using-tungnt-ai-skills` before selecting the next skill.
 
 For configuration details, see [docs/setting-configuration.md](docs/setting-configuration.md).
 
+## Windows support
+
+Hooks run through Git Bash on Windows. Git for Windows also supplies the
+`bash` that Claude Code uses for its own shell tool, so most Windows setups
+already have it. Check with:
+
+```bash
+bash --version
+```
+
+If that fails, install Git for Windows and restart your agent:
+
+```bash
+winget install Git.Git
+```
+
+`tungnt-ai-skills install` and `update` print the same guidance when no bash
+is found.
+
+Without Git Bash, hooks are skipped silently: skills and routing still work,
+but no bootstrap context is injected at session start. Start each session
+manually with:
+
+```text
+/tungnt-ai-skills:using-tungnt-ai-skills
+```
+
 ## License
 
 MIT. Forked from [obra/superpowers](https://github.com/obra/superpowers).

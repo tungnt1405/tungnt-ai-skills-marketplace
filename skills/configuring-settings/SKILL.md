@@ -24,7 +24,7 @@ Explicitly tell the user: *"Nếu bạn để trống, hệ thống sẽ tự đ
 
 The keys to configure are:
 1. **autoCommit**: `true` or `false` (Default: `false`)
-2. **autoTest**: `true` or `false` (Default: `false`)
+2. **autoTest**: `true` or `false` (Default: `false`). When `false`, the AI must not auto-run tests, install dependencies, or create test files without the user's agreement.
 3. **hookDebug**: `true` or `false` (Default: `false`). When enabled, Antigravity hooks append each invocation payload to a debug log (`~/.gemini/tais-hook-debug.log`, override with `TAIS_HOOK_DEBUG_LOG`). The installer flag `--debug` also sets this key to `true` in the installed `setting.json`.
 4. **dangerousCommands.blocked**: A list of blocked shell commands (Default: `["rm -rf /", "rm -rf *", "mkfs", "dd", "chmod -R 777 /", "chown -R"]`)
 5. **sensitiveFiles.blocked**: A list of blocked sensitive file patterns (Default: `["**/.env", "**/*.pem", "**/.ssh/id_*", "**/secrets.json"]`)

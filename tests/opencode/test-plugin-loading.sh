@@ -34,17 +34,17 @@ fi
 
 # Test 2: Verify skills directory is populated
 echo "Test 2: Checking skills directory..."
-skill_count=$(find "$SUPERPOWERS_SKILLS_DIR" -name "SKILL.md" | wc -l)
+skill_count=$(find "$TAIS_SKILLS_DIR" -name "SKILL.md" | wc -l)
 if [ "$skill_count" -gt 0 ]; then
     echo "  [PASS] Found $skill_count skills"
 else
-    echo "  [FAIL] No skills found in $SUPERPOWERS_SKILLS_DIR"
+    echo "  [FAIL] No skills found in $TAIS_SKILLS_DIR"
     exit 1
 fi
 
 # Test 3: Check using-tungnt-ai-skills skill exists (critical for bootstrap)
 echo "Test 3: Checking using-tungnt-ai-skills skill (required for bootstrap)..."
-if [ -f "$SUPERPOWERS_SKILLS_DIR/using-tungnt-ai-skills/SKILL.md" ]; then
+if [ -f "$TAIS_SKILLS_DIR/using-tungnt-ai-skills/SKILL.md" ]; then
     echo "  [PASS] using-tungnt-ai-skills skill exists"
 else
     echo "  [FAIL] using-tungnt-ai-skills skill not found (required for bootstrap)"
@@ -53,7 +53,7 @@ fi
 
 # Test 4: Verify plugin JavaScript syntax (basic check)
 echo "Test 4: Checking plugin JavaScript syntax..."
-if node --check "$SUPERPOWERS_PLUGIN_FILE" 2>/dev/null; then
+if node --check "$TAIS_PLUGIN_FILE" 2>/dev/null; then
     echo "  [PASS] Plugin JavaScript syntax is valid"
 else
     echo "  [FAIL] Plugin has JavaScript syntax errors"
@@ -62,7 +62,7 @@ fi
 
 # Test 5: Verify bootstrap text does not reference a hardcoded skills path
 echo "Test 5: Checking bootstrap does not advertise a wrong skills path..."
-if grep -q 'configDir}/skills/superpowers/' "$SUPERPOWERS_PLUGIN_FILE"; then
+if grep -q 'configDir}/skills/superpowers/' "$TAIS_PLUGIN_FILE"; then
     echo "  [FAIL] Plugin still references old configDir skills path"
     exit 1
 else
@@ -78,7 +78,7 @@ else
     exit 1
 fi
 
-echo "Test 7: Checking package entry and compatibility exports..."
+echo "Test 7: Checking package entry and V2 module shape..."
 node --input-type=module <<'NODE'
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -92,12 +92,15 @@ assert.equal(pkg.main, canonicalPath);
 const canonical = await import(pathToFileURL(path.join(root, canonicalPath)).href);
 const entry = await import(pathToFileURL(path.join(root, pkg.main)).href);
 const legacy = await import(pathToFileURL(path.join(root, '.opencode/plugins/superpowers.js')).href);
-assert.equal(typeof canonical.TungntAiSkillsPlugin, 'function');
-assert.equal(entry.TungntAiSkillsPlugin, canonical.TungntAiSkillsPlugin);
-assert.equal(canonical.SuperpowersPlugin, canonical.TungntAiSkillsPlugin);
-assert.equal(legacy.TungntAiSkillsPlugin, canonical.TungntAiSkillsPlugin);
-assert.equal(legacy.SuperpowersPlugin, canonical.TungntAiSkillsPlugin);
-console.log('  [PASS] Canonical package entry and compatibility exports');
+assert.equal(canonical.default.id, 'tungnt-ai-skills');
+assert.equal(typeof canonical.default.setup, 'function');
+assert.equal(entry.default, canonical.default);
+assert.equal(legacy.default, canonical.default);
+assert.equal(legacy.V2_MAPPING, canonical.V2_MAPPING);
+assert.equal('TungntAiSkillsPlugin' in canonical, false);
+assert.equal('SuperpowersPlugin' in canonical, false);
+assert.equal('V1_MAPPING' in canonical, false);
+console.log('  [PASS] Canonical package entry and legacy alias expose the V2 module shape');
 NODE
 
 echo ""
