@@ -107,6 +107,24 @@ const listSkillIds = () => {
     .sort();
 };
 
+const readSkill = (id) => {
+  const skillPath = path.join(SKILLS_DIR, id, 'SKILL.md');
+  if (!fs.existsSync(skillPath)) return null;
+  let parsed;
+  try {
+    parsed = extractAndStripFrontmatter(fs.readFileSync(skillPath, 'utf8'));
+  } catch {
+    return null;
+  }
+  return {
+    id,
+    name: parsed.frontmatter.name || id,
+    description: parsed.frontmatter.description,
+    path: skillPath,
+    content: parsed.content,
+  };
+};
+
 const partsOf = (message) => {
   if (Array.isArray(message.content)) return message.content;
   if (Array.isArray(message.parts)) return message.parts;
@@ -150,33 +168,52 @@ export default {
   setup: async (ctx) => {
     await ctx.skill.transform(async (draft) => {
       for (const id of listSkillIds()) {
-        const skillPath = path.join(SKILLS_DIR, id, 'SKILL.md');
-        if (!fs.existsSync(skillPath)) continue;
+        const skill = readSkill(id);
+        if (!skill) continue;
 
-        let parsed;
-        try {
-          parsed = extractAndStripFrontmatter(fs.readFileSync(skillPath, 'utf8'));
-        } catch {
-          continue;
-        }
-
-        const skill = {
-          id,
-          name: parsed.frontmatter.name || id,
-          path: skillPath,
-          content: parsed.content,
-        };
-        if (parsed.frontmatter.description) {
-          skill.description = parsed.frontmatter.description;
-        }
+        const payload = { id, name: skill.name, path: skill.path, content: skill.content };
+        if (skill.description) payload.description = skill.description;
 
         try {
-          await draft.add(skill);
+          await draft.add(payload);
         } catch {
           // One rejected skill must not abort the remaining registrations.
         }
       }
     });
+
+    // V2 hosts also list skills as slash commands; the command loads the skill
+    // through the model so `/brainstorming` behaves like `@brainstorming`.
+    if (ctx.command?.transform && ctx.session?.prompt) {
+      try {
+        await ctx.command.transform(async (draft) => {
+          for (const id of listSkillIds()) {
+            const skill = readSkill(id);
+            if (!skill) continue;
+
+            try {
+              await draft.add({
+                name: id,
+                description: skill.description || `Run the ${id} skill`,
+                execute: async (input) => {
+                  const { sessionID, prompt, delivery } = input ?? {};
+                  if (!sessionID) return;
+                  const args = typeof prompt?.text === 'string' ? prompt.text.trim() : '';
+                  const text =
+                    `Use the "${id}" skill: invoke it with the skill tool and follow it exactly.` +
+                    (args ? `\n\n${args}` : '');
+                  return ctx.session.prompt({ ...(prompt || {}), sessionID, text, delivery });
+                },
+              });
+            } catch {
+              // One rejected command must not abort the remaining registrations.
+            }
+          }
+        });
+      } catch {
+        // Older hosts have no command domain; skills still work without it.
+      }
+    }
 
     const classifications = new Map();
 

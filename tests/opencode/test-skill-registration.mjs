@@ -27,7 +27,13 @@ const failures = [];
 
 // --- Run 1: passive capture of every draft.add payload -------------------
 const added = [];
-await mod.default.setup(makeCtx({ add: (skill) => added.push(skill) }));
+const commands = [];
+const prompts = [];
+await mod.default.setup(makeCtx({
+  add: (skill) => added.push(skill),
+  onCommand: (command) => commands.push(command),
+  onPrompt: (input) => prompts.push(input),
+}));
 
 const expectedIds = fs.existsSync(skillsDir)
   ? fs.readdirSync(skillsDir, { withFileTypes: true })
@@ -71,6 +77,32 @@ for (const skill of added) {
   }
   if (typeof skill.content === 'string' && skill.content.startsWith('---')) {
     failures.push(`skill "${skill.id}": content still starts with the frontmatter delimiter`);
+  }
+}
+
+// --- Slash commands mirror the skills so `/id` loads the skill ----------
+// V2 hosts list plugin commands in the `/` menu; each one must prompt the
+// model with the skill id and append whatever the user typed after it.
+if (JSON.stringify(commands.map((c) => c.name).sort()) !== JSON.stringify(expectedIds)) {
+  failures.push(`expected slash commands to match skills dir contents, got ${JSON.stringify(commands.map((c) => c.name))}`);
+}
+for (const command of commands) {
+  if (typeof command.description !== 'string' || !command.description) {
+    failures.push(`command "${command.name}": expected a non-empty description`);
+  }
+}
+const sampleCommand = commands.find((c) => c.name === 'brainstorming') || commands[0];
+if (!sampleCommand) {
+  failures.push('expected at least one slash command');
+} else {
+  await sampleCommand.execute({ sessionID: 'ses_command', prompt: { text: 'build a todo list', files: [], agents: [] }, delivery: 'steer' });
+  const sent = prompts[prompts.length - 1];
+  if (!sent) {
+    failures.push(`command "${sampleCommand.name}": expected execute() to call session.prompt()`);
+  } else if (sent.sessionID !== 'ses_command') {
+    failures.push(`command "${sampleCommand.name}": expected prompt sessionID ses_command, got ${JSON.stringify(sent.sessionID)}`);
+  } else if (!sent.text.includes(`"${sampleCommand.name}"`) || !sent.text.includes('build a todo list')) {
+    failures.push(`command "${sampleCommand.name}": prompt text must name the skill and keep the user args, got ${JSON.stringify(sent.text)}`);
   }
 }
 
@@ -190,16 +222,25 @@ if (failures.length > 0) {
 
 console.log(JSON.stringify(result, null, 2));
 
-function makeCtx({ add, onHook = () => {} }) {
+function makeCtx({ add, onHook = () => {}, onCommand = () => {}, onPrompt = () => {} }) {
   return {
     skill: {
       transform: async (fn) => {
         await fn({ list: () => [], get: () => undefined, add, update: () => {}, remove: () => {} });
       },
     },
+    command: {
+      transform: async (fn) => {
+        await fn({ add: onCommand });
+      },
+    },
     session: {
       hook: async (name, callback) => onHook(name, callback),
       get: async ({ sessionID }) => ({ id: sessionID }), // top-level: no parentID
+      prompt: async (input) => {
+        onPrompt(input);
+        return { id: 'msg_test' };
+      },
     },
   };
 }
