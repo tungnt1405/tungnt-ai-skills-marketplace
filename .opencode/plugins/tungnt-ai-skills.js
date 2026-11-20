@@ -118,7 +118,7 @@ const isBootstrapPart = (part) =>
 
 // Classic OpenCode contract (<= 1.18.30): the host calls `server()` and merges
 // the returned hooks. Skills are registered by mutating the merged config.
-export const TungntAiSkillsPlugin = async () => ({
+const TungntAiSkillsPlugin = async () => ({
   config: async (config) => {
     config.skills = config.skills || {};
     config.skills.paths = config.skills.paths || [];

@@ -1,6 +1,6 @@
 {
     "type": "module",
-    "version": "2.0.7",
+    "version": "2.0.8",
     "name": "tungnt-ai-skills",
     "description": "tungnt-ai-skills skills and runtime bootstrap for coding agents",
     "main": ".opencode/plugins/tungnt-ai-skills.js",
