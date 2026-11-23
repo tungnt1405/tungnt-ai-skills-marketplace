@@ -15,10 +15,10 @@ exports the V2 plugin definition:
 export default { id: 'tungnt-ai-skills', setup }
 ```
 
-The legacy `.opencode/plugins/superpowers.js` path is an alias that re-exports the same
-`default`, so a config still pointing at it resolves to the same plugin. Use the canonical
-path for new integrations. Keep the legacy cleanup paths in the migration instructions
-when removing older installs.
+The canonical entry is `.opencode/plugins/tungnt-ai-skills.js`; the legacy
+`.opencode/plugins/superpowers.js` alias was removed so OpenCode auto-discovery
+loads a single plugin definition. Use the canonical path for all integrations. The
+installer `--native` cleanup removes legacy alias leftovers from older installs.
 
 `setup()` does two things:
 
@@ -48,7 +48,7 @@ This copies the package to `~/.config/opencode/tungnt-ai-skills/` and registers 
 `~/.config/opencode/plugins/tungnt-ai-skills.js` (symlink on Linux/macOS, plain copy on Windows).
 Update later with `tungnt-ai-skills update --agent opencode`. With `--native`, the installer instead merges the
 git-backed plugin entry shown in Method 1 into `~/.config/opencode/opencode.json` (removing any prior copy-mode
-files), so OpenCode itself manages download and caching at startup. Update natively with
+files and legacy alias leftovers), so OpenCode itself manages download and caching at startup. Update natively with
 `tungnt-ai-skills update --agent opencode --native`.
 
 ## Install Method 1: Plugin spec

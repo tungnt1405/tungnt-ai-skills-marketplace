@@ -79,6 +79,12 @@ else
 fi
 
 echo "Test 7: Checking package entry and V2 module shape..."
+if [ -e "$REPO_ROOT/.opencode/plugins/superpowers.js" ]; then
+    echo "  [FAIL] Legacy alias still exists at $REPO_ROOT/.opencode/plugins/superpowers.js"
+    exit 1
+else
+    echo "  [PASS] Legacy alias removed"
+fi
 node --input-type=module <<'NODE'
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -91,16 +97,13 @@ const canonicalPath = '.opencode/plugins/tungnt-ai-skills.js';
 assert.equal(pkg.main, canonicalPath);
 const canonical = await import(pathToFileURL(path.join(root, canonicalPath)).href);
 const entry = await import(pathToFileURL(path.join(root, pkg.main)).href);
-const legacy = await import(pathToFileURL(path.join(root, '.opencode/plugins/superpowers.js')).href);
 assert.equal(canonical.default.id, 'tungnt-ai-skills');
 assert.equal(typeof canonical.default.setup, 'function');
 assert.equal(entry.default, canonical.default);
-assert.equal(legacy.default, canonical.default);
-assert.equal(legacy.V2_MAPPING, canonical.V2_MAPPING);
 assert.equal('TungntAiSkillsPlugin' in canonical, false);
 assert.equal('SuperpowersPlugin' in canonical, false);
 assert.equal('V1_MAPPING' in canonical, false);
-console.log('  [PASS] Canonical package entry and legacy alias expose the V2 module shape');
+console.log('  [PASS] Canonical package entry exposes the V2 module shape');
 NODE
 
 echo ""
