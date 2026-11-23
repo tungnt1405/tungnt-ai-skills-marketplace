@@ -302,6 +302,11 @@ export const TARGETS = [
           path: (env = process.env) => joinHome(env, '.config', 'opencode', 'tungnt-ai-skills'),
           expectedParent: (env = process.env) => joinHome(env, '.config', 'opencode'),
         },
+        {
+          path: (env = process.env) =>
+            joinHome(env, '.config', 'opencode', 'plugins', 'superpowers.js'),
+          expectedParent: (env = process.env) => joinHome(env, '.config', 'opencode', 'plugins'),
+        },
       ],
       cachePackageDir: (env = process.env) =>
         path.join(env.XDG_CACHE_HOME || joinHome(env, '.cache'), 'opencode', 'node_modules', PLUGIN_NAME),

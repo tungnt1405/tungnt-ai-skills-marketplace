@@ -1659,6 +1659,7 @@ test('opencode nativeConfigWrite schema: config path, pinned entry, guarded clea
     [
       path.join(home, '.config', 'opencode', 'plugins', 'tungnt-ai-skills.js'),
       path.join(home, '.config', 'opencode', 'tungnt-ai-skills'),
+      path.join(home, '.config', 'opencode', 'plugins', 'superpowers.js'),
     ]
   );
   assert.deepEqual(
@@ -1666,6 +1667,7 @@ test('opencode nativeConfigWrite schema: config path, pinned entry, guarded clea
     [
       path.join(home, '.config', 'opencode', 'plugins'),
       path.join(home, '.config', 'opencode'),
+      path.join(home, '.config', 'opencode', 'plugins'),
     ]
   );
   assert.equal(target.nativeConfigWrite.cleanupPaths[0].path(env), target.registerPluginFiles[0].destination(env));
@@ -1718,12 +1720,14 @@ test('install --agent opencode --native cleans copy artifacts then writes config
   const pluginsDir = path.join(home, '.config', 'opencode', 'plugins');
   fs.mkdirSync(pluginsDir, { recursive: true });
   fs.symlinkSync(path.join(pkgDir, 'marker.txt'), path.join(pluginsDir, 'tungnt-ai-skills.js'));
+  fs.writeFileSync(path.join(pluginsDir, 'superpowers.js'), '// legacy alias leftover\n');
 
   const out = capture();
   const code = runCli(['install', '--agent', 'opencode', '--native'], env, out.io);
   assert.equal(code, 0, out.stderr());
   assert.equal(fs.existsSync(pkgDir), false, 'package dir removed');
   assert.throws(() => fs.lstatSync(path.join(pluginsDir, 'tungnt-ai-skills.js')));
+  assert.equal(fs.existsSync(path.join(pluginsDir, 'superpowers.js')), false, 'legacy alias removed');
   const parsed = JSON.parse(fs.readFileSync(path.join(home, '.config', 'opencode', 'opencode.json'), 'utf8'));
   assert.deepEqual(parsed.plugin, [getTargetById('opencode').nativeConfigWrite.pluginEntry]);
 });
