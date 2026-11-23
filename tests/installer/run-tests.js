@@ -1049,9 +1049,9 @@ test('agy install writes the shared Antigravity root hooks manifest', () => {
   const command = hooks['tungnt-ai-skills-bootstrap'].PreInvocation[0].command;
 
   assert.equal(code, 0, out.stderr());
-  assert.equal(command, process.platform === 'linux'
-    ? `bash "${path.join(destination, 'hooks', 'run-hook.cmd')}" antigravity-pre-invocation`
-    : '%USERPROFILE%\\.gemini\\config\\plugins\\tungnt-ai-skills\\hooks\\run-hook.cmd antigravity-pre-invocation');
+  assert.equal(command, process.platform === 'win32'
+    ? '%USERPROFILE%\\.gemini\\config\\plugins\\tungnt-ai-skills\\hooks\\run-hook.cmd antigravity-pre-invocation'
+    : `bash "${path.join(destination, 'hooks', 'run-hook.cmd')}" antigravity-pre-invocation`);
 });
 
 test('agy install registers absolute PreInvocation in global config hooks.json', () => {
@@ -1070,9 +1070,9 @@ test('agy install registers absolute PreInvocation in global config hooks.json',
     'run-hook.cmd'
   );
 
-  assert.equal(command, process.platform === 'linux'
-    ? `bash "${expectedScript}" antigravity-pre-invocation`
-    : '%USERPROFILE%\\.gemini\\antigravity-cli\\plugins\\tungnt-ai-skills\\hooks\\run-hook.cmd antigravity-pre-invocation');
+  assert.equal(command, process.platform === 'win32'
+    ? '%USERPROFILE%\\.gemini\\antigravity-cli\\plugins\\tungnt-ai-skills\\hooks\\run-hook.cmd antigravity-pre-invocation'
+    : `bash "${expectedScript}" antigravity-pre-invocation`);
   assert.equal(out.stdout().includes('Registered global Antigravity hooks'), true, out.stdout());
 });
 
@@ -1161,8 +1161,8 @@ test('global config hooks.json merge preserves foreign hook groups on install an
   assert.equal(hooks['tungnt-ai-skills-bootstrap'].PreInvocation.length, 1);
 });
 
-test('linux install/update rewrites Antigravity hook commands to bash with spaces in HOME', () => {
-  if (process.platform !== 'linux') return;
+test('posix install/update rewrites Antigravity hook commands to bash with spaces in HOME', () => {
+  if (process.platform === 'win32') return;
   for (const id of ['agy', 'antigravity', 'antigravity-ide']) {
     const home = path.join(tempDir(), 'home with spaces');
     const env = fakeEnv(home);
@@ -1199,6 +1199,30 @@ test('linux install/update rewrites Antigravity hook commands to bash with space
         if (args && file === globalFile) assert.deepEqual(manifest.foreign, foreign);
       }
     }
+  }
+});
+
+test('darwin install rewrites Antigravity hook commands instead of copying Windows paths', () => {
+  const original = Object.getOwnPropertyDescriptor(process, 'platform');
+  Object.defineProperty(process, 'platform', { ...original, value: 'darwin' });
+  try {
+    for (const id of ['agy', 'antigravity', 'antigravity-ide']) {
+      const home = tempDir();
+      const env = fakeEnv(home);
+      const out = capture();
+      const plugin = getTargetById(id).defaultTarget(env);
+      assert.equal(runCli(['install', '--agent', id], env, out.io), 0, out.stderr());
+      for (const file of [path.join(plugin, 'hooks.json'), path.join(home, '.gemini', 'config', 'hooks.json')]) {
+        const group = JSON.parse(fs.readFileSync(file, 'utf8'))['tungnt-ai-skills-bootstrap'];
+        for (const command of [group.PreInvocation[0].command, group.PreToolUse[0].hooks[0].command]) {
+          assert.ok(command.startsWith('bash "'), `${id} ${file}: ${command}`);
+          assert.ok(command.includes(plugin), `${id} ${file}: ${command}`);
+          assert.ok(!command.includes('%USERPROFILE%'), `${id} ${file}: ${command}`);
+        }
+      }
+    }
+  } finally {
+    Object.defineProperty(process, 'platform', original);
   }
 });
 
